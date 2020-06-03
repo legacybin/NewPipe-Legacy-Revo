@@ -12,7 +12,6 @@ import android.preference.PreferenceManager;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
-import android.text.util.Linkify;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -100,8 +99,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import icepick.State;
-import io.noties.markwon.Markwon;
-import io.noties.markwon.linkify.LinkifyPlugin;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -1041,15 +1038,8 @@ public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
                         videoDescriptionView.setText(spanned);
                         videoDescriptionView.setVisibility(View.VISIBLE);
                     }));
-        } else if (description.getType() == Description.MARKDOWN) {
-            final Markwon markwon = Markwon.builder(getContext())
-                    .usePlugin(LinkifyPlugin.create())
-                    .build();
-            markwon.setMarkdown(videoDescriptionView, description.getContent());
-            videoDescriptionView.setVisibility(View.VISIBLE);
         } else {
             //== Description.PLAIN_TEXT
-            videoDescriptionView.setAutoLinkMask(Linkify.WEB_URLS);
             videoDescriptionView.setText(description.getContent(), TextView.BufferType.SPANNABLE);
             videoDescriptionView.setVisibility(View.VISIBLE);
         }
