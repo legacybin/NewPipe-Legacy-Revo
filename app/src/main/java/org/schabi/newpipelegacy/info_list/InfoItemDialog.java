@@ -3,12 +3,13 @@ package org.schabi.newpipelegacy.info_list;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.view.View;
 import android.widget.TextView;
 
 import org.schabi.newpipelegacy.R;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 
 public class InfoItemDialog {

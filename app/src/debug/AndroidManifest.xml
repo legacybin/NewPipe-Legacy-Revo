@@ -13,5 +13,4 @@
             android:label="NewPipe Legacy Debug"
             tools:replace="android:label"/>
     </application>
-
 </manifest>
