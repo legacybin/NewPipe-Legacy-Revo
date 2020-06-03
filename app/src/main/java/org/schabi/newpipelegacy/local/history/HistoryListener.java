@@ -8,7 +8,7 @@ import org.schabi.newpipe.extractor.stream.VideoStream;
 
 public interface HistoryListener {
     /**
-     * Called when a video is played
+     * Called when a video is played.
      *
      * @param streamInfo  the stream info
      * @param videoStream the video stream that is played. Can be null if it's not sure what
@@ -17,7 +17,7 @@ public interface HistoryListener {
     void onVideoPlayed(StreamInfo streamInfo, @Nullable VideoStream videoStream);
 
     /**
-     * Called when the audio is played in the background
+     * Called when the audio is played in the background.
      *
      * @param streamInfo  the stream info
      * @param audioStream the audio stream that is played
@@ -25,7 +25,7 @@ public interface HistoryListener {
     void onAudioPlayed(StreamInfo streamInfo, AudioStream audioStream);
 
     /**
-     * Called when the user searched for something
+     * Called when the user searched for something.
      *
      * @param serviceId which service the search was done
      * @param query     what the user searched for

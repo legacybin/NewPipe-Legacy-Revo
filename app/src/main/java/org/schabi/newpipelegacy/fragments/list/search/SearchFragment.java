@@ -41,7 +41,6 @@ import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.exceptions.ParsingException;
 import org.schabi.newpipe.extractor.search.SearchExtractor;
 import org.schabi.newpipe.extractor.search.SearchInfo;
-import org.schabi.newpipelegacy.util.FireTvUtils;
 import org.schabi.newpipelegacy.fragments.BackPressable;
 import org.schabi.newpipelegacy.fragments.list.BaseListFragment;
 import org.schabi.newpipelegacy.local.history.HistoryRecordManager;

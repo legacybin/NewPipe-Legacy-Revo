@@ -26,7 +26,6 @@ import org.schabi.newpipelegacy.report.AcraReportSenderFactory;
 import org.schabi.newpipelegacy.report.ErrorActivity;
 import org.schabi.newpipelegacy.report.UserAction;
 import org.schabi.newpipelegacy.settings.SettingsActivity;
-import org.schabi.newpipelegacy.util.ExtractorHelper;
 import org.schabi.newpipelegacy.util.Localization;
 import org.schabi.newpipelegacy.util.ServiceHelper;
 import org.schabi.newpipelegacy.util.StateSaver;

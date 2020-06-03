@@ -41,7 +41,7 @@ import java.util.List;
  * A JSON implementation capable of importing and exporting subscriptions, it has the advantage
  * of being able to transfer subscriptions to any device.
  */
-public class ImportExportJsonHelper {
+public final class ImportExportJsonHelper {
 
     /*//////////////////////////////////////////////////////////////////////////
     // Json implementation
@@ -56,21 +56,32 @@ public class ImportExportJsonHelper {
     private static final String JSON_URL_KEY = "url";
     private static final String JSON_NAME_KEY = "name";
 
+    private ImportExportJsonHelper() {
+        // not call
+    }
+
     /**
      * Read a JSON source through the input stream and return the parsed subscription items.
      *
      * @param in            the input stream (e.g. a file)
-     * @param eventListener listener for the events generated
+     * @param event listener for the events generated
+     * @return List<SubscriptionItem> the list of subscription
      */
-    public static List<SubscriptionItem> readFrom(InputStream in, @Nullable ImportExportEventListener eventListener) throws InvalidSourceException {
-        if (in == null) throw new InvalidSourceException("input is null");
+    public static List<SubscriptionItem> readFrom(final InputStream in,
+                                                  final @Nullable ImportExportEventListener event)
+            throws InvalidSourceException {
+        if (in == null) {
+            throw new InvalidSourceException("input is null");
+        }
 
         final List<SubscriptionItem> channels = new ArrayList<>();
 
         try {
             JsonObject parentObject = JsonParser.object().from(in);
             JsonArray channelsArray = parentObject.getArray(JSON_SUBSCRIPTIONS_ARRAY_KEY);
-            if (eventListener != null) eventListener.onSizeReceived(channelsArray.size());
+            if (event != null) {
+                event.onSizeReceived(channelsArray.size());
+            }
 
             if (channelsArray == null) {
                 throw new InvalidSourceException("Channels array is null");
@@ -85,7 +96,9 @@ public class ImportExportJsonHelper {
 
                     if (url != null && name != null && !url.isEmpty() && !name.isEmpty()) {
                         channels.add(new SubscriptionItem(serviceId, url, name));
-                        if (eventListener != null) eventListener.onItemCompleted(name);
+                        if (event != null) {
+                            event.onItemCompleted(name);
+                        }
                     }
                 }
             }
@@ -101,19 +114,28 @@ public class ImportExportJsonHelper {
      *
      * @param items         the list of subscriptions items
      * @param out           the output stream (e.g. a file)
-     * @param eventListener listener for the events generated
+     * @param event listener for the events generated
      */
-    public static void writeTo(List<SubscriptionItem> items, OutputStream out, @Nullable ImportExportEventListener eventListener) {
+    public static void writeTo(final List<SubscriptionItem> items,
+                               final OutputStream out,
+                               final @Nullable ImportExportEventListener event) {
         JsonAppendableWriter writer = JsonWriter.on(out);
-        writeTo(items, writer, eventListener);
+        writeTo(items, writer, event);
         writer.done();
     }
 
     /**
      * @see #writeTo(List, OutputStream, ImportExportEventListener)
+     * @param items         the list of subscriptions items
+     * @param writer        the writer
+     * @param eventListener listener for the events generated
      */
-    public static void writeTo(List<SubscriptionItem> items, JsonSink writer, @Nullable ImportExportEventListener eventListener) {
-        if (eventListener != null) eventListener.onSizeReceived(items.size());
+    public static void writeTo(final List<SubscriptionItem> items,
+                               final JsonSink writer,
+                               final @Nullable ImportExportEventListener eventListener) {
+        if (eventListener != null) {
+            eventListener.onSizeReceived(items.size());
+        }
 
         writer.object();
 
@@ -128,7 +150,9 @@ public class ImportExportJsonHelper {
             writer.value(JSON_NAME_KEY, item.getName());
             writer.end();
 
-            if (eventListener != null) eventListener.onItemCompleted(item.getName());
+            if (eventListener != null) {
+                eventListener.onItemCompleted(item.getName());
+            }
         }
         writer.end();
 

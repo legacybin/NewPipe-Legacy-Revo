@@ -23,7 +23,6 @@ import com.google.android.material.tabs.TabLayout;
 
 import org.schabi.newpipelegacy.BuildConfig;
 import org.schabi.newpipelegacy.R;
-import org.schabi.newpipelegacy.util.NavigationHelper;
 import org.schabi.newpipelegacy.util.ThemeHelper;
 
 import static org.schabi.newpipelegacy.util.Localization.assureCorrectAppLanguage;

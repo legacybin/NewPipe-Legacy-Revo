@@ -13,8 +13,6 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import android.view.*;
-import android.widget.TextView;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.util.ShareUtils;
 

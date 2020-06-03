@@ -22,7 +22,6 @@ import org.schabi.newpipelegacy.ReCaptchaActivity;
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
 import org.schabi.newpipelegacy.report.ErrorActivity;
 import org.schabi.newpipelegacy.report.UserAction;
-import org.schabi.newpipelegacy.util.ExtractorHelper;
 import org.schabi.newpipelegacy.util.InfoCache;
 
 import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException;

@@ -10,7 +10,6 @@ import org.schabi.newpipelegacy.database.feed.model.FeedEntity;
 import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity;
 import org.schabi.newpipelegacy.database.feed.model.FeedGroupSubscriptionEntity;
 import org.schabi.newpipelegacy.database.feed.model.FeedLastUpdatedEntity;
-import org.schabi.newpipelegacy.database.Converters;
 import org.schabi.newpipelegacy.database.history.dao.SearchHistoryDAO;
 import org.schabi.newpipelegacy.database.history.dao.StreamHistoryDAO;
 import org.schabi.newpipelegacy.database.history.model.SearchHistoryEntry;

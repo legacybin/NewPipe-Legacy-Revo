@@ -18,7 +18,6 @@ import androidx.preference.Preference;
 import com.nononsenseapps.filepicker.Utils;
 
 import org.schabi.newpipelegacy.R;
-import org.schabi.newpipelegacy.settings.BasePreferenceFragment;
 import org.schabi.newpipelegacy.util.FilePickerActivityHelper;
 
 import java.io.File;

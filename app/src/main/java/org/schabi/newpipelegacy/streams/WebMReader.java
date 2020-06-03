@@ -5,7 +5,6 @@ import org.schabi.newpipelegacy.streams.io.SharpStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
@@ -15,48 +14,41 @@ import java.util.NoSuchElementException;
  */
 public class WebMReader {
 
-    private final static int ID_EMBL = 0x0A45DFA3;
-    private final static int ID_EMBLReadVersion = 0x02F7;
-    private final static int ID_EMBLDocType = 0x0282;
-    private final static int ID_EMBLDocTypeReadVersion = 0x0285;
+    static final int ID_EMBL = 0x0A45DFA3;
+    static final int ID_EMBL_READ_VERSION = 0x02F7;
+    static final int ID_EMBLDOC_TYPE = 0x0282;
+    static final int ID_EMBL_DOC_TYPE_READ_VERSION = 0x0285;
 
-    private final static int ID_Segment = 0x08538067;
+    static final int ID_SEGMENT = 0x08538067;
 
-    private final static int ID_Info = 0x0549A966;
-    private final static int ID_TimecodeScale = 0x0AD7B1;
-    private final static int ID_Duration = 0x489;
+    static final int ID_INFO = 0x0549A966;
+    static final int ID_TIMECODE_SCALE = 0x0AD7B1;
+    static final int ID_DURATION = 0x489;
 
-    private final static int ID_Tracks = 0x0654AE6B;
-    private final static int ID_TrackEntry = 0x2E;
-    private final static int ID_TrackNumber = 0x57;
-    private final static int ID_TrackType = 0x03;
-    private final static int ID_CodecID = 0x06;
-    private final static int ID_CodecPrivate = 0x23A2;
-    private final static int ID_Video = 0x60;
-    private final static int ID_Audio = 0x61;
-    private final static int ID_DefaultDuration = 0x3E383;
-    private final static int ID_FlagLacing = 0x1C;
-    private final static int ID_CodecDelay = 0x16AA;
+    static final int ID_TRACKS = 0x0654AE6B;
+    static final int ID_TRACK_ENTRY = 0x2E;
+    static final int ID_TRACK_NUMBER = 0x57;
+    static final int ID_TRACK_TYPE = 0x03;
+    static final int ID_CODEC_ID = 0x06;
+    static final int ID_CODEC_PRIVATE = 0x23A2;
+    static final int ID_VIDEO = 0x60;
+    static final int ID_AUDIO = 0x61;
+    static final int ID_DEFAULT_DURATION = 0x3E383;
+    static final int ID_FLAG_LACING = 0x1C;
+    static final int ID_CODEC_DELAY = 0x16AA;
 
-    private final static int ID_Cluster = 0x0F43B675;
-    private final static int ID_Timecode = 0x67;
-    private final static int ID_SimpleBlock = 0x23;
-    private final static int ID_Block = 0x21;
-    private final static int ID_GroupBlock = 0x20;
-
-
-    public enum TrackKind {
-        Audio/*2*/, Video/*1*/, Other
-    }
-
+    static final int ID_CLUSTER = 0x0F43B675;
+    static final int ID_TIMECODE = 0x67;
+    static final int ID_SIMPLE_BLOCK = 0x23;
+    static final int ID_BLOCK = 0x21;
+    static final int ID_GROUP_BLOCK = 0x20;
     private DataReader stream;
     private Segment segment;
     private WebMTrack[] tracks;
     private int selectedTrack;
     private boolean done;
     private boolean firstSegment;
-
-    public WebMReader(SharpStream source) {
+    public WebMReader(final SharpStream source) {
         this.stream = new DataReader(source);
     }
 
@@ -67,7 +59,7 @@ public class WebMReader {
         }
         ensure(elem);
 
-        elem = untilElement(null, ID_Segment);
+        elem = untilElement(null, ID_SEGMENT);
         if (elem == null) {
             throw new IOException("Fragment element not found");
         }
@@ -82,7 +74,7 @@ public class WebMReader {
         return tracks;
     }
 
-    public WebMTrack selectTrack(int index) {
+    public WebMTrack selectTrack(final int index) {
         selectedTrack = index;
         return tracks[index];
     }
@@ -99,7 +91,7 @@ public class WebMReader {
 
         ensure(segment.ref);
         // WARNING: track cannot be the same or have different index in new segments
-        Element elem = untilElement(null, ID_Segment);
+        Element elem = untilElement(null, ID_SEGMENT);
         if (elem == null) {
             done = true;
             return null;
@@ -109,9 +101,7 @@ public class WebMReader {
         return segment;
     }
 
-
-
-    private long readNumber(Element parent) throws IOException {
+    private long readNumber(final Element parent) throws IOException {
         int length = (int) parent.contentSize;
         long value = 0;
         while (length-- > 0) {
@@ -124,11 +114,11 @@ public class WebMReader {
         return value;
     }
 
-    private String readString(Element parent) throws IOException {
-        return new String(readBlob(parent), "utf-8");// or use "utf-8"
+    private String readString(final Element parent) throws IOException {
+        return new String(readBlob(parent), "utf-8"); // or use "utf-8"
     }
 
-    private byte[] readBlob(Element parent) throws IOException {
+    private byte[] readBlob(final Element parent) throws IOException {
         long length = parent.contentSize;
         byte[] buffer = new byte[(int) length];
         int read = stream.read(buffer);
@@ -179,16 +169,19 @@ public class WebMReader {
         return elem;
     }
 
-    private Element readElement(int expected) throws IOException {
+    private Element readElement(final int expected) throws IOException {
         Element elem = readElement();
         if (expected != 0 && elem.type != expected) {
-            throw new NoSuchElementException("expected " + elementID(expected) + " found " + elementID(elem.type));
+            throw new NoSuchElementException(
+                    "expected " + elementID(expected)
+                            +
+                            " found " + elementID(elem.type));
         }
 
         return elem;
     }
 
-    private Element untilElement(Element ref, int... expected) throws IOException {
+    private Element untilElement(final Element ref, final int... expected) throws IOException {
         Element elem;
         while (ref == null ? stream.available() : (stream.position() < (ref.offset + ref.size))) {
             elem = readElement();
@@ -207,11 +200,11 @@ public class WebMReader {
         return null;
     }
 
-    private String elementID(long type) {
+    private String elementID(final long type) {
         return "0x".concat(Long.toHexString(type));
     }
 
-    private void ensure(Element ref) throws IOException {
+    private void ensure(final Element ref) throws IOException {
         long skip = (ref.offset + ref.size) - stream.position();
 
         if (skip == 0) {
@@ -226,10 +219,11 @@ public class WebMReader {
         stream.skipBytes(skip);
     }
 
-
-
-    private boolean readEbml(Element ref, int minReadVersion, int minDocTypeVersion) throws IOException {
-        Element elem = untilElement(ref, ID_EMBLReadVersion);
+    private boolean readEbml(final Element ref,
+                             final int minReadVersion,
+                             final int minDocTypeVersion)
+            throws IOException {
+        Element elem = untilElement(ref, ID_EMBL_READ_VERSION);
         if (elem == null) {
             return false;
         }
@@ -237,28 +231,28 @@ public class WebMReader {
             return false;
         }
 
-        elem = untilElement(ref, ID_EMBLDocType);
+        elem = untilElement(ref, ID_EMBLDOC_TYPE);
         if (elem == null) {
             return false;
         }
         if (!readString(elem).equals("webm")) {
             return false;
         }
-        elem = untilElement(ref, ID_EMBLDocTypeReadVersion);
+        elem = untilElement(ref, ID_EMBL_DOC_TYPE_READ_VERSION);
 
         return elem != null && readNumber(elem) <= minDocTypeVersion;
     }
 
-    private Info readInfo(Element ref) throws IOException {
+    private Info readInfo(final Element ref) throws IOException {
         Element elem;
         Info info = new Info();
 
-        while ((elem = untilElement(ref, ID_TimecodeScale, ID_Duration)) != null) {
+        while ((elem = untilElement(ref, ID_TIMECODE_SCALE, ID_DURATION)) != null) {
             switch (elem.type) {
-                case ID_TimecodeScale:
+                case ID_TIMECODE_SCALE:
                     info.timecodeScale = readNumber(elem);
                     break;
-                case ID_Duration:
+                case ID_DURATION:
                     info.duration = readNumber(elem);
                     break;
             }
@@ -272,19 +266,22 @@ public class WebMReader {
         return info;
     }
 
-    private Segment readSegment(Element ref, int trackLacingExpected, boolean metadataExpected) throws IOException {
+    private Segment readSegment(final Element ref,
+                                final int trackLacingExpected,
+                                final boolean metadataExpected)
+            throws IOException {
         Segment obj = new Segment(ref);
         Element elem;
-        while ((elem = untilElement(ref, ID_Info, ID_Tracks, ID_Cluster)) != null) {
-            if (elem.type == ID_Cluster) {
+        while ((elem = untilElement(ref, ID_INFO, ID_TRACKS, ID_CLUSTER)) != null) {
+            if (elem.type == ID_CLUSTER) {
                 obj.currentCluster = elem;
                 break;
             }
             switch (elem.type) {
-                case ID_Info:
+                case ID_INFO:
                     obj.info = readInfo(elem);
                     break;
-                case ID_Tracks:
+                case ID_TRACKS:
                     obj.tracks = readTracks(elem, trackLacingExpected);
                     break;
             }
@@ -292,45 +289,48 @@ public class WebMReader {
         }
 
         if (metadataExpected && (obj.info == null || obj.tracks == null)) {
-            throw new RuntimeException("Cluster element found without Info and/or Tracks element at position " + String.valueOf(ref.offset));
+            throw new RuntimeException(
+                    "Cluster element found without Info and/or Tracks element at position "
+                            +
+                            String.valueOf(ref.offset));
         }
 
         return obj;
     }
 
-    private WebMTrack[] readTracks(Element ref, int lacingExpected) throws IOException {
+    private WebMTrack[] readTracks(final Element ref, final int lacingExpected) throws IOException {
         ArrayList<WebMTrack> trackEntries = new ArrayList<>(2);
-        Element elem_trackEntry;
+        Element elemTrackEntry;
 
-        while ((elem_trackEntry = untilElement(ref, ID_TrackEntry)) != null) {
+        while ((elemTrackEntry = untilElement(ref, ID_TRACK_ENTRY)) != null) {
             WebMTrack entry = new WebMTrack();
             boolean drop = false;
             Element elem;
-            while ((elem = untilElement(elem_trackEntry)) != null) {
+            while ((elem = untilElement(elemTrackEntry)) != null) {
                 switch (elem.type) {
-                    case ID_TrackNumber:
+                    case ID_TRACK_NUMBER:
                         entry.trackNumber = readNumber(elem);
                         break;
-                    case ID_TrackType:
+                    case ID_TRACK_TYPE:
                         entry.trackType = (int) readNumber(elem);
                         break;
-                    case ID_CodecID:
+                    case ID_CODEC_ID:
                         entry.codecId = readString(elem);
                         break;
-                    case ID_CodecPrivate:
+                    case ID_CODEC_PRIVATE:
                         entry.codecPrivate = readBlob(elem);
                         break;
-                    case ID_Audio:
-                    case ID_Video:
+                    case ID_AUDIO:
+                    case ID_VIDEO:
                         entry.bMetadata = readBlob(elem);
                         break;
-                    case ID_DefaultDuration:
+                    case ID_DEFAULT_DURATION:
                         entry.defaultDuration = readNumber(elem);
                         break;
-                    case ID_FlagLacing:
+                    case ID_FLAG_LACING:
                         drop = readNumber(elem) != lacingExpected;
                         break;
-                    case ID_CodecDelay:
+                    case ID_CODEC_DELAY:
                         entry.codecDelay = readNumber(elem);
                     default:
                         break;
@@ -340,7 +340,7 @@ public class WebMReader {
             if (!drop) {
                 trackEntries.add(entry);
             }
-            ensure(elem_trackEntry);
+            ensure(elemTrackEntry);
         }
 
         WebMTrack[] entries = new WebMTrack[trackEntries.size()];
@@ -363,34 +363,43 @@ public class WebMReader {
         return entries;
     }
 
-    private SimpleBlock readSimpleBlock(Element ref) throws IOException {
+    private SimpleBlock readSimpleBlock(final Element ref) throws IOException {
         SimpleBlock obj = new SimpleBlock(ref);
         obj.trackNumber = readEncodedNumber();
         obj.relativeTimeCode = stream.readShort();
         obj.flags = (byte) stream.read();
         obj.dataSize = (int) ((ref.offset + ref.size) - stream.position());
-        obj.createdFromBlock = ref.type == ID_Block;
+        obj.createdFromBlock = ref.type == ID_BLOCK;
 
         // NOTE: lacing is not implemented, and will be mixed with the stream data
         if (obj.dataSize < 0) {
-            throw new IOException(String.format("Unexpected SimpleBlock element size, missing %s bytes", -obj.dataSize));
+            throw new IOException(
+                    String.format("Unexpected SimpleBlock element size, missing %s bytes",
+                            -obj.dataSize));
         }
         return obj;
     }
 
-    private Cluster readCluster(Element ref) throws IOException {
+    private Cluster readCluster(final Element ref) throws IOException {
         Cluster obj = new Cluster(ref);
 
-        Element elem = untilElement(ref, ID_Timecode);
+        Element elem = untilElement(ref, ID_TIMECODE);
         if (elem == null) {
-            throw new NoSuchElementException("Cluster at " + String.valueOf(ref.offset) + " without Timecode element");
+            throw new NoSuchElementException(
+                    "Cluster at "
+                            +
+                            String.valueOf(ref.offset)
+                            +
+                            " without Timecode element");
         }
         obj.timecode = readNumber(elem);
 
         return obj;
     }
 
-
+    public enum TrackKind {
+        Audio/*2*/, Video/*1*/, Other
+    }
 
     class Element {
 
@@ -409,27 +418,26 @@ public class WebMReader {
     public class WebMTrack {
 
         public long trackNumber;
-        protected int trackType;
         public String codecId;
         public byte[] codecPrivate;
         public byte[] bMetadata;
         public TrackKind kind;
         public long defaultDuration;
         public long codecDelay;
+        protected int trackType;
     }
 
     public class Segment {
 
-        Segment(Element ref) {
+        final Element ref;
+        public Info info;
+        WebMTrack[] tracks;
+        boolean firstClusterInSegment;
+        private Element currentCluster;
+        Segment(final Element ref) {
             this.ref = ref;
             this.firstClusterInSegment = true;
         }
-
-        public Info info;
-        WebMTrack[] tracks;
-        private Element currentCluster;
-        private final Element ref;
-        boolean firstClusterInSegment;
 
         public Cluster getNextCluster() throws IOException {
             if (done) {
@@ -441,7 +449,7 @@ public class WebMReader {
             }
             ensure(segment.currentCluster);
 
-            Element elem = untilElement(segment.ref, ID_Cluster);
+            Element elem = untilElement(segment.ref, ID_CLUSTER);
             if (elem == null) {
                 return null;
             }
@@ -454,19 +462,17 @@ public class WebMReader {
 
     public class SimpleBlock {
 
+        final Element ref;
         public InputStream data;
         public boolean createdFromBlock;
-
-        SimpleBlock(Element ref) {
-            this.ref = ref;
-        }
-
         public long trackNumber;
         public short relativeTimeCode;
         public long absoluteTimeCodeNs;
         public byte flags;
         public int dataSize;
-        private final Element ref;
+        SimpleBlock(final Element ref) {
+            this.ref = ref;
+        }
 
         public boolean isKeyframe() {
             return (flags & 0x80) == 0x80;
@@ -475,12 +481,12 @@ public class WebMReader {
 
     public class Cluster {
 
+        public long timecode;
         Element ref;
         SimpleBlock currentSimpleBlock = null;
         Element currentBlockGroup = null;
-        public long timecode;
 
-        Cluster(Element ref) {
+        Cluster(final Element ref) {
             this.ref = ref;
         }
 
@@ -502,14 +508,14 @@ public class WebMReader {
             }
 
             while (!insideClusterBounds()) {
-                Element elem = untilElement(ref, ID_SimpleBlock, ID_GroupBlock);
+                Element elem = untilElement(ref, ID_SIMPLE_BLOCK, ID_GROUP_BLOCK);
                 if (elem == null) {
                     return null;
                 }
 
-                if (elem.type == ID_GroupBlock) {
+                if (elem.type == ID_GROUP_BLOCK) {
                     currentBlockGroup = elem;
-                    elem = untilElement(currentBlockGroup, ID_Block);
+                    elem = untilElement(currentBlockGroup, ID_BLOCK);
 
                     if (elem == null) {
                         ensure(currentBlockGroup);
@@ -523,7 +529,10 @@ public class WebMReader {
                     currentSimpleBlock.data = stream.getView((int) currentSimpleBlock.dataSize);
 
                     // calculate the timestamp in nanoseconds
-                    currentSimpleBlock.absoluteTimeCodeNs = currentSimpleBlock.relativeTimeCode + this.timecode;
+                    currentSimpleBlock.absoluteTimeCodeNs =
+                            currentSimpleBlock.relativeTimeCode
+                                    +
+                                    this.timecode;
                     currentSimpleBlock.absoluteTimeCodeNs *= segment.info.timecodeScale;
 
                     return currentSimpleBlock;

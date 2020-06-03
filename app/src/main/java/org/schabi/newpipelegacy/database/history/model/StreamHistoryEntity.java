@@ -15,7 +15,7 @@ import static androidx.room.ForeignKey.CASCADE;
 import static org.schabi.newpipelegacy.database.history.model.StreamHistoryEntity.JOIN_STREAM_ID;
 import static org.schabi.newpipelegacy.database.history.model.StreamHistoryEntity.STREAM_ACCESS_DATE;
 import static org.schabi.newpipelegacy.database.history.model.StreamHistoryEntity.STREAM_HISTORY_TABLE;
-import static org.schabi.newpipelegacy.database.stream.model.StreamEntity.*;
+import static org.schabi.newpipelegacy.database.stream.model.StreamEntity.STREAM_ID;
 
 @Entity(tableName = STREAM_HISTORY_TABLE,
         primaryKeys = {JOIN_STREAM_ID, STREAM_ACCESS_DATE},

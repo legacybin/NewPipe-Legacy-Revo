@@ -18,9 +18,6 @@ import java.util.List;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.util.PermissionHelper;
 
-import java.util.LinkedList;
-import java.util.List;
-
 public class VideoAudioSettingsFragment extends BasePreferenceFragment {
     private SharedPreferences.OnSharedPreferenceChangeListener listener;
 

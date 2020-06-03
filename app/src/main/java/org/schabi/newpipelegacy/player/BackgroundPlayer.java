@@ -49,7 +49,6 @@ import org.schabi.newpipelegacy.BuildConfig;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipelegacy.player.event.PlayerEventListener;
-import org.schabi.newpipelegacy.player.helper.LockManager;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueueItem;
 import org.schabi.newpipelegacy.player.resolver.AudioPlaybackResolver;
 import org.schabi.newpipelegacy.player.resolver.MediaSourceTag;

@@ -32,8 +32,6 @@ import com.google.android.material.snackbar.Snackbar;
 import com.grack.nanojson.JsonWriter;
 
 import org.acra.ReportField;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.schabi.newpipelegacy.ActivityCommunicator;
 import org.schabi.newpipelegacy.BuildConfig;
 import org.schabi.newpipelegacy.MainActivity;

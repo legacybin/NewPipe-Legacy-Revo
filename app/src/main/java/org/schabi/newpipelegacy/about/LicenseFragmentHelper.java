@@ -9,7 +9,6 @@ import android.webkit.WebView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import android.webkit.WebView;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.util.ThemeHelper;
 

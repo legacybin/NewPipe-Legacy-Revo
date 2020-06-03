@@ -68,7 +68,6 @@ import org.schabi.newpipelegacy.BuildConfig;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipelegacy.player.event.PlayerEventListener;
-import org.schabi.newpipelegacy.player.helper.LockManager;
 import org.schabi.newpipelegacy.player.helper.PlayerHelper;
 import org.schabi.newpipelegacy.player.resolver.MediaSourceTag;
 import org.schabi.newpipelegacy.player.resolver.VideoPlaybackResolver;

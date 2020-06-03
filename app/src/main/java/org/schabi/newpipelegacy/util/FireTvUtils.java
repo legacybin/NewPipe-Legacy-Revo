@@ -2,9 +2,13 @@ package org.schabi.newpipelegacy.util;
 
 import org.schabi.newpipelegacy.App;
 
-public class FireTvUtils {
-    public static boolean isFireTv(){
-        final String AMAZON_FEATURE_FIRE_TV = "amazon.hardware.fire_tv";
-        return App.getApp().getPackageManager().hasSystemFeature(AMAZON_FEATURE_FIRE_TV);
+public final class FireTvUtils {
+    private FireTvUtils() {
+        // not call
+    }
+
+    public static boolean isFireTv() {
+        final String amazonFeatureFireTv = "amazon.hardware.fire_tv";
+        return App.getApp().getPackageManager().hasSystemFeature(amazonFeatureFireTv);
     }
 }
