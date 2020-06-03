@@ -315,6 +315,10 @@ public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
         if (DEBUG) {
             Log.d(TAG, "onDestroyView() called");
         }
+
+        // fix back to main fragment crash when using clicking back button on toolbar
+        clearSpinnerAdapter();
+
         spinnerToolbar.setOnItemSelectedListener(null);
         spinnerToolbar.setAdapter(null);
         super.onDestroyView();
@@ -792,6 +796,8 @@ public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
         // That means that we are on the start of the stack,
         // return false to let the MainActivity handle the onBack
         if (stack.size() <= 1) {
+            // fix back to main fragment crash when using only back button
+            clearSpinnerAdapter();
             return false;
         }
         // Remove top
@@ -1414,5 +1420,17 @@ public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
                     animateView(positionView, false, 500);
                     animateView(detailPositionView, false, 500);
                 });
+    }
+
+    private void clearSpinnerAdapter() {
+        spinnerToolbar = activity.findViewById(R.id.toolbar).findViewById(R.id.toolbar_spinner);
+
+        StreamItemAdapter<VideoStream, Stream> spinnerToolbarAdapter =
+                (StreamItemAdapter<VideoStream, Stream>) spinnerToolbar.getAdapter();
+
+        if (spinnerToolbarAdapter != null) {
+            spinnerToolbarAdapter.getAll().clear();
+            spinnerToolbarAdapter.notifyDataSetChanged();
+        }
     }
 }
