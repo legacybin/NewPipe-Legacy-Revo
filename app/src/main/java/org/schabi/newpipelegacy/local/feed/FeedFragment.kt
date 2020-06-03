@@ -44,7 +44,6 @@ import kotlinx.android.synthetic.main.fragment_feed.loading_progress_text
 import kotlinx.android.synthetic.main.fragment_feed.refresh_root_view
 import kotlinx.android.synthetic.main.fragment_feed.refresh_subtitle_text
 import kotlinx.android.synthetic.main.fragment_feed.refresh_text
-import org.schabi.newpipelegacy.local.feed.FeedState
 import org.schabi.newpipelegacy.R
 import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity
 import org.schabi.newpipelegacy.fragments.list.BaseListFragment

@@ -1,21 +1,16 @@
 package org.schabi.newpipelegacy.database.stream.model
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.Ignore
-import androidx.room.Index
-import androidx.room.PrimaryKey
-import java.io.Serializable
-import java.util.Calendar
-import java.util.Date
-import org.schabi.newpipelegacy.database.stream.model.StreamEntity.Companion.STREAM_SERVICE_ID
-import org.schabi.newpipelegacy.database.stream.model.StreamEntity.Companion.STREAM_TABLE
-import org.schabi.newpipelegacy.database.stream.model.StreamEntity.Companion.STREAM_URL
+import androidx.room.*
 import org.schabi.newpipe.extractor.localization.DateWrapper
 import org.schabi.newpipe.extractor.stream.StreamInfo
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 import org.schabi.newpipe.extractor.stream.StreamType
+import org.schabi.newpipelegacy.database.stream.model.StreamEntity.Companion.STREAM_SERVICE_ID
+import org.schabi.newpipelegacy.database.stream.model.StreamEntity.Companion.STREAM_TABLE
+import org.schabi.newpipelegacy.database.stream.model.StreamEntity.Companion.STREAM_URL
 import org.schabi.newpipelegacy.player.playqueue.PlayQueueItem
+import java.io.Serializable
+import java.util.*
 
 @Entity(tableName = STREAM_TABLE,
         indices = [

@@ -14,10 +14,10 @@ import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity
 import org.schabi.newpipelegacy.local.subscription.FeedGroupIcon
 
 data class FeedGroupReorderItem(
-        val groupId: Long = FeedGroupEntity.GROUP_ALL_ID,
-        val name: String,
-        val icon: FeedGroupIcon,
-        val dragCallback: ItemTouchHelper
+    val groupId: Long = FeedGroupEntity.GROUP_ALL_ID,
+    val name: String,
+    val icon: FeedGroupIcon,
+    val dragCallback: ItemTouchHelper
 ) : Item() {
     constructor (feedGroupEntity: FeedGroupEntity, dragCallback: ItemTouchHelper) :
             this(feedGroupEntity.uid, feedGroupEntity.name, feedGroupEntity.icon, dragCallback)

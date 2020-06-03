@@ -7,17 +7,22 @@ import io.reactivex.Flowable
 import io.reactivex.Maybe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import java.util.Calendar
-import java.util.Date
+import org.schabi.newpipe.extractor.stream.StreamInfoItem
+import org.schabi.newpipe.extractor.stream.StreamType
 import org.schabi.newpipelegacy.MainActivity.DEBUG
 import org.schabi.newpipelegacy.NewPipeDatabase
 import org.schabi.newpipelegacy.database.feed.model.FeedEntity
 import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity
 import org.schabi.newpipelegacy.database.feed.model.FeedLastUpdatedEntity
 import org.schabi.newpipelegacy.database.stream.model.StreamEntity
-import org.schabi.newpipe.extractor.stream.StreamInfoItem
-import org.schabi.newpipe.extractor.stream.StreamType
 import org.schabi.newpipelegacy.local.subscription.FeedGroupIcon
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.List
+import kotlin.collections.associateBy
+import kotlin.collections.isNotEmpty
+import kotlin.collections.map
+import kotlin.collections.plusAssign
 
 class FeedDatabaseManager(context: Context) {
     private val database = NewPipeDatabase.getInstance(context)

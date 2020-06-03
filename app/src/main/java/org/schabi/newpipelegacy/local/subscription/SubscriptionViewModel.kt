@@ -11,7 +11,6 @@ import org.schabi.newpipelegacy.local.feed.FeedDatabaseManager
 import org.schabi.newpipelegacy.local.subscription.item.ChannelItem
 import org.schabi.newpipelegacy.local.subscription.item.FeedGroupCardItem
 import org.schabi.newpipelegacy.util.DEFAULT_THROTTLE_TIMEOUT
-import org.schabi.newpipelegacy.local.subscription.SubscriptionManager
 
 class SubscriptionViewModel(application: Application) : AndroidViewModel(application) {
     private var feedDatabaseManager: FeedDatabaseManager = FeedDatabaseManager(application)

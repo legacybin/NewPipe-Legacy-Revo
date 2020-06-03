@@ -65,9 +65,9 @@ class SubscriptionManager(context: Context) {
         database.runInTransaction {
             val subscriptionId = subscriptionTable.insert(subscriptionEntity)
             feedDatabaseManager.upsertAll(subscriptionId, info.relatedItems)
+        }
     }
 
-}
     fun deleteSubscription(subscriptionEntity: SubscriptionEntity) {
         subscriptionTable.delete(subscriptionEntity)
     }

@@ -23,10 +23,10 @@ import org.schabi.newpipelegacy.util.ThemeHelper
 import org.schabi.newpipelegacy.views.CollapsibleView
 
 class FeedImportExportItem(
-        val onImportPreviousSelected: () -> Unit,
-        val onImportFromServiceSelected: (Int) -> Unit,
-        val onExportSelected: () -> Unit,
-        var isExpanded: Boolean = false
+    val onImportPreviousSelected: () -> Unit,
+    val onImportFromServiceSelected: (Int) -> Unit,
+    val onExportSelected: () -> Unit,
+    var isExpanded: Boolean = false
 ) : Item() {
     companion object {
         const val REFRESH_EXPANDED_STATUS = 123

@@ -134,7 +134,7 @@ task formatKtlint(type: JavaExec) {
 
 afterEvaluate {
     //preDebugBuild.dependsOn runCheckstyle, runKtlint
-    //preDebugBuild.dependsOn runKtlint
+    preDebugBuild.dependsOn runKtlint
 
 }
 
@@ -145,7 +145,7 @@ dependencies {
     kapt "frankiesardo:icepick-processor:${icepickVersion}"
 
     debugImplementation "com.puppycrawl.tools:checkstyle:${checkstyleVersion}"
-    ktlint "com.pinterest:ktlint:0.35.0"
+    ktlint "com.pinterest:ktlint:0.33.0"
 
     debugImplementation "com.facebook.stetho:stetho:${stethoVersion}"
     debugImplementation "com.facebook.stetho:stetho-okhttp3:${stethoVersion}"
