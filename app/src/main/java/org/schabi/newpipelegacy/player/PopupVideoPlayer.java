@@ -359,7 +359,11 @@ public final class PopupVideoPlayer extends Service {
                     }
 
                     private void end() {
-                        windowManager.removeView(closeOverlayView);
+                        try {
+                            windowManager.removeView(closeOverlayView);
+                        } catch (IllegalArgumentException ex) {
+                            ex.printStackTrace();
+                        }
 
                         stopForeground(true);
                         stopSelf();
