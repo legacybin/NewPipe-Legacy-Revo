@@ -59,8 +59,8 @@ public class AboutActivity extends AppCompatActivity {
                     "https://github.com/JakeWharton/RxBinding", StandardLicenses.APACHE2),
             new SoftwareComponent("PrettyTime", "2012 - 2020", "Lincoln Baxter, III",
                     "https://github.com/ocpsoft/prettytime", StandardLicenses.APACHE2),
-            new SoftwareComponent("Markwon", "2017 - 2020", "Noties",
-                    "https://github.com/noties/Markwon", StandardLicenses.APACHE2),
+            new SoftwareComponent("libvlc-android-sdk", "2018", "masterwok",
+                    "https://github.com/masterwok/libvlc-android-sdk", StandardLicenses.GPL2),
             new SoftwareComponent("Groupie", "2016", "Lisa Wray",
                     "https://github.com/lisawray/groupie", StandardLicenses.MIT)
     };
