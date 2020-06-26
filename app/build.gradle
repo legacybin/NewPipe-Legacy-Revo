@@ -6,11 +6,19 @@ apply plugin: 'checkstyle'
 
 android {
     compileSdkVersion 29
-    buildToolsVersion '29.0.3'
+    buildToolsVersion '28.0.3'
+
+    dataBinding {
+        enabled = true
+    }
+
+    ndkVersion '21.1.6352462'
+
 
     defaultConfig {
         applicationId 'org.schabi.newpipelegacy'
-        minSdkVersion 16
+        resValue "string", "app_name", "NewPipe Legacy"
+        minSdkVersion 14
         targetSdkVersion 29
         versionCode 950
         versionName "0.19.5"
@@ -22,6 +30,30 @@ android {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
             }
+        }
+
+        vectorDrawables.useSupportLibrary = true
+    }
+
+    splits {
+
+        // Configures multiple APKs based on ABI.
+        abi {
+
+            // Enables building multiple APKs per ABI.
+            enable true
+
+            // By default all ABIs are included, so use reset() and include to specify that we only
+            // want APKs for x86 and armeabi-v7a.
+
+            // Resets the list of ABIs that Gradle should create APKs for to none.
+            reset()
+
+            // Specifies a list of ABIs that Gradle should create APKs for.
+            include "x86", "armeabi-v7a"
+
+            // Specifies that we do not want to also generate a universal APK that includes all ABIs.
+            universalApk false
         }
     }
 
@@ -132,7 +164,7 @@ task formatKtlint(type: JavaExec) {
 }
 
 afterEvaluate {
-    preDebugBuild.dependsOn runCheckstyle, runKtlint
+    preDebugBuild.dependsOn /*runCheckstyle,*/ runKtlint
 }
 
 dependencies {
@@ -202,6 +234,9 @@ dependencies {
     implementation "com.jakewharton.rxbinding2:rxbinding:2.2.0"
 
     implementation "org.ocpsoft.prettytime:prettytime:4.0.5.Final"
+
+    implementation "com.github.masterwok:libvlc-android-sdk:3.0.13"
+
 }
 
 static String getGitWorkingBranch() {

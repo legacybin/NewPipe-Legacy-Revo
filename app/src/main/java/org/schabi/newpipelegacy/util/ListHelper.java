@@ -3,6 +3,7 @@ package org.schabi.newpipelegacy.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.os.Build;
 import android.preference.PreferenceManager;
 
 import androidx.annotation.Nullable;
@@ -520,13 +521,18 @@ public final class ListHelper {
      */
     private static String getResolutionLimit(final Context context) {
         String resolutionLimit = null;
-        if (isMeteredNetwork(context)) {
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-            String defValue = context.getString(R.string.limit_data_usage_none_key);
-            String value = preferences.getString(
-                    context.getString(R.string.limit_mobile_data_usage_key), defValue);
-            resolutionLimit = defValue.equals(value) ? null : value;
+
+        // work around isMeteredNetwork
+        if (Build.VERSION.SDK_INT > 15) {
+            if (isMeteredNetwork(context)) {
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                String defValue = context.getString(R.string.limit_data_usage_none_key);
+                String value = preferences.getString(
+                        context.getString(R.string.limit_mobile_data_usage_key), defValue);
+                resolutionLimit = defValue.equals(value) ? null : value;
+            }
         }
+
         return resolutionLimit;
     }
 

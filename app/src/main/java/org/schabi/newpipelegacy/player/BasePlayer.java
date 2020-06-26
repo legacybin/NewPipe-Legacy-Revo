@@ -27,6 +27,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
@@ -35,21 +36,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.DefaultRenderersFactory;
-import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.RenderersFactory;
-import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.source.BehindLiveWindowException;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.TrackGroupArray;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
@@ -58,65 +45,73 @@ import org.schabi.newpipelegacy.BuildConfig;
 import org.schabi.newpipelegacy.DownloaderImpl;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
+import org.schabi.newpipe.extractor.stream.StreamType;
+import org.schabi.newpipe.extractor.stream.SubtitlesStream;
+import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipelegacy.local.history.HistoryRecordManager;
-import org.schabi.newpipelegacy.player.helper.AudioReactor;
-import org.schabi.newpipelegacy.player.helper.LoadController;
-import org.schabi.newpipelegacy.player.helper.MediaSessionManager;
-import org.schabi.newpipelegacy.player.helper.PlayerDataSource;
 import org.schabi.newpipelegacy.player.helper.PlayerHelper;
-import org.schabi.newpipelegacy.player.mediasource.FailedMediaSource;
-import org.schabi.newpipelegacy.player.playback.BasePlayerMediaSession;
-import org.schabi.newpipelegacy.player.playback.CustomTrackSelector;
-import org.schabi.newpipelegacy.player.playback.MediaSourceManager;
-import org.schabi.newpipelegacy.player.playback.PlaybackListener;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueue;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueueAdapter;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueueItem;
 import org.schabi.newpipelegacy.player.resolver.MediaSourceTag;
 import org.schabi.newpipelegacy.util.ImageDisplayConstants;
+import org.schabi.newpipelegacy.util.ListHelper;
 import org.schabi.newpipelegacy.util.SerializedCache;
+import org.videolan.libvlc.LibVLC;
+import org.videolan.libvlc.Media;
+import org.videolan.libvlc.MediaPlayer;
 
-import java.io.IOException;
-import java.net.UnknownHostException;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.disposables.SerialDisposable;
 
-import static com.google.android.exoplayer2.Player.DISCONTINUITY_REASON_INTERNAL;
-import static com.google.android.exoplayer2.Player.DISCONTINUITY_REASON_PERIOD_TRANSITION;
-import static com.google.android.exoplayer2.Player.DISCONTINUITY_REASON_SEEK;
-import static com.google.android.exoplayer2.Player.DISCONTINUITY_REASON_SEEK_ADJUSTMENT;
-import static io.reactivex.android.schedulers.AndroidSchedulers.mainThread;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
 /**
- * Base for the players, joining the common properties.
+ * Base for the players, joining the common properties
  *
  * @author mauriciocolli
  */
 @SuppressWarnings({"WeakerAccess"})
 public abstract class BasePlayer implements
-        Player.EventListener, PlaybackListener, ImageLoadingListener {
+        ImageLoadingListener {
+
     public static final boolean DEBUG = !BuildConfig.BUILD_TYPE.equals("release");
     @NonNull
     public static final String TAG = "BasePlayer";
 
-    public static final int STATE_PREFLIGHT = -1;
-    public static final int STATE_BLOCKED = 123;
-    public static final int STATE_PLAYING = 124;
-    public static final int STATE_BUFFERING = 125;
-    public static final int STATE_PAUSED = 126;
-    public static final int STATE_PAUSED_SEEK = 127;
-    public static final int STATE_COMPLETED = 128;
+    @NonNull
+    final protected Context context;
 
+    @NonNull
+    final protected BroadcastReceiver broadcastReceiver;
+    @NonNull
+    final protected IntentFilter intentFilter;
+
+    @NonNull
+    final protected HistoryRecordManager recordManager;
+
+    @NonNull
+    final private SerialDisposable progressUpdateReactor;
+    @NonNull
+    final private CompositeDisposable databaseUpdateReactor;
     /*//////////////////////////////////////////////////////////////////////////
     // Intent
     //////////////////////////////////////////////////////////////////////////*/
 
     @NonNull
     public static final String REPEAT_MODE = "repeat_mode";
+    @NonNull
+    public static final String PLAYBACK_PITCH = "playback_pitch";
+    @NonNull
+    public static final String PLAYBACK_SPEED = "playback_speed";
+    @NonNull
+    public static final String PLAYBACK_SKIP_SILENCE = "playback_skip_silence";
     @NonNull
     public static final String PLAYBACK_QUALITY = "playback_quality";
     @NonNull
@@ -138,14 +133,19 @@ public abstract class BasePlayer implements
 
     protected static final float[] PLAYBACK_SPEEDS = {0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f};
 
+    protected static final int REPEAT_MODE_OFF = 0;
+    /**
+     * "Repeat One" mode to repeat the currently playing window infinitely.
+     */
+    protected static final int REPEAT_MODE_ONE = 1;
+    /**
+     * "Repeat All" mode to repeat the entire timeline infinitely.
+     */
+    protected static final int REPEAT_MODE_ALL = 2;
+
     protected PlayQueue playQueue;
     protected PlayQueueAdapter playQueueAdapter;
 
-    @Nullable
-    protected MediaSourceManager playbackManager;
-
-    @Nullable
-    private PlayQueueItem currentItem;
     @Nullable
     private MediaSourceTag currentMetadata;
     @Nullable
@@ -154,51 +154,31 @@ public abstract class BasePlayer implements
     @Nullable
     protected Toast errorToast;
 
+    protected String playbackQuality = "";
+
     /*//////////////////////////////////////////////////////////////////////////
     // Player
     //////////////////////////////////////////////////////////////////////////*/
 
-    protected static final int PLAY_PREV_ACTIVATION_LIMIT_MILLIS = 5000; // 5 seconds
-    protected static final int PROGRESS_LOOP_INTERVAL_MILLIS = 500;
+    protected final static int PROGRESS_LOOP_INTERVAL_MILLIS = 500;
 
-    protected SimpleExoPlayer simpleExoPlayer;
-    protected AudioReactor audioReactor;
-    protected MediaSessionManager mediaSessionManager;
+    protected MediaPlayer mMediaPlayer;
+    protected LibVLC mLibVLC;
 
-
-    @NonNull
-    protected final Context context;
-    @NonNull
-    protected final BroadcastReceiver broadcastReceiver;
-    @NonNull
-    protected final IntentFilter intentFilter;
-    @NonNull
-    protected final HistoryRecordManager recordManager;
-    @NonNull
-    protected final CustomTrackSelector trackSelector;
-    @NonNull
-    protected final PlayerDataSource dataSource;
-    @NonNull
-    private final LoadControl loadControl;
-
-    @NonNull
-    private final RenderersFactory renderFactory;
-    @NonNull
-    private final SerialDisposable progressUpdateReactor;
-    @NonNull
-    private final CompositeDisposable databaseUpdateReactor;
-
-    private boolean isPrepared = false;
     private Disposable stateLoader;
 
-    protected int currentState = STATE_PREFLIGHT;
+    private int repeatMode;
+    private PlaybackParameters playBackParameters;
+    private int lastVolume;
+
+    //////////////////////////////////////////////////////////////////////////*/
 
     public BasePlayer(@NonNull final Context context) {
         this.context = context;
 
         this.broadcastReceiver = new BroadcastReceiver() {
             @Override
-            public void onReceive(final Context ctx, final Intent intent) {
+            public void onReceive(Context context, Intent intent) {
                 onBroadcastReceived(intent);
             }
         };
@@ -211,66 +191,136 @@ public abstract class BasePlayer implements
         this.databaseUpdateReactor = new CompositeDisposable();
 
         final String userAgent = DownloaderImpl.USER_AGENT;
-        final DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter.Builder(context)
-                .build();
-        this.dataSource = new PlayerDataSource(context, userAgent, bandwidthMeter);
-
-        final TrackSelection.Factory trackSelectionFactory = PlayerHelper
-                .getQualitySelector(context);
-        this.trackSelector = new CustomTrackSelector(trackSelectionFactory);
-
-        this.loadControl = new LoadController();
-        this.renderFactory = new DefaultRenderersFactory(context);
     }
 
     public void setup() {
-        if (simpleExoPlayer == null) {
+        if (mMediaPlayer == null) {
             initPlayer(/*playOnInit=*/true);
         }
         initListeners();
     }
 
     public void initPlayer(final boolean playOnReady) {
-        if (DEBUG) {
-            Log.d(TAG, "initPlayer() called with: playOnReady = [" + playOnReady + "]");
+
+        if (mMediaPlayer != null && !mMediaPlayer.isReleased()) {
+            mMediaPlayer.stop();
         }
 
-        simpleExoPlayer = new SimpleExoPlayer.Builder(context, renderFactory)
-                .setTrackSelector(trackSelector)
-                .setLoadControl(loadControl)
-                .build();
-        simpleExoPlayer.addListener(this);
-        simpleExoPlayer.setPlayWhenReady(playOnReady);
-        simpleExoPlayer.setSeekParameters(PlayerHelper.getSeekParameters(context));
-        simpleExoPlayer.setWakeMode(C.WAKE_MODE_NETWORK);
-        simpleExoPlayer.setHandleAudioBecomingNoisy(true);
+        final ArrayList<String> args = new ArrayList<>();
+        args.add("-vvv");
+        args.add("--audio-time-stretch");
+        args.add("--avcodec-skiploopfilter");
+        args.add("--avcodec-skip-frame");
+        args.add("2" );
+        args.add("--avcodec-skip-idct");
+        args.add("2");
+        args.add("--stats");
 
-        audioReactor = new AudioReactor(context, simpleExoPlayer);
-        mediaSessionManager = new MediaSessionManager(context, simpleExoPlayer,
-                new BasePlayerMediaSession(this));
+        // repeat mode arg
+        String mode = "";
+        switch (getRepeatMode()) {
+            case  BasePlayer.REPEAT_MODE_ONE:
+                mode = "--input-repeat=1";
+                break;
+            case BasePlayer.REPEAT_MODE_ALL:
+                mode = "--input-repeat=65535";
+                break;
+            default:
+                mode = "--input-repeat=0";
+                break;
+        }
+
+        Log.d(TAG, "mode: " + mode);
+
+        args.add(mode);
+
+        // pitch setting
+        args.add("--audio-filter=scaletempo_pitch");
+        args.add("--pitch-shift=" + getPlaybackPitch());
+        args.add("--sub-track=0");
+
+
+        mLibVLC = new LibVLC(context, args);
+        mMediaPlayer = new MediaPlayer(mLibVLC);
+
+        mMediaPlayer.setEventListener(mPlayerListener);
+
+        if (playOnReady) {
+
+            if (playQueue == null) {
+                Log.d(TAG, "playOnReady with null playQueue ");
+                return;
+            }
+
+            StreamInfo stream = playQueue.getItem().getStream().blockingGet();
+
+            initThumbnail(stream.getThumbnailUrl());
+
+
+            int streamIndex;
+            String streamUrl;
+
+            if (stream.getStreamType() == StreamType.LIVE_STREAM || stream.getStreamType() == StreamType.AUDIO_LIVE_STREAM) {
+                streamUrl = stream.getHlsUrl().isEmpty() ? stream.getDashMpdUrl() : stream.getHlsUrl();
+            } else if (stream.getVideoStreams().isEmpty()
+                    && stream.getVideoOnlyStreams().isEmpty()) {
+                streamUrl = stream.getAudioStreams().get(0).getUrl();
+            } else {
+                if (playbackQuality.isEmpty()) {
+                    streamIndex = ListHelper.getDefaultResolutionIndex(context, stream.getVideoStreams());
+                    streamUrl = stream.getVideoStreams().get(streamIndex).getUrl();
+                    playbackQuality = stream.getVideoStreams().get(streamIndex).getResolution();
+                } else {
+                    streamIndex = ListHelper.getResolutionIndex(context, stream.getVideoStreams(), playbackQuality);
+                    streamUrl = stream.getVideoStreams().get(streamIndex).getUrl();
+                }
+            }
+
+            Log.d(TAG, "playbackQuality: " + playbackQuality);
+
+            Media media = new Media(mLibVLC, Uri.parse(streamUrl));
+            mMediaPlayer.setMedia(media);
+
+            String userPreferredLanguage = PreferenceManager.getDefaultSharedPreferences(context)
+                    .getString(context.getString(R.string.caption_user_set_key), null);
+
+            if (userPreferredLanguage != null) {
+
+                List<SubtitlesStream> subtitlesStream = playQueue.getItem().getStream().blockingGet().getSubtitles();
+                for (int i = 0; i < subtitlesStream.size(); i++) {
+                    if (subtitlesStream.get(i).getDisplayLanguageName().contentEquals(userPreferredLanguage)) {
+                        Media.Slave slave = new Media.Slave(Media.Slave.Type.Subtitle, 1, subtitlesStream.get(i).getURL());
+                        media.addSlave(slave);
+                    }
+                }
+            }
+
+            // playback speed
+            mMediaPlayer.setRate(getPlaybackSpeed());
+
+            maybeUpdateCurrentMetadata();
+
+            mMediaPlayer.play();
+
+            mMediaPlayer.setTime(playQueue.getItem().getRecoveryPosition());
+        }
 
         registerBroadcastReceiver();
     }
 
-    public void initListeners() { }
+    public void initListeners() {
+    }
 
-    public void handleIntent(final Intent intent) {
-        if (DEBUG) {
-            Log.d(TAG, "handleIntent() called with: intent = [" + intent + "]");
-        }
-        if (intent == null) {
-            return;
-        }
+    public void handleIntent(Intent intent) {
+        if (DEBUG) Log.d(TAG, "handleIntent() called with: intent = [" + intent + "]");
+        if (intent == null) return;
 
         // Resolve play queue
-        if (!intent.hasExtra(PLAY_QUEUE_KEY)) {
-            return;
-        }
+        if (!intent.hasExtra(PLAY_QUEUE_KEY)) return;
         final String intentCacheKey = intent.getStringExtra(PLAY_QUEUE_KEY);
         final PlayQueue queue = SerializedCache.getInstance().take(intentCacheKey, PlayQueue.class);
-        if (queue == null) {
-            return;
-        }
+
+        if (queue == null) return;
 
         // Resolve append intents
         if (intent.getBooleanExtra(APPEND_ONLY, false) && playQueue != null) {
@@ -285,39 +335,38 @@ public abstract class BasePlayer implements
             return;
         }
 
-        final PlaybackParameters savedParameters = retrievePlaybackParametersFromPreferences();
-        final float playbackSpeed = savedParameters.speed;
-        final float playbackPitch = savedParameters.pitch;
-        final boolean playbackSkipSilence = savedParameters.skipSilence;
+        if (mMediaPlayer != null)
+            mMediaPlayer.stop();
 
         final int repeatMode = intent.getIntExtra(REPEAT_MODE, getRepeatMode());
-        final boolean isMuted = intent
-                .getBooleanExtra(IS_MUTED, simpleExoPlayer != null && isMuted());
+        final float playbackSpeed = intent.getFloatExtra(PLAYBACK_SPEED, getPlaybackSpeed());
+        final float playbackPitch = intent.getFloatExtra(PLAYBACK_PITCH, getPlaybackPitch());
+        final boolean playbackSkipSilence = intent.getBooleanExtra(PLAYBACK_SKIP_SILENCE,
+                getPlaybackSkipSilence());
+        final boolean isMuted = intent.getBooleanExtra(IS_MUTED, mMediaPlayer == null ? false : isMuted());
 
         // seek to timestamp if stream is already playing
-        if (simpleExoPlayer != null
+        if (mMediaPlayer != null
                 && queue.size() == 1
                 && playQueue != null
                 && playQueue.getItem() != null
                 && queue.getItem().getUrl().equals(playQueue.getItem().getUrl())
                 && queue.getItem().getRecoveryPosition() != PlayQueueItem.RECOVERY_UNSET
         ) {
-            simpleExoPlayer.seekTo(playQueue.getIndex(), queue.getItem().getRecoveryPosition());
+            initPlayer(true);
             return;
+
         } else if (intent.getBooleanExtra(RESUME_PLAYBACK, false) && isPlaybackResumeEnabled()) {
             final PlayQueueItem item = queue.getItem();
             if (item != null && item.getRecoveryPosition() == PlayQueueItem.RECOVERY_UNSET) {
                 stateLoader = recordManager.loadStreamState(item)
-                        .observeOn(mainThread())
-                        .doFinally(() -> initPlayback(queue, repeatMode, playbackSpeed,
-                                playbackPitch, playbackSkipSilence, true, isMuted))
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doFinally(() -> initPlayback(queue, repeatMode, playbackSpeed, playbackPitch, playbackSkipSilence,
+                                /*playOnInit=*/true, isMuted))
                         .subscribe(
-                                state -> queue
-                                        .setRecovery(queue.getIndex(), state.getProgressTime()),
+                                state -> queue.setRecovery(queue.getIndex(), state.getProgressTime()),
                                 error -> {
-                                    if (DEBUG) {
-                                        error.printStackTrace();
-                                    }
+                                    if (DEBUG) error.printStackTrace();
                                 }
                         );
                 databaseUpdateReactor.add(stateLoader);
@@ -329,74 +378,51 @@ public abstract class BasePlayer implements
                 /*playOnInit=*/!intent.getBooleanExtra(START_PAUSED, false), isMuted);
     }
 
-    private PlaybackParameters retrievePlaybackParametersFromPreferences() {
-        final SharedPreferences preferences =
-                PreferenceManager.getDefaultSharedPreferences(context);
-
-        final float speed = preferences
-            .getFloat(context.getString(R.string.playback_speed_key), getPlaybackSpeed());
-        final float pitch = preferences.getFloat(context.getString(R.string.playback_pitch_key),
-            getPlaybackPitch());
-        final boolean skipSilence = preferences
-            .getBoolean(context.getString(R.string.playback_skip_silence_key),
-                getPlaybackSkipSilence());
-        return new PlaybackParameters(speed, pitch, skipSilence);
-    }
-
     protected void initPlayback(@NonNull final PlayQueue queue,
-                                @Player.RepeatMode final int repeatMode,
+                                final int repeatMode,
                                 final float playbackSpeed,
                                 final float playbackPitch,
                                 final boolean playbackSkipSilence,
                                 final boolean playOnReady,
                                 final boolean isMuted) {
-        destroyPlayer();
-        initPlayer(playOnReady);
         setRepeatMode(repeatMode);
         setPlaybackParameters(playbackSpeed, playbackPitch, playbackSkipSilence);
 
+        destroyPlayer();
+
         playQueue = queue;
         playQueue.init();
-        if (playbackManager != null) {
-            playbackManager.dispose();
-        }
-        playbackManager = new MediaSourceManager(this, playQueue);
+
+        initPlayer(playOnReady);
 
         if (playQueueAdapter != null) {
             playQueueAdapter.dispose();
         }
+
         playQueueAdapter = new PlayQueueAdapter(context, playQueue);
 
-        simpleExoPlayer.setVolume(isMuted ? 0 : 1);
+        mMediaPlayer.setVolume(isMuted ? 0 : 100);
+
     }
 
     public void destroyPlayer() {
-        if (DEBUG) {
-            Log.d(TAG, "destroyPlayer() called");
+        if (DEBUG) Log.d(TAG, "destroyPlayer() called");
+
+        try {
+            if (mMediaPlayer != null && !mMediaPlayer.isReleased()) {
+                mMediaPlayer.stop();
+                mLibVLC.release();
+                mMediaPlayer.release();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-        if (simpleExoPlayer != null) {
-            simpleExoPlayer.removeListener(this);
-            simpleExoPlayer.stop();
-            simpleExoPlayer.release();
-        }
-        if (isProgressLoopRunning()) {
-            stopProgressLoop();
-        }
-        if (playQueue != null) {
-            playQueue.dispose();
-        }
-        if (audioReactor != null) {
-            audioReactor.dispose();
-        }
-        if (playbackManager != null) {
-            playbackManager.dispose();
-        }
-        if (mediaSessionManager != null) {
-            mediaSessionManager.dispose();
-        }
-        if (stateLoader != null) {
-            stateLoader.dispose();
-        }
+
+        if (isProgressLoopRunning()) stopProgressLoop();
+        if (playQueue != null) playQueue.dispose();
+
+        //if (mediaSessionManager != null) mediaSessionManager.dispose();
+        if (stateLoader != null) stateLoader.dispose();
 
         if (playQueueAdapter != null) {
             playQueueAdapter.unsetSelectedListener();
@@ -405,14 +431,13 @@ public abstract class BasePlayer implements
     }
 
     public void destroy() {
-        if (DEBUG) {
-            Log.d(TAG, "destroy() called");
-        }
+        if (DEBUG) Log.d(TAG, "destroy() called");
         destroyPlayer();
         unregisterBroadcastReceiver();
 
         databaseUpdateReactor.clear();
         progressUpdateReactor.set(null);
+
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -420,50 +445,38 @@ public abstract class BasePlayer implements
     //////////////////////////////////////////////////////////////////////////*/
 
     private void initThumbnail(final String url) {
-        if (DEBUG) {
-            Log.d(TAG, "Thumbnail - initThumbnail() called");
-        }
-        if (url == null || url.isEmpty()) {
-            return;
-        }
+        if (DEBUG) Log.d(TAG, "Thumbnail - initThumbnail() called");
+        if (url == null || url.isEmpty()) return;
         ImageLoader.getInstance().resume();
-        ImageLoader.getInstance()
-                .loadImage(url, ImageDisplayConstants.DISPLAY_THUMBNAIL_OPTIONS, this);
+        ImageLoader.getInstance().loadImage(url, ImageDisplayConstants.DISPLAY_THUMBNAIL_OPTIONS,
+                this);
     }
 
     @Override
-    public void onLoadingStarted(final String imageUri, final View view) {
-        if (DEBUG) {
-            Log.d(TAG, "Thumbnail - onLoadingStarted() called on: "
-                    + "imageUri = [" + imageUri + "], view = [" + view + "]");
-        }
+    public void onLoadingStarted(String imageUri, View view) {
+        if (DEBUG) Log.d(TAG, "Thumbnail - onLoadingStarted() called on: " +
+                "imageUri = [" + imageUri + "], view = [" + view + "]");
     }
 
     @Override
-    public void onLoadingFailed(final String imageUri, final View view,
-                                final FailReason failReason) {
+    public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
         Log.e(TAG, "Thumbnail - onLoadingFailed() called on imageUri = [" + imageUri + "]",
                 failReason.getCause());
         currentThumbnail = null;
     }
 
     @Override
-    public void onLoadingComplete(final String imageUri, final View view,
-                                  final Bitmap loadedImage) {
-        if (DEBUG) {
-            Log.d(TAG, "Thumbnail - onLoadingComplete() called with: "
-                    + "imageUri = [" + imageUri + "], view = [" + view + "], "
-                    + "loadedImage = [" + loadedImage + "]");
-        }
+    public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+        if (DEBUG) Log.d(TAG, "Thumbnail - onLoadingComplete() called with: " +
+                "imageUri = [" + imageUri + "], view = [" + view + "], " +
+                "loadedImage = [" + loadedImage + "]");
         currentThumbnail = loadedImage;
     }
 
     @Override
-    public void onLoadingCancelled(final String imageUri, final View view) {
-        if (DEBUG) {
-            Log.d(TAG, "Thumbnail - onLoadingCancelled() called with: "
-                    + "imageUri = [" + imageUri + "], view = [" + view + "]");
-        }
+    public void onLoadingCancelled(String imageUri, View view) {
+        if (DEBUG) Log.d(TAG, "Thumbnail - onLoadingCancelled() called with: " +
+                "imageUri = [" + imageUri + "], view = [" + view + "]");
         currentThumbnail = null;
     }
 
@@ -472,18 +485,16 @@ public abstract class BasePlayer implements
     //////////////////////////////////////////////////////////////////////////*/
 
     /**
-     * Add your action in the intentFilter.
+     * Add your action in the intentFilter
      *
-     * @param intentFltr intent filter that will be used for register the receiver
+     * @param intentFilter intent filter that will be used for register the receiver
      */
-    protected void setupBroadcastReceiver(final IntentFilter intentFltr) {
-        intentFltr.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+    protected void setupBroadcastReceiver(IntentFilter intentFilter) {
+        intentFilter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
     }
 
-    public void onBroadcastReceived(final Intent intent) {
-        if (intent == null || intent.getAction() == null) {
-            return;
-        }
+    public void onBroadcastReceived(Intent intent) {
+        if (intent == null || intent.getAction() == null) return;
         switch (intent.getAction()) {
             case AudioManager.ACTION_AUDIO_BECOMING_NOISY:
                 onPause();
@@ -501,8 +512,7 @@ public abstract class BasePlayer implements
         try {
             context.unregisterReceiver(broadcastReceiver);
         } catch (final IllegalArgumentException unregisteredException) {
-            Log.w(TAG, "Broadcast receiver already unregistered "
-                    + "(" + unregisteredException.getMessage() + ")");
+            Log.w(TAG, "Broadcast receiver already unregistered (" + unregisteredException.getMessage() + ")");
         }
     }
 
@@ -510,10 +520,18 @@ public abstract class BasePlayer implements
     // States Implementation
     //////////////////////////////////////////////////////////////////////////*/
 
-    public void changeState(final int state) {
-        if (DEBUG) {
-            Log.d(TAG, "changeState() called with: state = [" + state + "]");
-        }
+    public static final int STATE_PREFLIGHT = -1;
+    public static final int STATE_BLOCKED = 123;
+    public static final int STATE_PLAYING = 124;
+    public static final int STATE_BUFFERING = 125;
+    public static final int STATE_PAUSED = 126;
+    public static final int STATE_PAUSED_SEEK = 127;
+    public static final int STATE_COMPLETED = 128;
+
+    protected int currentState = STATE_PREFLIGHT;
+
+    public void changeState(int state) {
+        if (DEBUG) Log.d(TAG, "changeState() called with: state = [" + state + "]");
         currentState = state;
         switch (state) {
             case STATE_BLOCKED:
@@ -538,21 +556,13 @@ public abstract class BasePlayer implements
     }
 
     public void onBlocked() {
-        if (DEBUG) {
-            Log.d(TAG, "onBlocked() called");
-        }
-        if (!isProgressLoopRunning()) {
-            startProgressLoop();
-        }
+        if (DEBUG) Log.d(TAG, "onBlocked() called");
+        if (!isProgressLoopRunning()) startProgressLoop();
     }
 
     public void onPlaying() {
-        if (DEBUG) {
-            Log.d(TAG, "onPlaying() called");
-        }
-        if (!isProgressLoopRunning()) {
-            startProgressLoop();
-        }
+        if (DEBUG) Log.d(TAG, "onPlaying() called");
+        if (!isProgressLoopRunning()) startProgressLoop();
     }
 
     public void onBuffering() {
@@ -562,20 +572,16 @@ public abstract class BasePlayer implements
         if (isProgressLoopRunning()) {
             stopProgressLoop();
         }
+            mMediaPlayer.pause();
     }
 
-    public void onPausedSeek() { }
+    public void onPausedSeek() {
+    }
 
     public void onCompleted() {
-        if (DEBUG) {
-            Log.d(TAG, "onCompleted() called");
-        }
-        if (playQueue.getIndex() < playQueue.size() - 1) {
-            playQueue.offsetIndex(+1);
-        }
-        if (isProgressLoopRunning()) {
-            stopProgressLoop();
-        }
+        if (DEBUG) Log.d(TAG, "onCompleted() called");
+        if (playQueue.getIndex() < playQueue.size() - 1) playQueue.offsetIndex(+1);
+        if (isProgressLoopRunning()) stopProgressLoop();
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -583,54 +589,49 @@ public abstract class BasePlayer implements
     //////////////////////////////////////////////////////////////////////////*/
 
     public void onRepeatClicked() {
-        if (DEBUG) {
-            Log.d(TAG, "onRepeatClicked() called");
-        }
+        if (DEBUG) Log.d(TAG, "onRepeatClicked() called");
 
         final int mode;
 
         switch (getRepeatMode()) {
-            case Player.REPEAT_MODE_OFF:
-                mode = Player.REPEAT_MODE_ONE;
+            case BasePlayer.REPEAT_MODE_OFF:
+                mode = BasePlayer.REPEAT_MODE_ONE;
                 break;
-            case Player.REPEAT_MODE_ONE:
-                mode = Player.REPEAT_MODE_ALL;
+            case BasePlayer.REPEAT_MODE_ONE:
+                mode = BasePlayer.REPEAT_MODE_ALL;
                 break;
-            case Player.REPEAT_MODE_ALL:
+            case BasePlayer.REPEAT_MODE_ALL:
             default:
-                mode = Player.REPEAT_MODE_OFF;
+                mode = BasePlayer.REPEAT_MODE_OFF;
                 break;
         }
 
         setRepeatMode(mode);
-        if (DEBUG) {
-            Log.d(TAG, "onRepeatClicked() currentRepeatMode = " + getRepeatMode());
-        }
+        if (DEBUG) Log.d(TAG, "onRepeatClicked() currentRepeatMode = " + getRepeatMode());
     }
 
     public void onShuffleClicked() {
-        if (DEBUG) {
-            Log.d(TAG, "onShuffleClicked() called");
-        }
+        if (DEBUG) Log.d(TAG, "onShuffleClicked() called");
 
-        if (simpleExoPlayer == null) {
-            return;
-        }
-        simpleExoPlayer.setShuffleModeEnabled(!simpleExoPlayer.getShuffleModeEnabled());
+        if (playQueue.isShuffled())
+            playQueue.unshuffle();
+        else
+            playQueue.shuffle();
     }
     /*//////////////////////////////////////////////////////////////////////////
     // Mute / Unmute
     //////////////////////////////////////////////////////////////////////////*/
 
     public void onMuteUnmuteButtonClicked() {
-        if (DEBUG) {
-            Log.d(TAG, "onMuteUnmuteButtonClicled() called");
-        }
-        simpleExoPlayer.setVolume(isMuted() ? 1 : 0);
+        if (mMediaPlayer == null) return;
+
+        if (DEBUG) Log.d(TAG, "onMuteUnmuteButtonClicled() called");
+        mMediaPlayer.setVolume(isMuted() ? 100 : 0);
+
     }
 
     public boolean isMuted() {
-        return simpleExoPlayer.getVolume() == 0;
+        return mMediaPlayer.getVolume() == 0;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -648,19 +649,18 @@ public abstract class BasePlayer implements
     }
 
     public void triggerProgressUpdate() {
-        if (simpleExoPlayer == null) {
-            return;
-        }
+        if (mMediaPlayer == null) return;
+
         onUpdateProgress(
-                Math.max((int) simpleExoPlayer.getCurrentPosition(), 0),
-                (int) simpleExoPlayer.getDuration(),
-                simpleExoPlayer.getBufferedPercentage()
+                Math.max((int) mMediaPlayer.getTime(), 0),
+                (int) mMediaPlayer.getLength(),
+                0
         );
     }
 
     private Disposable getProgressReactor() {
-        return Observable.interval(PROGRESS_LOOP_INTERVAL_MILLIS, MILLISECONDS, mainThread())
-                .observeOn(mainThread())
+        return Observable.interval(PROGRESS_LOOP_INTERVAL_MILLIS, TimeUnit.MILLISECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(ignored -> triggerProgressUpdate(),
                         error -> Log.e(TAG, "Progress update failure: ", error));
     }
@@ -668,355 +668,21 @@ public abstract class BasePlayer implements
     /*//////////////////////////////////////////////////////////////////////////
     // ExoPlayer Listener
     //////////////////////////////////////////////////////////////////////////*/
-
-    @Override
-    public void onTimelineChanged(final Timeline timeline, final int reason) {
-        if (DEBUG) {
-            Log.d(TAG, "ExoPlayer - onTimelineChanged() called with "
-                    + "timeline size = [" + timeline.getWindowCount() + "], "
-                    + "reason = [" + reason + "]");
-        }
-
-        maybeUpdateCurrentMetadata();
-    }
-
-    @Override
-    public void onTracksChanged(final TrackGroupArray trackGroups,
-                                final TrackSelectionArray trackSelections) {
-        if (DEBUG) {
-            Log.d(TAG, "ExoPlayer - onTracksChanged(), "
-                    + "track group size = " + trackGroups.length);
-        }
-
-        maybeUpdateCurrentMetadata();
-    }
-
-    @Override
     public void onPlaybackParametersChanged(final PlaybackParameters playbackParameters) {
-        if (DEBUG) {
-            Log.d(TAG, "ExoPlayer - playbackParameters(), "
-                    + "speed: " + playbackParameters.speed + ", "
-                    + "pitch: " + playbackParameters.pitch);
-        }
+
     }
 
-    @Override
     public void onLoadingChanged(final boolean isLoading) {
-        if (DEBUG) {
-            Log.d(TAG, "ExoPlayer - onLoadingChanged() called with: "
-                    + "isLoading = [" + isLoading + "]");
-        }
-
-        if (!isLoading && getCurrentState() == STATE_PAUSED && isProgressLoopRunning()) {
-            stopProgressLoop();
-        } else if (isLoading && !isProgressLoopRunning()) {
-            startProgressLoop();
-        }
-
-        maybeUpdateCurrentMetadata();
+        // Disable default behavior
     }
 
-    @Override
-    public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
-        if (DEBUG) {
-            Log.d(TAG, "ExoPlayer - onPlayerStateChanged() called with: "
-                    + "playWhenReady = [" + playWhenReady + "], "
-                    + "playbackState = [" + playbackState + "]");
-        }
+    public void onRepeatModeChanged(final int i) {
 
-        if (getCurrentState() == STATE_PAUSED_SEEK) {
-            if (DEBUG) {
-                Log.d(TAG, "ExoPlayer - onPlayerStateChanged() is currently blocked");
-            }
-            return;
-        }
-
-        switch (playbackState) {
-            case Player.STATE_IDLE: // 1
-                isPrepared = false;
-                break;
-            case Player.STATE_BUFFERING: // 2
-                if (isPrepared) {
-                    changeState(STATE_BUFFERING);
-                }
-                break;
-            case Player.STATE_READY: //3
-                maybeUpdateCurrentMetadata();
-                maybeCorrectSeekPosition();
-                if (!isPrepared) {
-                    isPrepared = true;
-                    onPrepared(playWhenReady);
-                    break;
-                }
-                changeState(playWhenReady ? STATE_PLAYING : STATE_PAUSED);
-                break;
-            case Player.STATE_ENDED: // 4
-                changeState(STATE_COMPLETED);
-                if (currentMetadata != null) {
-                    resetPlaybackState(currentMetadata.getMetadata());
-                }
-                isPrepared = false;
-                break;
-        }
     }
 
-    private void maybeCorrectSeekPosition() {
-        if (playQueue == null || simpleExoPlayer == null || currentMetadata == null) {
-            return;
-        }
-
-        final PlayQueueItem currentSourceItem = playQueue.getItem();
-        if (currentSourceItem == null) {
-            return;
-        }
-
-        final StreamInfo currentInfo = currentMetadata.getMetadata();
-        final long presetStartPositionMillis = currentInfo.getStartPosition() * 1000;
-        if (presetStartPositionMillis > 0L) {
-            // Has another start position?
-            if (DEBUG) {
-                Log.d(TAG, "Playback - Seeking to preset start "
-                        + "position=[" + presetStartPositionMillis + "]");
-            }
-            seekTo(presetStartPositionMillis);
-        }
-    }
-
-    /**
-     * Process exceptions produced by {@link com.google.android.exoplayer2.ExoPlayer ExoPlayer}.
-     * <p>There are multiple types of errors:</p>
-     * <ul>
-     * <li>{@link ExoPlaybackException#TYPE_SOURCE TYPE_SOURCE}</li>
-     * <li>{@link ExoPlaybackException#TYPE_UNEXPECTED TYPE_UNEXPECTED}:
-     * If a runtime error occurred, then we can try to recover it by restarting the playback
-     * after setting the timestamp recovery.</li>
-     * <li>{@link ExoPlaybackException#TYPE_RENDERER TYPE_RENDERER}:
-     * If the renderer failed, treat the error as unrecoverable.</li>
-     * </ul>
-     *
-     * @see #processSourceError(IOException)
-     * @see Player.EventListener#onPlayerError(ExoPlaybackException)
-     */
-    @Override
-    public void onPlayerError(final ExoPlaybackException error) {
-        if (DEBUG) {
-            Log.d(TAG, "ExoPlayer - onPlayerError() called with: " + "error = [" + error + "]");
-        }
-        if (errorToast != null) {
-            errorToast.cancel();
-            errorToast = null;
-        }
-
-        savePlaybackState();
-
-        switch (error.type) {
-            case ExoPlaybackException.TYPE_SOURCE:
-                processSourceError(error.getSourceException());
-                showStreamError(error);
-                break;
-            case ExoPlaybackException.TYPE_UNEXPECTED:
-                showRecoverableError(error);
-                setRecovery();
-                reload();
-                break;
-            default:
-                showUnrecoverableError(error);
-                onPlaybackShutdown();
-                break;
-        }
-    }
-
-    private void processSourceError(final IOException error) {
-        if (simpleExoPlayer == null || playQueue == null) {
-            return;
-        }
-        setRecovery();
-
-        final Throwable cause = error.getCause();
-        if (error instanceof BehindLiveWindowException) {
-            reload();
-        } else if (cause instanceof UnknownHostException) {
-            playQueue.error(/*isNetworkProblem=*/true);
-        } else if (isCurrentWindowValid()) {
-            playQueue.error(/*isTransitioningToBadStream=*/true);
-        } else if (cause instanceof FailedMediaSource.MediaSourceResolutionException) {
-            playQueue.error(/*recoverableWithNoAvailableStream=*/false);
-        } else if (cause instanceof FailedMediaSource.StreamInfoLoadException) {
-            playQueue.error(/*recoverableIfLoadFailsWhenNetworkIsFine=*/false);
-        } else {
-            playQueue.error(/*noIdeaWhatHappenedAndLetUserChooseWhatToDo=*/true);
-        }
-    }
-
-    @Override
-    public void onPositionDiscontinuity(@Player.DiscontinuityReason final int reason) {
-        if (DEBUG) {
-            Log.d(TAG, "ExoPlayer - onPositionDiscontinuity() called with "
-                    + "reason = [" + reason + "]");
-        }
-        if (playQueue == null) {
-            return;
-        }
-
-        // Refresh the playback if there is a transition to the next video
-        final int newWindowIndex = simpleExoPlayer.getCurrentWindowIndex();
-        switch (reason) {
-            case DISCONTINUITY_REASON_PERIOD_TRANSITION:
-                // When player is in single repeat mode and a period transition occurs,
-                // we need to register a view count here since no metadata has changed
-                if (getRepeatMode() == Player.REPEAT_MODE_ONE
-                        && newWindowIndex == playQueue.getIndex()) {
-                    registerView();
-                    break;
-                }
-            case DISCONTINUITY_REASON_SEEK:
-            case DISCONTINUITY_REASON_SEEK_ADJUSTMENT:
-            case DISCONTINUITY_REASON_INTERNAL:
-                if (playQueue.getIndex() != newWindowIndex) {
-                    resetPlaybackState(playQueue.getItem());
-                    playQueue.setIndex(newWindowIndex);
-                }
-                break;
-        }
-
-        maybeUpdateCurrentMetadata();
-    }
-
-    @Override
-    public void onRepeatModeChanged(@Player.RepeatMode final int reason) {
-        if (DEBUG) {
-            Log.d(TAG, "ExoPlayer - onRepeatModeChanged() called with: "
-                    + "mode = [" + reason + "]");
-        }
-    }
-
-    @Override
-    public void onShuffleModeEnabledChanged(final boolean shuffleModeEnabled) {
-        if (DEBUG) {
-            Log.d(TAG, "ExoPlayer - onShuffleModeEnabledChanged() called with: "
-                    + "mode = [" + shuffleModeEnabled + "]");
-        }
-        if (playQueue == null) {
-            return;
-        }
-        if (shuffleModeEnabled) {
-            playQueue.shuffle();
-        } else {
-            playQueue.unshuffle();
-        }
-    }
-
-    @Override
-    public void onSeekProcessed() {
-        if (DEBUG) {
-            Log.d(TAG, "ExoPlayer - onSeekProcessed() called");
-        }
-        if (isPrepared) {
-            savePlaybackState();
-        }
-    }
     /*//////////////////////////////////////////////////////////////////////////
     // Playback Listener
     //////////////////////////////////////////////////////////////////////////*/
-
-    @Override
-    public boolean isApproachingPlaybackEdge(final long timeToEndMillis) {
-        // If live, then not near playback edge
-        // If not playing, then not approaching playback edge
-        if (simpleExoPlayer == null || isLive() || !isPlaying()) {
-            return false;
-        }
-
-        final long currentPositionMillis = simpleExoPlayer.getCurrentPosition();
-        final long currentDurationMillis = simpleExoPlayer.getDuration();
-        return currentDurationMillis - currentPositionMillis < timeToEndMillis;
-    }
-
-    @Override
-    public void onPlaybackBlock() {
-        if (simpleExoPlayer == null) {
-            return;
-        }
-        if (DEBUG) {
-            Log.d(TAG, "Playback - onPlaybackBlock() called");
-        }
-
-        currentItem = null;
-        currentMetadata = null;
-        simpleExoPlayer.stop();
-        isPrepared = false;
-
-        changeState(STATE_BLOCKED);
-    }
-
-    @Override
-    public void onPlaybackUnblock(final MediaSource mediaSource) {
-        if (simpleExoPlayer == null) {
-            return;
-        }
-        if (DEBUG) {
-            Log.d(TAG, "Playback - onPlaybackUnblock() called");
-        }
-
-        if (getCurrentState() == STATE_BLOCKED) {
-            changeState(STATE_BUFFERING);
-        }
-
-        simpleExoPlayer.prepare(mediaSource);
-    }
-
-    public void onPlaybackSynchronize(@NonNull final PlayQueueItem item) {
-        if (DEBUG) {
-            Log.d(TAG, "Playback - onPlaybackSynchronize() called with "
-                    + "item=[" + item.getTitle() + "], url=[" + item.getUrl() + "]");
-        }
-        if (simpleExoPlayer == null || playQueue == null) {
-            return;
-        }
-
-        final boolean onPlaybackInitial = currentItem == null;
-        final boolean hasPlayQueueItemChanged = currentItem != item;
-
-        final int currentPlayQueueIndex = playQueue.indexOf(item);
-        final int currentPlaylistIndex = simpleExoPlayer.getCurrentWindowIndex();
-        final int currentPlaylistSize = simpleExoPlayer.getCurrentTimeline().getWindowCount();
-
-        // If nothing to synchronize
-        if (!hasPlayQueueItemChanged) {
-            return;
-        }
-        currentItem = item;
-
-        // Check if on wrong window
-        if (currentPlayQueueIndex != playQueue.getIndex()) {
-            Log.e(TAG, "Playback - Play Queue may be desynchronized: item "
-                    + "index=[" + currentPlayQueueIndex + "], "
-                    + "queue index=[" + playQueue.getIndex() + "]");
-
-            // Check if bad seek position
-        } else if ((currentPlaylistSize > 0 && currentPlayQueueIndex >= currentPlaylistSize)
-                || currentPlayQueueIndex < 0) {
-            Log.e(TAG, "Playback - Trying to seek to invalid "
-                    + "index=[" + currentPlayQueueIndex + "] with "
-                    + "playlist length=[" + currentPlaylistSize + "]");
-
-        } else if (currentPlaylistIndex != currentPlayQueueIndex || onPlaybackInitial
-                || !isPlaying()) {
-            if (DEBUG) {
-                Log.d(TAG, "Playback - Rewinding to correct "
-                        + "index=[" + currentPlayQueueIndex + "], "
-                        + "from=[" + currentPlaylistIndex + "], "
-                        + "size=[" + currentPlaylistSize + "].");
-            }
-
-            if (item.getRecoveryPosition() != PlayQueueItem.RECOVERY_UNSET) {
-                simpleExoPlayer.seekTo(currentPlayQueueIndex, item.getRecoveryPosition());
-                playQueue.unsetRecovery(currentPlayQueueIndex);
-            } else {
-                simpleExoPlayer.seekToDefaultPosition(currentPlayQueueIndex);
-            }
-        }
-    }
 
     protected void onMetadataChanged(@NonNull final MediaSourceTag tag) {
         final StreamInfo info = tag.getMetadata();
@@ -1028,7 +694,10 @@ public abstract class BasePlayer implements
         registerView();
     }
 
-    @Override
+    /*//////////////////////////////////////////////////////////////////////////
+    // General Player
+    //////////////////////////////////////////////////////////////////////////*/
+
     public void onPlaybackShutdown() {
         if (DEBUG) {
             Log.d(TAG, "Shutting down...");
@@ -1036,88 +705,66 @@ public abstract class BasePlayer implements
         destroy();
     }
 
-    /*//////////////////////////////////////////////////////////////////////////
-    // General Player
-    //////////////////////////////////////////////////////////////////////////*/
-
-    public void showStreamError(final Exception exception) {
+    public void showStreamError(Exception exception) {
         exception.printStackTrace();
 
         if (errorToast == null) {
-            errorToast = Toast
-                    .makeText(context, R.string.player_stream_failure, Toast.LENGTH_SHORT);
+            errorToast = Toast.makeText(context, R.string.player_stream_failure, Toast.LENGTH_SHORT);
             errorToast.show();
         }
     }
 
-    public void showRecoverableError(final Exception exception) {
+    public void showRecoverableError(Exception exception) {
         exception.printStackTrace();
 
         if (errorToast == null) {
-            errorToast = Toast
-                    .makeText(context, R.string.player_recoverable_failure, Toast.LENGTH_SHORT);
+            errorToast = Toast.makeText(context, R.string.player_recoverable_failure, Toast.LENGTH_SHORT);
             errorToast.show();
         }
     }
 
-    public void showUnrecoverableError(final Exception exception) {
+    public void showUnrecoverableError(Exception exception) {
         exception.printStackTrace();
 
         if (errorToast != null) {
             errorToast.cancel();
         }
-        errorToast = Toast
-                .makeText(context, R.string.player_unrecoverable_failure, Toast.LENGTH_SHORT);
+        errorToast = Toast.makeText(context, R.string.player_unrecoverable_failure, Toast.LENGTH_SHORT);
         errorToast.show();
     }
 
-    public void onPrepared(final boolean playWhenReady) {
-        if (DEBUG) {
-            Log.d(TAG, "onPrepared() called with: playWhenReady = [" + playWhenReady + "]");
-        }
-        if (playWhenReady) {
-            audioReactor.requestAudioFocus();
-        }
-        changeState(playWhenReady ? STATE_PLAYING : STATE_PAUSED);
-    }
-
     public void onPlay() {
-        if (DEBUG) {
-            Log.d(TAG, "onPlay() called");
-        }
-        if (audioReactor == null || playQueue == null || simpleExoPlayer == null) {
+        if (DEBUG) Log.d(TAG, "onPlay() called");
+
+        if (playQueue == null || mMediaPlayer == null) return;
+
+        if (getCurrentState() == STATE_COMPLETED) {
+            if (playQueue.getIndex() != 0) {
+                playQueue.setIndex(0);
+            }
+
+            setRecovery(playQueue.getIndex(), 0);
+            initPlayer(true);
             return;
         }
 
-        audioReactor.requestAudioFocus();
+        initPlayback(getPlayQueue(), getRepeatMode(),
+                getPlaybackSpeed(), getPlaybackPitch(),
+                false, true, isMuted());
 
-        if (getCurrentState() == STATE_COMPLETED) {
-            if (playQueue.getIndex() == 0) {
-                seekToDefault();
-            } else {
-                playQueue.setIndex(0);
-            }
-        }
-
-        simpleExoPlayer.setPlayWhenReady(true);
     }
 
     public void onPause() {
-        if (DEBUG) {
-            Log.d(TAG, "onPause() called");
-        }
-        if (audioReactor == null || simpleExoPlayer == null) {
-            return;
-        }
+        if (DEBUG) Log.d(TAG, "onPause() called");
 
-        audioReactor.abandonAudioFocus();
-        simpleExoPlayer.setPlayWhenReady(false);
+        if (mMediaPlayer == null) return;
+
+        setRecovery(playQueue.getIndex(), mMediaPlayer.getTime());
+        mMediaPlayer.pause();
     }
 
     public void onPlayPause() {
-        if (DEBUG) {
-            Log.d(TAG, "onPlayPause() called");
-        }
+        if (DEBUG) Log.d(TAG, "onPlayPause() called");
 
         if (isPlaying()) {
             onPause();
@@ -1127,46 +774,36 @@ public abstract class BasePlayer implements
     }
 
     public void onFastRewind() {
-        if (DEBUG) {
-            Log.d(TAG, "onFastRewind() called");
-        }
+        if (DEBUG) Log.d(TAG, "onFastRewind() called");
         seekBy(-getSeekDuration());
     }
 
     public void onFastForward() {
-        if (DEBUG) {
-            Log.d(TAG, "onFastForward() called");
-        }
+        if (DEBUG) Log.d(TAG, "onFastForward() called");
         seekBy(getSeekDuration());
     }
 
     private int getSeekDuration() {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         final String key = context.getString(R.string.seek_duration_key);
-        final String value = prefs
-                .getString(key, context.getString(R.string.seek_duration_default_value));
+        final String value = prefs.getString(key, context.getString(R.string.seek_duration_default_value));
         return Integer.parseInt(value);
     }
 
     public void onPlayPrevious() {
-        if (simpleExoPlayer == null || playQueue == null) {
-            return;
-        }
-        if (DEBUG) {
-            Log.d(TAG, "onPlayPrevious() called");
-        }
+        if (DEBUG) Log.d(TAG, "onPlayPrevious() called");
 
-        /* If current playback has run for PLAY_PREV_ACTIVATION_LIMIT_MILLIS milliseconds,
-         * restart current track. Also restart the track if the current track
-         * is the first in a queue.*/
-        if (simpleExoPlayer.getCurrentPosition() > PLAY_PREV_ACTIVATION_LIMIT_MILLIS
-                || playQueue.getIndex() == 0) {
-            seekToDefault();
+        if (playQueue == null) return;
+
+        if (playQueue.getIndex() == 0) {
+            setRecovery(playQueue.getIndex(), 0);
             playQueue.offsetIndex(0);
         } else {
             savePlaybackState();
             playQueue.offsetIndex(-1);
         }
+
+        initPlayer(true);
     }
 
     public void onPlayNext() {
@@ -1178,96 +815,71 @@ public abstract class BasePlayer implements
         }
 
         savePlaybackState();
+
         playQueue.offsetIndex(+1);
+
+        initPlayer(true);
     }
 
     public void onSelected(final PlayQueueItem item) {
-        if (playQueue == null || simpleExoPlayer == null) {
-            return;
-        }
+        if (playQueue == null || mMediaPlayer == null) return;
 
         final int index = playQueue.indexOf(item);
-        if (index == -1) {
-            return;
-        }
+        if (index == -1) return;
 
-        if (playQueue.getIndex() == index && simpleExoPlayer.getCurrentWindowIndex() == index) {
+        if (playQueue.getIndex() == index) {
             seekToDefault();
         } else {
             savePlaybackState();
         }
+
         playQueue.setIndex(index);
+
+        initPlayer(true);
+
     }
 
-    public void seekTo(final long positionMillis) {
-        if (DEBUG) {
-            Log.d(TAG, "seekBy() called with: position = [" + positionMillis + "]");
-        }
-        if (simpleExoPlayer != null) {
-            simpleExoPlayer.seekTo(positionMillis);
-        }
+    public void seekTo(long positionMillis) {
+        if (DEBUG) Log.d(TAG, "seekBy() called with: position = [" + positionMillis + "]");
+        if (mMediaPlayer != null) mMediaPlayer.setTime(positionMillis);
     }
 
-    public void seekBy(final long offsetMillis) {
-        if (DEBUG) {
-            Log.d(TAG, "seekBy() called with: offsetMillis = [" + offsetMillis + "]");
-        }
-        seekTo(simpleExoPlayer.getCurrentPosition() + offsetMillis);
-    }
-
-    public boolean isCurrentWindowValid() {
-        return simpleExoPlayer != null && simpleExoPlayer.getDuration() >= 0
-                && simpleExoPlayer.getCurrentPosition() >= 0;
-    }
-
-    public void seekToDefault() {
-        if (simpleExoPlayer != null) {
-            simpleExoPlayer.seekToDefaultPosition();
-        }
+    public void seekBy(long offsetMillis) {
+        if (DEBUG) Log.d(TAG, "seekBy() called with: offsetMillis = [" + offsetMillis + "]");
+        seekTo(mMediaPlayer.getTime() + offsetMillis);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
     // Utils
     //////////////////////////////////////////////////////////////////////////*/
 
+    public void seekToDefault() {
+        setRecovery(playQueue.getIndex(), 0);
+    }
+
     private void registerView() {
-        if (currentMetadata == null) {
-            return;
-        }
+        if (currentMetadata == null) return;
         final StreamInfo currentInfo = currentMetadata.getMetadata();
         final Disposable viewRegister = recordManager.onViewed(currentInfo).onErrorComplete()
                 .subscribe(
-                        ignored -> { /* successful */ },
+                        ignored -> {/* successful */},
                         error -> Log.e(TAG, "Player onViewed() failure: ", error)
                 );
         databaseUpdateReactor.add(viewRegister);
     }
 
     protected void reload() {
-        if (playbackManager != null) {
-            playbackManager.dispose();
-        }
-
-        if (playQueue != null) {
-            playbackManager = new MediaSourceManager(this, playQueue);
-        }
     }
 
     private void savePlaybackState(final StreamInfo info, final long progress) {
-        if (info == null) {
-            return;
-        }
-        if (DEBUG) {
-            Log.d(TAG, "savePlaybackState() called");
-        }
+        if (info == null) return;
+        if (DEBUG) Log.d(TAG, "savePlaybackState() called");
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         if (prefs.getBoolean(context.getString(R.string.enable_watch_history_key), true)) {
             final Disposable stateSaver = recordManager.saveStreamState(info, progress)
-                    .observeOn(mainThread())
+                    .observeOn(AndroidSchedulers.mainThread())
                     .doOnError((e) -> {
-                        if (DEBUG) {
-                            e.printStackTrace();
-                        }
+                        if (DEBUG) e.printStackTrace();
                     })
                     .onErrorComplete()
                     .subscribe();
@@ -1276,18 +888,14 @@ public abstract class BasePlayer implements
     }
 
     private void resetPlaybackState(final PlayQueueItem queueItem) {
-        if (queueItem == null) {
-            return;
-        }
+        if (queueItem == null) return;
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         if (prefs.getBoolean(context.getString(R.string.enable_watch_history_key), true)) {
             final Disposable stateSaver = queueItem.getStream()
                     .flatMapCompletable(info -> recordManager.saveStreamState(info, 0))
-                    .observeOn(mainThread())
+                    .observeOn(AndroidSchedulers.mainThread())
                     .doOnError((e) -> {
-                        if (DEBUG) {
-                            e.printStackTrace();
-                        }
+                        if (DEBUG) e.printStackTrace();
                     })
                     .onErrorComplete()
                     .subscribe();
@@ -1300,66 +908,60 @@ public abstract class BasePlayer implements
     }
 
     public void savePlaybackState() {
-        if (simpleExoPlayer == null || currentMetadata == null) {
-            return;
-        }
+        if (mMediaPlayer == null || currentMetadata == null) return;
         final StreamInfo currentInfo = currentMetadata.getMetadata();
-        savePlaybackState(currentInfo, simpleExoPlayer.getCurrentPosition());
+
+        if (mMediaPlayer != null & !mMediaPlayer.isReleased()) {
+            savePlaybackState(currentInfo, mMediaPlayer.getTime());
+        }
     }
 
     private void maybeUpdateCurrentMetadata() {
-        if (simpleExoPlayer == null) {
-            return;
-        }
+        if (mMediaPlayer == null) return;
 
         final MediaSourceTag metadata;
         try {
-            metadata = (MediaSourceTag) simpleExoPlayer.getCurrentTag();
-        } catch (IndexOutOfBoundsException | ClassCastException error) {
-            if (DEBUG) {
-                Log.d(TAG, "Could not update metadata: " + error.getMessage());
-                error.printStackTrace();
-            }
+            StreamInfo stream = playQueue.getItem().getStream().blockingGet();
+            List<VideoStream> sortedAvailableVideoStreams = ListHelper.getSortedStreamVideosList(context,
+                    stream.getVideoStreams(), stream.getVideoOnlyStreams(), true);
+
+            int videoIndex = ListHelper.getResolutionIndex(context, sortedAvailableVideoStreams, playbackQuality);
+
+            metadata = new MediaSourceTag(stream, sortedAvailableVideoStreams, videoIndex);
+
+
+        } catch (Exception error) {
+            if (DEBUG) Log.d(TAG, "Could not update metadata: " + error.getMessage());
+            if (DEBUG) error.printStackTrace();
             return;
         }
 
-        if (metadata == null) {
-            return;
-        }
+        if (metadata == null) return;
+
         maybeAutoQueueNextStream(metadata);
 
-        if (currentMetadata == metadata) {
-            return;
-        }
+        if (currentMetadata == metadata) return;
         currentMetadata = metadata;
         onMetadataChanged(metadata);
     }
 
-    private void maybeAutoQueueNextStream(@NonNull final MediaSourceTag metadata) {
-        if (playQueue == null || playQueue.getIndex() != playQueue.size() - 1
-                || getRepeatMode() != Player.REPEAT_MODE_OFF
-                || !PlayerHelper.isAutoQueueEnabled(context)) {
-            return;
-        }
+    private void maybeAutoQueueNextStream(@NonNull final MediaSourceTag currentMetadata) {
+        if (playQueue == null || playQueue.getIndex() != playQueue.size() - 1 ||
+                getRepeatMode() != BasePlayer.REPEAT_MODE_OFF ||
+                !PlayerHelper.isAutoQueueEnabled(context)) return;
         // auto queue when starting playback on the last item when not repeating
-        final PlayQueue autoQueue = PlayerHelper.autoQueueOf(metadata.getMetadata(),
+        final PlayQueue autoQueue = PlayerHelper.autoQueueOf(currentMetadata.getMetadata(),
                 playQueue.getStreams());
-        if (autoQueue != null) {
-            playQueue.append(autoQueue.getStreams());
-        }
+        if (autoQueue != null) playQueue.append(autoQueue.getStreams());
     }
-
     /*//////////////////////////////////////////////////////////////////////////
     // Getters and Setters
     //////////////////////////////////////////////////////////////////////////*/
 
-    public SimpleExoPlayer getPlayer() {
-        return simpleExoPlayer;
+    public MediaPlayer getPlayer() {
+        return mMediaPlayer;
     }
 
-    public AudioReactor getAudioReactor() {
-        return audioReactor;
-    }
 
     public int getCurrentState() {
         return currentState;
@@ -1372,95 +974,68 @@ public abstract class BasePlayer implements
 
     @NonNull
     public String getVideoUrl() {
-        return currentMetadata == null
-                ? context.getString(R.string.unknown_content)
-                : currentMetadata.getMetadata().getUrl();
+        return currentMetadata == null ? context.getString(R.string.unknown_content) : currentMetadata.getMetadata().getUrl();
     }
 
     @NonNull
     public String getVideoTitle() {
-        return currentMetadata == null
-                ? context.getString(R.string.unknown_content)
-                : currentMetadata.getMetadata().getName();
+        return currentMetadata == null ? context.getString(R.string.unknown_content) : currentMetadata.getMetadata().getName();
     }
 
     @NonNull
     public String getUploaderName() {
-        return currentMetadata == null
-                ? context.getString(R.string.unknown_content)
-                : currentMetadata.getMetadata().getUploaderName();
+        return currentMetadata == null ? context.getString(R.string.unknown_content) : currentMetadata.getMetadata().getUploaderName();
     }
 
     @Nullable
     public Bitmap getThumbnail() {
-        return currentThumbnail == null
-                ? BitmapFactory.decodeResource(context.getResources(), R.drawable.dummy_thumbnail)
-                : currentThumbnail;
+        return currentThumbnail == null ?
+                BitmapFactory.decodeResource(context.getResources(), R.drawable.dummy_thumbnail) :
+                currentThumbnail;
     }
 
     /**
-     * Checks if the current playback is a livestream AND is playing at or beyond the live edge.
-     *
-     * @return whether the livestream is playing at or beyond the edge
+     * Checks if the current playback is a livestream AND is playing at or beyond the live edge
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isLiveEdge() {
-        if (simpleExoPlayer == null || !isLive()) {
-            return false;
-        }
-
-        final Timeline currentTimeline = simpleExoPlayer.getCurrentTimeline();
-        final int currentWindowIndex = simpleExoPlayer.getCurrentWindowIndex();
-        if (currentTimeline.isEmpty() || currentWindowIndex < 0
-                || currentWindowIndex >= currentTimeline.getWindowCount()) {
-            return false;
-        }
-
-        Timeline.Window timelineWindow = new Timeline.Window();
-        currentTimeline.getWindow(currentWindowIndex, timelineWindow);
-        return timelineWindow.getDefaultPositionMs() <= simpleExoPlayer.getCurrentPosition();
+        return true;
     }
 
     public boolean isLive() {
-        if (simpleExoPlayer == null) {
-            return false;
-        }
-        try {
-            return simpleExoPlayer.isCurrentWindowDynamic();
-        } catch (@NonNull IndexOutOfBoundsException e) {
-            // Why would this even happen =(
-            // But lets log it anyway. Save is save
-            if (DEBUG) {
-                Log.d(TAG, "Could not update metadata: " + e.getMessage());
-                e.printStackTrace();
-            }
-            return false;
-        }
+        if (mMediaPlayer == null) return false;
+
+        if (playQueue.getItem().getStreamType().equals(StreamType.LIVE_STREAM) || playQueue.getItem().getStreamType().equals(StreamType.AUDIO_LIVE_STREAM))
+            return true;
+
+        return false;
     }
 
     public boolean isPlaying() {
-        return simpleExoPlayer != null && simpleExoPlayer.isPlaying();
-    }
-
-    @Player.RepeatMode
-    public int getRepeatMode() {
-        return simpleExoPlayer == null
-                ? Player.REPEAT_MODE_OFF
-                : simpleExoPlayer.getRepeatMode();
-    }
-
-    public void setRepeatMode(@Player.RepeatMode final int repeatMode) {
-        if (simpleExoPlayer != null) {
-            simpleExoPlayer.setRepeatMode(repeatMode);
+        if (mMediaPlayer != null && !mMediaPlayer.isReleased()) {
+            return mMediaPlayer.isPlaying();
         }
+
+        return false;
+    }
+
+
+    public int getRepeatMode() {
+        return mMediaPlayer == null
+                ? BasePlayer.REPEAT_MODE_OFF
+                : repeatMode;
+    }
+
+    public void setRepeatMode(final int repeatMode) {
+        if (mMediaPlayer != null) {
+            this.repeatMode = repeatMode;
+        }
+        setRecovery();
+        initPlayer(true);
     }
 
     public float getPlaybackSpeed() {
-        return getPlaybackParameters().speed;
-    }
-
-    public void setPlaybackSpeed(final float speed) {
-        setPlaybackParameters(speed, getPlaybackPitch(), getPlaybackSkipSilence());
+        return  getPlaybackParameters().speed;
     }
 
     public float getPlaybackPitch() {
@@ -1471,28 +1046,20 @@ public abstract class BasePlayer implements
         return getPlaybackParameters().skipSilence;
     }
 
+    public void setPlaybackSpeed(float speed) {
+        setPlaybackParameters(speed, getPlaybackPitch(), getPlaybackSkipSilence());
+    }
+
     public PlaybackParameters getPlaybackParameters() {
-        if (simpleExoPlayer == null) {
-            return PlaybackParameters.DEFAULT;
-        }
-        final PlaybackParameters parameters = simpleExoPlayer.getPlaybackParameters();
-        return parameters == null ? PlaybackParameters.DEFAULT : parameters;
+        if (mMediaPlayer == null) return PlaybackParameters.DEFAULT;
+
+        return playBackParameters == null ? PlaybackParameters.DEFAULT : playBackParameters;
     }
 
-    public void setPlaybackParameters(final float speed, final float pitch,
-                                      final boolean skipSilence) {
-        savePlaybackParametersToPreferences(speed, pitch, skipSilence);
-        simpleExoPlayer.setPlaybackParameters(new PlaybackParameters(speed, pitch, skipSilence));
-    }
-
-    private void savePlaybackParametersToPreferences(final float speed, final float pitch,
-                                                     final boolean skipSilence) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-            .edit()
-            .putFloat(context.getString(R.string.playback_speed_key), speed)
-            .putFloat(context.getString(R.string.playback_pitch_key), pitch)
-            .putBoolean(context.getString(R.string.playback_skip_silence_key), skipSilence)
-            .apply();
+    public void setPlaybackParameters(float speed, float pitch, boolean skipSilence) {
+        playBackParameters = new PlaybackParameters(speed, pitch, skipSilence);
+        Log.d(TAG, "setPlaybackParameters called");
+        mMediaPlayer.setRate(speed);
     }
 
     public PlayQueue getPlayQueue() {
@@ -1503,45 +1070,96 @@ public abstract class BasePlayer implements
         return playQueueAdapter;
     }
 
-    public boolean isPrepared() {
-        return isPrepared;
-    }
-
     public boolean isProgressLoopRunning() {
         return progressUpdateReactor.get() != null;
     }
 
     public void setRecovery() {
-        if (playQueue == null || simpleExoPlayer == null) {
-            return;
-        }
+        if (playQueue == null || mMediaPlayer == null) return;
 
         final int queuePos = playQueue.getIndex();
-        final long windowPos = simpleExoPlayer.getCurrentPosition();
+        final long windowPos = mMediaPlayer.isReleased() ? 0 : mMediaPlayer.getTime();
 
-        if (windowPos > 0 && windowPos <= simpleExoPlayer.getDuration()) {
+        if (windowPos > 0 && windowPos <= mMediaPlayer.getLength()) {
             setRecovery(queuePos, windowPos);
         }
     }
 
     public void setRecovery(final int queuePos, final long windowPos) {
-        if (playQueue.size() <= queuePos) {
-            return;
-        }
+        if (playQueue.size() <= queuePos) return;
 
-        if (DEBUG) {
-            Log.d(TAG, "Setting recovery, queue: " + queuePos + ", pos: " + windowPos);
-        }
+        if (DEBUG) Log.d(TAG, "Setting recovery, queue: " + queuePos + ", pos: " + windowPos);
         playQueue.setRecovery(queuePos, windowPos);
     }
 
     public boolean gotDestroyed() {
-        return simpleExoPlayer == null;
+        return mMediaPlayer == null;
     }
 
     private boolean isPlaybackResumeEnabled() {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         return prefs.getBoolean(context.getString(R.string.enable_watch_history_key), true)
                 && prefs.getBoolean(context.getString(R.string.enable_playback_resume_key), true);
+    }
+
+    /**
+     * Registering callbacks
+     */
+    protected org.videolan.libvlc.MediaPlayer.EventListener mPlayerListener = new MyPlayerListener(mMediaPlayer);
+
+    private class MyPlayerListener implements MediaPlayer.EventListener {
+        private WeakReference<MediaPlayer> mOwner;
+
+        public MyPlayerListener(MediaPlayer owner) {
+            mOwner = new WeakReference<MediaPlayer>(owner);
+        }
+
+        @Override
+        public void onEvent(MediaPlayer.Event event) {
+            MediaPlayer player = mOwner.get();
+
+            switch (event.type) {
+                case MediaPlayer.Event.Opening:
+                    return;
+
+                case MediaPlayer.Event.Playing:
+                    changeState(BasePlayer.STATE_PLAYING);
+                    return;
+
+                case MediaPlayer.Event.EndReached:
+                    resetPlaybackState(playQueue.getItem());
+
+                    if (PlayerHelper.isAutoQueueEnabled(context)) {
+                        if (playQueue.getIndex() + 1 < playQueue.size()) {
+                            playQueue.offsetIndex(+1);
+                            initPlayer(true);
+
+                            return;
+                        }
+                    }
+
+                    changeState(BasePlayer.STATE_COMPLETED);
+
+                    return;
+
+                case MediaPlayer.Event.Paused:
+                    changeState(BasePlayer.STATE_PAUSED);
+                    return;
+
+                case MediaPlayer.Event.EncounteredError:
+                    return;
+
+                case MediaPlayer.Event.Buffering:
+                    onUpdateProgress(
+                            Math.max((int) mMediaPlayer.getTime(), 0),
+                            (int) mMediaPlayer.getLength(),
+                            (int) event.getBuffering()
+                    );
+                    return;
+
+                default:
+                    break;
+            }
+        }
     }
 }

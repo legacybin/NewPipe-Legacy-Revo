@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="org.schabi.newpipelegacy">
 
+    <uses-sdk  tools:overrideLibrary="com.masterwok.libvlc, org.videolan, com.google.android.exoplayer2, com.google.android.exoplayer2.ext.mediasession,com.google.android.exoplayer2.ui,com.google.android.exoplayer2.source.dash,com.google.android.exoplayer2.source.hls,com.google.android.exoplayer2.source.smoothstreaming,com.google.android.exoplayer2.core, androidx.leanback"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>

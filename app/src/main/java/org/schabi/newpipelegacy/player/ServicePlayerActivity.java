@@ -25,7 +25,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.Player;
 
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
@@ -336,7 +335,11 @@ public abstract class ServicePlayerActivity extends AppCompatActivity
             }
 
             final int index = player.getPlayQueue().indexOf(item);
+
             if (index != -1) {
+                if (player.getPlayQueue().getIndex() == index)
+                    return false;
+
                 player.getPlayQueue().remove(index);
             }
             return true;
@@ -396,6 +399,11 @@ public abstract class ServicePlayerActivity extends AppCompatActivity
             @Override
             public void onSwiped(final int index) {
                 if (index != -1) {
+                    if (player.getPlayQueue().getIndex() == index) {
+                        player.getPlayQueueAdapter().notifyDataSetChanged();
+                        return;
+                    }
+
                     player.getPlayQueue().remove(index);
                 }
             }
@@ -507,6 +515,7 @@ public abstract class ServicePlayerActivity extends AppCompatActivity
                                            final boolean playbackSkipSilence) {
         if (player != null) {
             player.setPlaybackParameters(playbackTempo, playbackPitch, playbackSkipSilence);
+            onPlaybackParameterChanged(player.getPlaybackParameters());
         }
     }
 
@@ -673,19 +682,19 @@ public abstract class ServicePlayerActivity extends AppCompatActivity
 
     private void onPlayModeChanged(final int repeatMode, final boolean shuffled) {
         switch (repeatMode) {
-            case Player.REPEAT_MODE_OFF:
+            case BasePlayer.REPEAT_MODE_OFF:
                 repeatButton.setImageResource(R.drawable.exo_controls_repeat_off);
                 break;
-            case Player.REPEAT_MODE_ONE:
+            case BasePlayer.REPEAT_MODE_ONE:
                 repeatButton.setImageResource(R.drawable.exo_controls_repeat_one);
                 break;
-            case Player.REPEAT_MODE_ALL:
+            case BasePlayer.REPEAT_MODE_ALL:
                 repeatButton.setImageResource(R.drawable.exo_controls_repeat_all);
                 break;
         }
 
         final int shuffleAlpha = shuffled ? 255 : 77;
-        shuffleButton.setImageAlpha(shuffleAlpha);
+        shuffleButton.setAlpha(shuffleAlpha);
     }
 
     private void onPlaybackParameterChanged(final PlaybackParameters parameters) {
@@ -717,9 +726,9 @@ public abstract class ServicePlayerActivity extends AppCompatActivity
             // using rootView.getContext() because getApplicationContext() didn't work
             item.setIcon(player.isMuted()
                     ? ThemeHelper.resolveResourceIdFromAttr(rootView.getContext(),
-                            R.attr.ic_volume_off)
+                    R.attr.ic_volume_off)
                     : ThemeHelper.resolveResourceIdFromAttr(rootView.getContext(),
-                            R.attr.ic_volume_up));
+                    R.attr.ic_volume_up));
         }
     }
 }

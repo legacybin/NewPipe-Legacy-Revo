@@ -41,16 +41,11 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.source.MediaSource;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 
 import org.schabi.newpipelegacy.BuildConfig;
 import org.schabi.newpipelegacy.R;
-import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipelegacy.player.event.PlayerEventListener;
-import org.schabi.newpipelegacy.player.playqueue.PlayQueueItem;
-import org.schabi.newpipelegacy.player.resolver.AudioPlaybackResolver;
 import org.schabi.newpipelegacy.player.resolver.MediaSourceTag;
 import org.schabi.newpipelegacy.util.BitmapUtils;
 import org.schabi.newpipelegacy.util.NavigationHelper;
@@ -131,9 +126,7 @@ public final class BackgroundPlayer extends Service {
                     + "flags = [" + flags + "], startId = [" + startId + "]");
         }
         basePlayerImpl.handleIntent(intent);
-        if (basePlayerImpl.mediaSessionManager != null) {
-            basePlayerImpl.mediaSessionManager.handleMediaButtonIntent(intent);
-        }
+
         return START_NOT_STICKY;
     }
 
@@ -221,7 +214,7 @@ public final class BackgroundPlayer extends Service {
             setLockScreenThumbnail(builder);
         }
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             builder.setPriority(NotificationCompat.PRIORITY_MAX);
         }
         return builder;
@@ -232,14 +225,14 @@ public final class BackgroundPlayer extends Service {
         boolean isLockScreenThumbnailEnabled = sharedPreferences.getBoolean(
                 getString(R.string.enable_lock_screen_video_thumbnail_key), true);
 
-        if (isLockScreenThumbnailEnabled) {
+        /*if (isLockScreenThumbnailEnabled) {
             basePlayerImpl.mediaSessionManager.setLockScreenArt(
                     builder,
                     getCenteredThumbnailBitmap()
             );
         } else {
             basePlayerImpl.mediaSessionManager.clearLockScreenArt(builder);
-        }
+        }*/
     }
 
     @Nullable
@@ -332,15 +325,15 @@ public final class BackgroundPlayer extends Service {
 
     private void setRepeatModeIcon(final RemoteViews remoteViews, final int repeatMode) {
         switch (repeatMode) {
-            case Player.REPEAT_MODE_OFF:
+            case BasePlayer.REPEAT_MODE_OFF:
                 remoteViews.setInt(R.id.notificationRepeat, SET_IMAGE_RESOURCE_METHOD,
                         R.drawable.exo_controls_repeat_off);
                 break;
-            case Player.REPEAT_MODE_ONE:
+            case BasePlayer.REPEAT_MODE_ONE:
                 remoteViews.setInt(R.id.notificationRepeat, SET_IMAGE_RESOURCE_METHOD,
                         R.drawable.exo_controls_repeat_one);
                 break;
-            case Player.REPEAT_MODE_ALL:
+            case BasePlayer.REPEAT_MODE_ALL:
                 remoteViews.setInt(R.id.notificationRepeat, SET_IMAGE_RESOURCE_METHOD,
                         R.drawable.exo_controls_repeat_all);
                 break;
@@ -350,13 +343,11 @@ public final class BackgroundPlayer extends Service {
 
     protected class BasePlayerImpl extends BasePlayer {
         @NonNull
-        private final AudioPlaybackResolver resolver;
         private int cachedDuration;
         private String cachedDurationString;
 
         BasePlayerImpl(final Context context) {
             super(context);
-            this.resolver = new AudioPlaybackResolver(context, dataSource);
         }
 
         @Override
@@ -417,10 +408,11 @@ public final class BackgroundPlayer extends Service {
         /*//////////////////////////////////////////////////////////////////////////
         // States Implementation
         //////////////////////////////////////////////////////////////////////////*/
-
         @Override
-        public void onPrepared(final boolean playWhenReady) {
-            super.onPrepared(playWhenReady);
+        public void onRepeatClicked() {
+            super.onRepeatClicked();
+            resetNotification();
+            updatePlayback();
         }
 
         @Override
@@ -505,37 +497,6 @@ public final class BackgroundPlayer extends Service {
             // Disable default behavior
         }
 
-        @Override
-        public void onRepeatModeChanged(final int i) {
-            resetNotification();
-            updateNotification(-1);
-            updatePlayback();
-        }
-
-        /*//////////////////////////////////////////////////////////////////////////
-        // Playback Listener
-        //////////////////////////////////////////////////////////////////////////*/
-
-        protected void onMetadataChanged(@NonNull final MediaSourceTag tag) {
-            super.onMetadataChanged(tag);
-            resetNotification();
-            updateNotificationThumbnail();
-            updateNotification(-1);
-            updateMetadata();
-        }
-
-        @Override
-        @Nullable
-        public MediaSource sourceOf(final PlayQueueItem item, final StreamInfo info) {
-            return resolver.resolve(info);
-        }
-
-        @Override
-        public void onPlaybackShutdown() {
-            super.onPlaybackShutdown();
-            onClose();
-        }
-
         /*//////////////////////////////////////////////////////////////////////////
         // Activity Event Listener
         //////////////////////////////////////////////////////////////////////////*/
@@ -560,7 +521,7 @@ public final class BackgroundPlayer extends Service {
         }
 
         private void updatePlayback() {
-            if (activityListener != null && simpleExoPlayer != null && playQueue != null) {
+            if (activityListener != null && mMediaPlayer != null && playQueue != null) {
                 activityListener.onPlaybackUpdate(currentState, getRepeatMode(),
                         playQueue.isShuffled(), getPlaybackParameters());
             }
@@ -578,6 +539,17 @@ public final class BackgroundPlayer extends Service {
                 activityListener.onServiceStopped();
                 activityListener = null;
             }
+        }
+
+        /*//////////////////////////////////////////////////////////////////////////
+        // Playback Listener
+        //////////////////////////////////////////////////////////////////////////*/
+
+        protected void onMetadataChanged(@NonNull final MediaSourceTag tag) {
+            super.onMetadataChanged(tag);
+            resetNotification();
+            updateNotification(-1);
+            updateMetadata();
         }
 
         /*//////////////////////////////////////////////////////////////////////////

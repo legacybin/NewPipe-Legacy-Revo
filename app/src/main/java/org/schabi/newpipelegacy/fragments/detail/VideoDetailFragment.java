@@ -12,6 +12,7 @@ import android.preference.PreferenceManager;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.util.Linkify;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -60,7 +61,6 @@ import org.schabi.newpipe.extractor.stream.Stream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.extractor.stream.VideoStream;
-
 import org.schabi.newpipelegacy.fragments.BackPressable;
 import org.schabi.newpipelegacy.fragments.BaseStateFragment;
 import org.schabi.newpipelegacy.fragments.EmptyFragment;
@@ -74,6 +74,7 @@ import org.schabi.newpipelegacy.player.playqueue.PlayQueue;
 import org.schabi.newpipelegacy.player.playqueue.SinglePlayQueue;
 import org.schabi.newpipelegacy.report.ErrorActivity;
 import org.schabi.newpipelegacy.report.UserAction;
+import org.schabi.newpipelegacy.util.AndroidTvUtils;
 import org.schabi.newpipelegacy.util.Constants;
 import org.schabi.newpipelegacy.util.ExtractorHelper;
 import org.schabi.newpipelegacy.util.ImageDisplayConstants;
@@ -88,8 +89,6 @@ import org.schabi.newpipelegacy.util.StreamItemAdapter;
 import org.schabi.newpipelegacy.util.StreamItemAdapter.StreamSizeWrapper;
 import org.schabi.newpipelegacy.util.ThemeHelper;
 import org.schabi.newpipelegacy.views.AnimatedProgressBar;
-import org.schabi.newpipelegacy.util.AndroidTvUtils;
-
 import org.schabi.newpipelegacy.views.LargeTextMovementMethod;
 
 import java.io.Serializable;
@@ -106,9 +105,8 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 import static org.schabi.newpipe.extractor.StreamingService.ServiceInfo.MediaCapability.COMMENTS;
-import static org.schabi.newpipelegacy.util.AnimationUtils.animateView;
 import static org.schabi.newpipe.extractor.stream.StreamExtractor.NO_AGE_LIMIT;
-
+import static org.schabi.newpipelegacy.util.AnimationUtils.animateView;
 
 public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
         implements BackPressable, SharedPreferences.OnSharedPreferenceChangeListener,
@@ -315,10 +313,6 @@ public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
         if (DEBUG) {
             Log.d(TAG, "onDestroyView() called");
         }
-
-        // fix back to main fragment crash when using clicking back button on toolbar
-        clearSpinnerAdapter();
-
         spinnerToolbar.setOnItemSelectedListener(null);
         spinnerToolbar.setAdapter(null);
         super.onDestroyView();
@@ -674,7 +668,7 @@ public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
         // show kodi button if it supports the current service and it is enabled in settings
         menu.findItem(R.id.action_play_with_kodi).setVisible(
                 KoreUtil.isServiceSupportedByKore(serviceId)
-                && PreferenceManager.getDefaultSharedPreferences(activity).getBoolean(
+                        && PreferenceManager.getDefaultSharedPreferences(activity).getBoolean(
                         activity.getString(R.string.show_play_with_kodi_key), false));
     }
 
@@ -796,8 +790,6 @@ public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
         // That means that we are on the start of the stack,
         // return false to let the MainActivity handle the onBack
         if (stack.size() <= 1) {
-            // fix back to main fragment crash when using only back button
-            clearSpinnerAdapter();
             return false;
         }
         // Remove top
@@ -939,7 +931,7 @@ public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
         boolean useExternalAudioPlayer = PreferenceManager.getDefaultSharedPreferences(activity)
                 .getBoolean(activity.getString(R.string.use_external_audio_player_key), false);
 
-        if (!useExternalAudioPlayer && android.os.Build.VERSION.SDK_INT >= 16) {
+        if (!useExternalAudioPlayer) {
             openNormalBackgroundPlayer(append);
         } else {
             startOnExternalPlayer(activity, currentInfo, audioStream);
@@ -1046,6 +1038,7 @@ public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
                     }));
         } else {
             //== Description.PLAIN_TEXT
+            videoDescriptionView.setAutoLinkMask(Linkify.WEB_URLS);
             videoDescriptionView.setText(description.getContent(), TextView.BufferType.SPANNABLE);
             videoDescriptionView.setVisibility(View.VISIBLE);
         }
@@ -1367,8 +1360,8 @@ public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
         int errorId = exception instanceof YoutubeStreamExtractor.DecryptException
                 ? R.string.youtube_signature_decryption_error
                 : exception instanceof ExtractionException
-                        ? R.string.parsing_error
-                        : R.string.general_error;
+                ? R.string.parsing_error
+                : R.string.general_error;
 
         onUnrecoverableError(exception, UserAction.REQUESTED_STREAM,
                 NewPipe.getNameOfService(serviceId), url, errorId);
@@ -1420,17 +1413,5 @@ public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
                     animateView(positionView, false, 500);
                     animateView(detailPositionView, false, 500);
                 });
-    }
-
-    private void clearSpinnerAdapter() {
-        spinnerToolbar = activity.findViewById(R.id.toolbar).findViewById(R.id.toolbar_spinner);
-
-        StreamItemAdapter<VideoStream, Stream> spinnerToolbarAdapter =
-                (StreamItemAdapter<VideoStream, Stream>) spinnerToolbar.getAdapter();
-
-        if (spinnerToolbarAdapter != null) {
-            spinnerToolbarAdapter.getAll().clear();
-            spinnerToolbarAdapter.notifyDataSetChanged();
-        }
     }
 }

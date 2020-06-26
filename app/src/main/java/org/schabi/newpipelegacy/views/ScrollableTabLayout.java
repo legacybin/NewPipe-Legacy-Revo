@@ -121,7 +121,10 @@ public class ScrollableTabLayout extends TabLayout {
             View child = getTabAt(i).view;
             if (child.getVisibility() == View.VISIBLE) {
                 // Use tab's minimum requested width should actual content be too small
-                contentWidth += Math.max(child.getMinimumWidth(), child.getMeasuredWidth());
+                // contentWidth += Math.max(child.getMinimumWidth(), child.getMeasuredWidth());
+
+                // fix java.lang.NoSuchMethodError: android.view.View.getMinimumWidth
+                contentWidth += Math.max(child.getMeasuredWidth(), child.getMeasuredWidth());
             }
         }
 
