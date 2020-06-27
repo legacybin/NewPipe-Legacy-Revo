@@ -245,7 +245,7 @@ public abstract class BasePlayer implements
 
         mMediaPlayer.setEventListener(mPlayerListener);
 
-        if (playOnReady) {
+        //if (playOnReady) {
 
             if (playQueue == null) {
                 Log.d(TAG, "playOnReady with null playQueue ");
@@ -303,7 +303,13 @@ public abstract class BasePlayer implements
             mMediaPlayer.play();
 
             mMediaPlayer.setTime(playQueue.getItem().getRecoveryPosition());
-        }
+
+            if (!playOnReady) {
+                changeState(BasePlayer.STATE_PAUSED);
+                mMediaPlayer.stop();
+            }
+
+        //}
 
         registerBroadcastReceiver();
     }
