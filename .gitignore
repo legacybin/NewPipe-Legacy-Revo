@@ -18,3 +18,4 @@
 bin/
 .vscode/
 *.code-workspace
+/app/release/

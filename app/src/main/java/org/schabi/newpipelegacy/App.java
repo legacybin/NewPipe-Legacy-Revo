@@ -76,12 +76,6 @@ public class App extends Application {
         return app;
     }
 
-    // This flag should be set to true to enable VectorDrawable support for API < 21
-    static
-    {
-        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
-    }
-
     @Override
     protected void attachBaseContext(final Context base) {
         super.attachBaseContext(base);

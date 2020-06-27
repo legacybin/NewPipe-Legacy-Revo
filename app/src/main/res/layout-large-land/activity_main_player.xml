@@ -75,7 +75,7 @@
                 android:focusable="true"
                 android:scaleType="fitXY"
                 android:tint="?attr/colorAccent"
-                app:srcCompat="@drawable/ic_close_white_24dp"
+                android:src="@drawable/ic_close_white_24dp"
                 android:background="?android:selectableItemBackground"
                 tools:ignore="ContentDescription"/>
 
@@ -108,7 +108,7 @@
                 android:focusable="true"
                 android:scaleType="fitXY"
                 android:tint="?attr/colorAccent"
-                app:srcCompat="@drawable/ic_shuffle_white_24dp"
+                android:src="@drawable/ic_shuffle_white_24dp"
                 android:background="?android:selectableItemBackground"
                 tools:ignore="ContentDescription,RtlHardcoded"/>
         </RelativeLayout>
@@ -144,7 +144,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
-                android:background="@drawable/player_controls_top_background"
+                android:background="@drawable/player_top_controls_bg"
                 android:gravity="top"
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp"
@@ -178,6 +178,7 @@
                         android:textSize="15sp"
                         android:textStyle="bold"
                         android:clickable="true"
+                        android:focusable="true"
                         tools:ignore="RtlHardcoded"
                         tools:text="The Video Title LONG very LONG"/>
 
@@ -193,12 +194,12 @@
                         android:textColor="@android:color/white"
                         android:textSize="12sp"
                         android:clickable="true"
+                        android:focusable="true"
                         tools:text="The Video Artist  LONG very LONG very Long"/>
                 </LinearLayout>
 
-                <Button
+                <TextView
                     android:id="@+id/qualityTextView"
-                    style="@style/Widget.AppCompat.Button.Borderless"
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:layout_marginLeft="2dp"
@@ -209,13 +210,11 @@
                     android:text="720p"
                     android:textColor="@android:color/white"
                     android:textStyle="bold"
-                    android:textAllCaps="false"
-                    android:padding="5dp"
+                    android:background="?attr/selectableItemBackground"
                     tools:ignore="HardcodedText,RtlHardcoded"/>
 
-                <Button
+                <TextView
                     android:id="@+id/playbackSpeed"
-                    style="@style/Widget.AppCompat.Button.Borderless"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="2dp"
@@ -225,8 +224,7 @@
                     android:minWidth="40dp"
                     android:textColor="@android:color/white"
                     android:textStyle="bold"
-                    android:textAllCaps="false"
-                    android:padding="5dp"
+                    android:background="?attr/selectableItemBackground"
                     tools:ignore="RtlHardcoded,RtlSymmetry"
                     tools:text="1x" />
 
@@ -241,7 +239,7 @@
                     android:focusable="true"
                     android:padding="5dp"
                     android:scaleType="fitXY"
-                    app:srcCompat="@drawable/ic_list_white_24dp"
+                    android:src="@drawable/ic_list_white_24dp"
                     android:background="?attr/selectableItemBackground"
                     tools:ignore="ContentDescription,RtlHardcoded"/>
 
@@ -255,7 +253,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:scaleType="fitXY"
-                    app:srcCompat="@drawable/ic_expand_more_white_24dp"
+                    android:src="@drawable/ic_expand_more_white_24dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     tools:ignore="ContentDescription,RtlHardcoded"/>
             </RelativeLayout>
@@ -272,9 +270,8 @@
                 tools:ignore="RtlHardcoded"
                 tools:visibility="visible">
 
-                <Button
+                <TextView
                     android:id="@+id/resizeTextView"
-                    style="@style/Widget.AppCompat.Button.Borderless"
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:layout_marginLeft="8dp"
@@ -284,13 +281,11 @@
                     android:minWidth="50dp"
                     android:textColor="@android:color/white"
                     android:textStyle="bold"
-                    android:textAllCaps="false"
                     android:background="?attr/selectableItemBackground"
                     tools:ignore="HardcodedText,RtlHardcoded"
                     tools:text="FIT"/>
 
-                <Button
-                    style="@style/Widget.AppCompat.Button.Borderless"
+                <TextView
                     android:id="@+id/captionTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -305,7 +300,6 @@
                     android:paddingRight="2dp"
                     android:textColor="@android:color/white"
                     android:textStyle="bold"
-                    android:textAllCaps="false"
                     android:background="?attr/selectableItemBackground"
                     tools:ignore="RelativeOverlap,RtlHardcoded"
                     tools:text="English" />
@@ -322,12 +316,11 @@
                     android:focusable="true"
                     android:padding="5dp"
                     android:scaleType="fitXY"
-                    app:srcCompat="@drawable/ic_cast_white_24dp"
+                    android:src="@drawable/ic_cast_white_24dp"
                     android:background="?attr/selectableItemBackground"
                     android:contentDescription="@string/play_with_kodi_title"
-                    android:visibility="gone"
                     tools:ignore="RtlHardcoded"
-                    tools:visibility="visible"/>
+                    android:visibility="visible"/>
 
                 <ImageButton
                     android:id="@+id/share"
@@ -342,7 +335,7 @@
                     android:focusable="true"
                     android:padding="5dp"
                     android:scaleType="fitXY"
-                    app:srcCompat="@drawable/ic_share_white_24dp"
+                    android:src="@drawable/ic_share_white_24dp"
                     android:background="?attr/selectableItemBackground"
                     android:contentDescription="@string/share"
                     tools:ignore="RtlHardcoded"/>
@@ -359,7 +352,7 @@
                     android:focusable="true"
                     android:padding="5dp"
                     android:scaleType="fitXY"
-                    app:srcCompat="@drawable/ic_screen_rotation_white_24dp"
+                    android:src="@drawable/ic_screen_rotation_white"
                     android:background="?attr/selectableItemBackground"
                     android:contentDescription="@string/toggle_orientation"
                     tools:ignore="RtlHardcoded"/>
@@ -375,7 +368,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:scaleType="fitXY"
-                    app:srcCompat="@drawable/ic_fullscreen_exit_white_24dp"
+                    android:src="@drawable/ic_fullscreen_exit_white"
                     android:background="?attr/selectableItemBackground"
                     android:contentDescription="@string/switch_to_popup"
                     tools:ignore="RtlHardcoded"/>
@@ -392,7 +385,7 @@
                     android:focusable="true"
                     android:padding="5dp"
                     android:scaleType="fitXY"
-                    app:srcCompat="@drawable/ic_headset_white_24dp"
+                    android:src="@drawable/ic_headset_white_24dp"
                     android:background="?attr/selectableItemBackground"
                     android:contentDescription="@string/switch_to_background"
                     tools:ignore="RtlHardcoded"/>
@@ -409,7 +402,7 @@
                     android:focusable="true"
                     android:padding="5dp"
                     android:scaleType="fitXY"
-                    app:srcCompat="@drawable/ic_volume_off_white_24dp"
+                    android:src="@drawable/ic_volume_off_white_24dp"
                     android:background="?attr/selectableItemBackground"
                     android:contentDescription="@string/switch_to_background"
                     tools:ignore="RtlHardcoded" />
@@ -420,7 +413,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
-                android:background="@drawable/player_controls_background"
+                android:background="@drawable/player_controls_bg"
                 android:gravity="center"
                 android:orientation="horizontal"
                 android:paddingLeft="16dp"
@@ -438,7 +431,7 @@
                     tools:text="1:06:29"/>
 
 
-                <org.schabi.newpipelegacy.views.FocusAwareSeekBar
+                <androidx.appcompat.widget.AppCompatSeekBar
                     android:id="@+id/playbackSeekBar"
                     style="@style/Widget.AppCompat.SeekBar"
                     android:layout_width="0dp"
@@ -484,15 +477,17 @@
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:scaleType="fitXY"
-            app:srcCompat="@drawable/ic_pause_white_24dp"
+            android:src="@drawable/ic_pause_white"
             tools:ignore="ContentDescription"/>
 
         <ImageButton
             android:id="@+id/playPreviousButton"
             android:layout_width="50dp"
             android:layout_height="50dp"
+            android:layout_marginRight="30dp"
             android:layout_marginEnd="30dp"
             android:layout_centerInParent="true"
+            android:layout_toLeftOf="@id/playPauseButton"
             android:layout_toStartOf="@id/playPauseButton"
             android:clickable="true"
             android:focusable="true"
@@ -505,8 +500,10 @@
             android:id="@+id/playNextButton"
             android:layout_width="50dp"
             android:layout_height="50dp"
+            android:layout_marginLeft="30dp"
             android:layout_marginStart="30dp"
             android:layout_centerInParent="true"
+            android:layout_toRightOf="@id/playPauseButton"
             android:layout_toEndOf="@id/playPauseButton"
             android:clickable="true"
             android:focusable="true"
@@ -545,10 +542,9 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:background="@drawable/background_oval_black_transparent"
-            android:padding="15dp"
             android:visibility="gone"
             tools:ignore="ContentDescription"
-            tools:src="@drawable/ic_fast_rewind_white_24dp"
+            tools:src="@drawable/ic_action_av_fast_rewind"
             tools:visibility="visible" />
     </LinearLayout>
 
@@ -597,11 +593,11 @@
 
             <ImageView
                 android:id="@+id/volumeImageView"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 tools:ignore="ContentDescription"
-                tools:src="@drawable/ic_volume_up_white_24dp" />
+                tools:src="@drawable/ic_volume_up_white_72dp" />
         </RelativeLayout>
 
         <RelativeLayout
@@ -623,11 +619,11 @@
 
             <ImageView
                 android:id="@+id/brightnessImageView"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 tools:ignore="ContentDescription"
-                tools:src="@drawable/ic_brightness_high_white_24dp" />
+                tools:src="@drawable/ic_brightness_high_white_72dp" />
         </RelativeLayout>
 
         <TextView

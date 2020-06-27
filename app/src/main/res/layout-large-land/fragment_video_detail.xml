@@ -10,7 +10,7 @@
 	android:orientation="horizontal"
 	tools:ignore="RtlHardcoded">
 
-	<org.schabi.newpipe.views.FocusAwareCoordinator
+	<org.schabi.newpipelegacy.views.FocusAwareCoordinator
 		android:id="@+id/detail_main_content"
 		android:layout_width="0dp"
 		android:layout_height="match_parent"
@@ -575,7 +575,7 @@
 
 		</com.google.android.material.tabs.TabLayout>
 
-	</org.schabi.newpipe.views.FocusAwareCoordinator>
+	</org.schabi.newpipelegacy.views.FocusAwareCoordinator>
 
 	<FrameLayout
 		android:id="@+id/relatedStreamsLayout"
