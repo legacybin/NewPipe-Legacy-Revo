@@ -1,6 +1,7 @@
 package org.schabi.newpipelegacy.download;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -52,11 +53,11 @@ public class DownloadActivity extends AppCompatActivity {
 
         getWindow().getDecorView().getViewTreeObserver()
                 .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                updateFragments();
-                getWindow().getDecorView().getViewTreeObserver().removeOnGlobalLayoutListener(this);
-            }
+                    @Override
+                    public void onGlobalLayout() {
+                        updateFragments();
+                        getWindow().getDecorView().getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                    }
         });
 
         if (AndroidTvUtils.isTv(this)) {

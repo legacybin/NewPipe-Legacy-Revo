@@ -1,6 +1,5 @@
 package us.shandian.giga.io;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -9,7 +8,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.DocumentsContract;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.documentfile.provider.DocumentFile;
@@ -34,7 +32,6 @@ public class StoredDirectoryHelper {
 
     private String tag;
 
-    @SuppressLint("NewApi")
     public StoredDirectoryHelper(@NonNull Context context, @NonNull Uri path, String tag) throws IOException {
         this.tag = tag;
 

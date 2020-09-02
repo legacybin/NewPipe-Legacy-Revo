@@ -6,13 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
-
 import android.provider.DocumentsContract;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
+import androidx.documentfile.provider.DocumentFile;
 
 import org.schabi.newpipelegacy.streams.io.SharpStream;
 
@@ -20,9 +18,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
-
-import static us.shandian.giga.util.Utility.getDocumentId;
-import static us.shandian.giga.util.Utility.equalsIgnoreCase;
 
 public class StoredFileHelper implements Serializable {
     private static final long serialVersionUID = 0L;
@@ -212,9 +207,7 @@ public class StoredFileHelper implements Serializable {
 
         try {
             int flags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                context.getContentResolver().releasePersistableUriPermission(docFile.getUri(), flags);
-            }
+            context.getContentResolver().releasePersistableUriPermission(docFile.getUri(), flags);
         } catch (Exception ex) {
             // nothing to do
         }
@@ -321,7 +314,7 @@ public class StoredFileHelper implements Serializable {
             return false;
 
         if (this.isInvalid() || storage.isInvalid()) {
-            return equalsIgnoreCase(this.srcName, storage.srcName) && equalsIgnoreCase(this.srcType, storage.srcType);
+            return this.srcName.equalsIgnoreCase(storage.srcName) && this.srcType.equalsIgnoreCase(storage.srcType);
         }
 
         if (this.isDirect() != storage.isDirect()) return false;
@@ -329,9 +322,9 @@ public class StoredFileHelper implements Serializable {
         if (this.isDirect())
             return this.ioFile.getPath().equalsIgnoreCase(storage.ioFile.getPath());
 
-        return getDocumentId(
+        return DocumentsContract.getDocumentId(
                 this.docFile.getUri()
-        ).equalsIgnoreCase(getDocumentId(
+        ).equalsIgnoreCase(DocumentsContract.getDocumentId(
                 storage.docFile.getUri()
         ));
     }
@@ -353,9 +346,7 @@ public class StoredFileHelper implements Serializable {
 
     private void takePermissionSAF() throws IOException {
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                context.getContentResolver().takePersistableUriPermission(docFile.getUri(), StoredDirectoryHelper.PERMISSION_FLAGS);
-            }
+            context.getContentResolver().takePersistableUriPermission(docFile.getUri(), StoredDirectoryHelper.PERMISSION_FLAGS);
         } catch (Exception e) {
             if (docFile.getName() == null) throw new IOException(e);
         }

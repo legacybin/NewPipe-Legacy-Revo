@@ -3,7 +3,6 @@ package us.shandian.giga.util;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
@@ -28,7 +27,6 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 import java.util.Locale;
 
 import us.shandian.giga.io.StoredFileHelper;
@@ -193,12 +191,12 @@ public class Utility {
     public static int getIconForFileType(FileType type) {
         switch (type) {
             case MUSIC:
-                return R.drawable.ic_headset_white_24dp;
+                return R.drawable.music;
             default:
             case VIDEO:
-                return R.drawable.ic_movie_white_24dp;
+                return R.drawable.video;
             case SUBTITLE:
-                return R.drawable.ic_subtitles_white_24dp;
+                return R.drawable.subtitle;
         }
     }
 
@@ -299,24 +297,5 @@ public class Utility {
         }
 
         return str + pad(s);
-    }
-
-    static final private String PATH_DOCUMENT = "document";
-    static final private String PATH_TREE = "tree";
-
-    public static String getDocumentId(Uri documentUri) {
-        final List<String> paths = documentUri.getPathSegments();
-        if (paths.size() >= 2 && PATH_DOCUMENT.equals(paths.get(0))) {
-            return paths.get(1);
-        }
-        if (paths.size() >= 4 && PATH_TREE.equals(paths.get(0))
-                && PATH_DOCUMENT.equals(paths.get(2))) {
-            return paths.get(3);
-        }
-        throw new IllegalArgumentException("Invalid URI: " + documentUri);
-    }
-
-    public static boolean equalsIgnoreCase(String left, String right) {
-        return left != null && left.equalsIgnoreCase(right);
     }
 }

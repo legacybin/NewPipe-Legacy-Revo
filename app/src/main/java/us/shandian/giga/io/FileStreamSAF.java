@@ -3,11 +3,10 @@ package us.shandian.giga.io;
 import android.content.ContentResolver;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import org.schabi.newpipelegacy.streams.io.SharpStream;
-import androidx.annotation.NonNull;
-
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

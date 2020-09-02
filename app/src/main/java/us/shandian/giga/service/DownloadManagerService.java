@@ -319,7 +319,12 @@ public class DownloadManagerService extends Service {
             Log.i(TAG, "Active network [connectivity is unavailable]");
         } else {
             boolean connected = info.isConnected();
-            boolean metered = mConnectivityManager.isActiveNetworkMetered();
+
+            boolean metered = false;
+            boolean useAndroidVersion = (Build.VERSION.SDK_INT < 17) ? true : false;
+            if (!useAndroidVersion)
+                metered = mConnectivityManager.isActiveNetworkMetered();
+
 
             if (connected)
                 status = metered ? NetworkState.MeteredOperating : NetworkState.Operating;
