@@ -4,7 +4,7 @@
 <p align="center"><a href="https://f-droid.org/packages/org.schabi.newpipe/"><img src="https://f-droid.org/wiki/images/0/06/F-Droid-button_get-it-on.png"></a></p> 
 
 <p align="center">
-<a href="https://github.com/TeamNewPipe/NewPipe-legacy" alt="GitHub release"><img src="https://img.shields.io/github/release/TeamNewPipe/NewPipe-legacy.svg" ></a>
+<a href="https://github.com/juanpaulconte/teste" alt="GitHub release"><img src="https://img.shields.io/github/release/TeamNewPipe/NewPipe-legacy.svg" ></a>
 <a href="https://www.gnu.org/licenses/gpl-3.0" alt="License: GPLv3"><img src="https://img.shields.io/badge/License-GPL%20v3-blue.svg"></a>
 <a href="https://travis-ci.org/TeamNewPipe/NewPipe-legacy" alt="Build Status"><img src="https://travis-ci.org/TeamNewPipe/NewPipe-legacy.svg"></a>
 <a href="https://hosted.weblate.org/engage/NewPipe/" alt="Translation Status"><img src="https://hosted.weblate.org/widgets/NewPipe/-/svg-badge.svg"></a>
@@ -80,7 +80,7 @@ When a change to the NewPipe code occurs (due to either adding features or bug f
  * 1. Build a debug APK yourself. This is the fastest way to get new features on your device, but is much more complicated, so we recommend using one of the other methods.
  * 2. Add our custom repo to F-Droid and install it from there as soon as we publish a release. The instructions are here: https://newpipe.schabi.org/FAQ/tutorials/install-add-fdroid-repo/
  * 3. Download the APK from [releases](https://github.com/juanpaulconte/teste/releases) and install it.
- * 4  Update via F-droid. This is the slowest method of getting updates, as F-Droid must recognize changes, build the APK itself, sign it, then push the update to users.
+ *  4. Update via F-droid. This is the slowest method of getting updates, as F-Droid must recognize changes, build the APK itself, sign it, then push the update to users.
 
 When you install an APK from one of these options, it will be incompatible with an APK from one of the other options. This is due to different signing keys being used. Signing keys help ensure that a user isn't tricked into installing a malicious update to an app, and are independent. F-Droid and GitHub use different signing keys, and building an APK debug excludes a key. The signing key issue is being discussed in issue [#1981](https://github.com/TeamNewPipe/NewPipe/issues/1981), and may be fixed by setting up our own repository on F-Droid.
 
