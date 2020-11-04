@@ -57,7 +57,6 @@ NewPipe does not use any Google framework libraries, nor the YouTube API. Websit
 * Search/watch playlists
 * Watch as enqueued playlists
 * Enqueue videos
-* Local playlists
 * Subtitles
 * Livestream support
 * Show comments
@@ -78,9 +77,10 @@ NewPipe supports multiple services. Our [docs](https://teamnewpipe.github.io/doc
 
 ## Updates
 When a change to the NewPipe code occurs (due to either adding features or bug fixing), eventually a release will occur. These are in the format x.xx.x . In order to get this new version, you can:
- * Build a debug APK yourself. This is the fastest way to get new features on your device, but is much more complicated, so we recommend using one of the other methods.
- * Download the APK from [releases](https://github.com/TeamNewPipe/NewPipe-legacy/releases) and install it.
- * Update via F-droid. This is the slowest method of getting updates, as F-Droid must recognize changes, build the APK itself, sign it, then push the update to users.
+ * 1. Build a debug APK yourself. This is the fastest way to get new features on your device, but is much more complicated, so we recommend using one of the other methods.
+ * 2. Add our custom repo to F-Droid and install it from there as soon as we publish a release. The instructions are here: https://newpipe.schabi.org/FAQ/tutorials/install-add-fdroid-repo/
+ * 3. Download the APK from [releases](https://github.com/juanpaulconte/teste/releases) and install it.
+ * 4  Update via F-droid. This is the slowest method of getting updates, as F-Droid must recognize changes, build the APK itself, sign it, then push the update to users.
 
 When you install an APK from one of these options, it will be incompatible with an APK from one of the other options. This is due to different signing keys being used. Signing keys help ensure that a user isn't tricked into installing a malicious update to an app, and are independent. F-Droid and GitHub use different signing keys, and building an APK debug excludes a key. The signing key issue is being discussed in issue [#1981](https://github.com/TeamNewPipe/NewPipe/issues/1981), and may be fixed by setting up our own repository on F-Droid.
 
