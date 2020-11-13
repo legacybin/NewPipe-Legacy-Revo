@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat;
 
 import com.jakewharton.rxbinding2.view.RxView;
 
+import org.schabi.newpipe.extractor.Page;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.database.subscription.SubscriptionEntity;
 import org.schabi.newpipe.extractor.InfoItem;
@@ -405,7 +406,7 @@ public class ChannelFragment extends BaseListInfoFragment<ChannelInfo>
 
     @Override
     protected Single<ListExtractor.InfoItemsPage> loadMoreItemsLogic() {
-        return ExtractorHelper.getMoreChannelItems(serviceId, url, currentNextPageUrl);
+        return ExtractorHelper.getMoreChannelItems(serviceId, url, currentNextPage);
     }
 
     @Override
@@ -557,7 +558,7 @@ public class ChannelFragment extends BaseListInfoFragment<ChannelInfo>
             }
         }
         return new ChannelPlayQueue(currentInfo.getServiceId(), currentInfo.getUrl(),
-                currentInfo.getNextPageUrl(), streamItems, index);
+                currentInfo.getNextPage().getUrl(), streamItems, index);
     }
 
     @Override

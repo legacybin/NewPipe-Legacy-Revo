@@ -23,6 +23,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.schabi.newpipe.extractor.Page;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.ReCaptchaActivity;
 import org.schabi.newpipelegacy.database.history.model.SearchHistoryEntry;
@@ -859,7 +860,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
                 searchString,
                 asList(contentFilter),
                 sortFilter,
-                nextPageUrl)
+                new Page(nextPageUrl))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnEvent((nextItemsResult, throwable) -> isLoading.set(false))
@@ -963,7 +964,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         }
 
         lastSearchedString = searchString;
-        nextPageUrl = result.getNextPageUrl();
+        nextPageUrl = result.getNextPage().getUrl();
         currentPageUrl = result.getUrl();
 
         if (infoListAdapter.getItemsList().size() == 0) {
@@ -982,9 +983,9 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     @Override
     public void handleNextItems(final ListExtractor.InfoItemsPage result) {
         showListFooter(false);
-        currentPageUrl = result.getNextPageUrl();
+        currentPageUrl = result.getNextPage().getUrl();
         infoListAdapter.addInfoItemList(result.getItems());
-        nextPageUrl = result.getNextPageUrl();
+        nextPageUrl = result.getNextPage().getUrl();
 
         if (!result.getErrors().isEmpty()) {
             showSnackBarError(result.getErrors(), UserAction.SEARCHED,

@@ -1,5 +1,6 @@
 package org.schabi.newpipelegacy.player.playqueue;
 
+import org.schabi.newpipe.extractor.Page;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfo;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfoItem;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
@@ -16,7 +17,7 @@ public final class PlaylistPlayQueue extends AbstractInfoPlayQueue<PlaylistInfo,
     }
 
     public PlaylistPlayQueue(final PlaylistInfo info) {
-        this(info.getServiceId(), info.getUrl(), info.getNextPageUrl(), info.getRelatedItems(), 0);
+        this(info.getServiceId(), info.getUrl(), info.getNextPage().getUrl(), info.getRelatedItems(), 0);
     }
 
     public PlaylistPlayQueue(final int serviceId,
@@ -40,7 +41,7 @@ public final class PlaylistPlayQueue extends AbstractInfoPlayQueue<PlaylistInfo,
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(getHeadListObserver());
         } else {
-            ExtractorHelper.getMorePlaylistItems(this.serviceId, this.baseUrl, this.nextUrl)
+            ExtractorHelper.getMorePlaylistItems(this.serviceId, this.baseUrl, new Page(this.nextUrl))
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(getNextPageObserver());

@@ -336,7 +336,7 @@ public class VideoDetailFragment
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+        /*super.onSaveInstanceState(outState);
 
         // Check if the next video label and video is visible,
         // if it is, include the two elements in the next check
@@ -346,12 +346,12 @@ public class VideoDetailFragment
             outState.putSerializable(INFO_KEY, currentInfo);
         }
 
-        outState.putSerializable(STACK_KEY, stack);
+        outState.putSerializable(STACK_KEY, stack);*/
     }
 
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedState) {
-        super.onRestoreInstanceState(savedState);
+        /*super.onRestoreInstanceState(savedState);
 
         Serializable serializable = savedState.getSerializable(INFO_KEY);
         if (serializable instanceof StreamInfo) {
@@ -364,7 +364,7 @@ public class VideoDetailFragment
         if (serializable instanceof Collection) {
             //noinspection unchecked
             stack.addAll((Collection<? extends StackItem>) serializable);
-        }
+        }*/
 
     }
 

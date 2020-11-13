@@ -7,6 +7,7 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.schabi.newpipe.extractor.Page;
 import org.schabi.newpipelegacy.R;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -150,7 +151,7 @@ public class KioskFragment extends BaseListInfoFragment<KioskInfo> {
 
     @Override
     public Single<ListExtractor.InfoItemsPage> loadMoreItemsLogic() {
-        return ExtractorHelper.getMoreKioskItems(serviceId, url, currentNextPageUrl);
+        return ExtractorHelper.getMoreKioskItems(serviceId, url, currentNextPage);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

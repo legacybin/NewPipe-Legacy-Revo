@@ -191,9 +191,10 @@ dependencies {
         exclude module: 'support-annotations'
     }
 
-    implementation 'com.github.TeamNewPipe:NewPipeExtractor:bda83fe6a5b9a8a0751669fbc444fa49d72d0d2f'
+    implementation 'com.github.TeamNewPipe:NewPipeExtractor:v0.20.2'
 
-    implementation "com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751"
+    testImplementation 'junit:junit:4.13'
+
     implementation "org.jsoup:jsoup:1.13.1"
 
     implementation "com.squareup.okhttp3:okhttp:3.12.11"
@@ -234,6 +235,10 @@ dependencies {
     implementation "org.ocpsoft.prettytime:prettytime:4.0.5.Final"
 
     implementation "com.github.masterwok:libvlc-android-sdk:3.0.13"
+
+    implementation 'com.github.spotbugs:spotbugs-annotations:4.0.2'
+
+    implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
 
 }
 

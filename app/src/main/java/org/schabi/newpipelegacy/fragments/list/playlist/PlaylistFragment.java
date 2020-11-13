@@ -20,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.schabi.newpipe.extractor.Page;
 import org.schabi.newpipelegacy.NewPipeDatabase;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.database.playlist.model.PlaylistRemoteEntity;
@@ -229,7 +230,7 @@ public class PlaylistFragment extends BaseListInfoFragment<PlaylistInfo> {
 
     @Override
     protected Single<ListExtractor.InfoItemsPage> loadMoreItemsLogic() {
-        return ExtractorHelper.getMorePlaylistItems(serviceId, url, currentNextPageUrl);
+        return ExtractorHelper.getMorePlaylistItems(serviceId, url, currentNextPage);
     }
 
     @Override
@@ -349,7 +350,7 @@ public class PlaylistFragment extends BaseListInfoFragment<PlaylistInfo> {
         return new PlaylistPlayQueue(
                 currentInfo.getServiceId(),
                 currentInfo.getUrl(),
-                currentInfo.getNextPageUrl(),
+                currentInfo.getNextPage().getUrl(),
                 infoItems,
                 index
         );

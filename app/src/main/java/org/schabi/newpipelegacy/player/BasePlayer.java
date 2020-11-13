@@ -289,13 +289,13 @@ public abstract class BasePlayer implements
                 List<SubtitlesStream> subtitlesStream = playQueue.getItem().getStream().blockingGet().getSubtitles();
                 for (int i = 0; i < subtitlesStream.size(); i++) {
                     if (subtitlesStream.get(i).getDisplayLanguageName().contentEquals(userPreferredLanguage)) {
-                        Media.Slave slave = new Media.Slave(Media.Slave.Type.Subtitle, 1, subtitlesStream.get(i).getURL());
+                        Media.Slave slave = new Media.Slave(Media.Slave.Type.Subtitle, 1, subtitlesStream.get(i).getUrl());
                         media.addSlave(slave);
                     }
                 }
             }
 
-            // playback speed
+            // playback speedl
             mMediaPlayer.setRate(getPlaybackSpeed());
 
             maybeUpdateCurrentMetadata();

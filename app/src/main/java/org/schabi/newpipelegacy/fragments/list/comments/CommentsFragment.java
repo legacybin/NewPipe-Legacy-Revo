@@ -8,6 +8,7 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.schabi.newpipe.extractor.Page;
 import org.schabi.newpipelegacy.R;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -71,7 +72,7 @@ public class CommentsFragment extends BaseListInfoFragment<CommentsInfo> {
 
     @Override
     protected Single<ListExtractor.InfoItemsPage> loadMoreItemsLogic() {
-        return ExtractorHelper.getMoreCommentItems(serviceId, currentInfo, currentNextPageUrl);
+        return ExtractorHelper.getMoreCommentItems(serviceId, currentInfo, currentNextPage);
     }
 
     @Override

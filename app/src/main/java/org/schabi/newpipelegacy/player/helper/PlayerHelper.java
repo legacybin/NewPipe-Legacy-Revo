@@ -17,6 +17,7 @@ import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.util.MimeTypes;
 
+import org.schabi.newpipe.extractor.utils.Utils;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.MediaFormat;
@@ -152,27 +153,28 @@ public final class PlayerHelper {
     @Nullable
     public static PlayQueue autoQueueOf(@NonNull final StreamInfo info,
                                         @NonNull final List<PlayQueueItem> existingItems) {
-        Set<String> urls = new HashSet<>(existingItems.size());
+        final Set<String> urls = new HashSet<>(existingItems.size());
         for (final PlayQueueItem item : existingItems) {
             urls.add(item.getUrl());
         }
 
-        final StreamInfoItem nextVideo = info.getNextVideo();
-        if (nextVideo != null && !urls.contains(nextVideo.getUrl())) {
-            return getAutoQueuedSinglePlayQueue(nextVideo);
-        }
-
         final List<InfoItem> relatedItems = info.getRelatedStreams();
-        if (relatedItems == null) {
+        if (Utils.isNullOrEmpty(relatedItems)) {
             return null;
         }
 
-        List<StreamInfoItem> autoQueueItems = new ArrayList<>();
-        for (final InfoItem item : info.getRelatedStreams()) {
+        if (relatedItems.get(0) != null && relatedItems.get(0) instanceof StreamInfoItem
+                && !urls.contains(relatedItems.get(0).getUrl())) {
+            return getAutoQueuedSinglePlayQueue((StreamInfoItem) relatedItems.get(0));
+        }
+
+        final List<StreamInfoItem> autoQueueItems = new ArrayList<>();
+        for (final InfoItem item : relatedItems) {
             if (item instanceof StreamInfoItem && !urls.contains(item.getUrl())) {
                 autoQueueItems.add((StreamInfoItem) item);
             }
         }
+
         Collections.shuffle(autoQueueItems);
         return autoQueueItems.isEmpty()
                 ? null : getAutoQueuedSinglePlayQueue(autoQueueItems.get(0));

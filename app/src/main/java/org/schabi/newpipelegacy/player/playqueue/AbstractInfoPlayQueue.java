@@ -66,7 +66,7 @@ abstract class AbstractInfoPlayQueue<T extends ListInfo, U extends InfoItem> ext
                 if (!result.hasNextPage()) {
                     isComplete = true;
                 }
-                nextUrl = result.getNextPageUrl();
+                nextUrl = result.getNextPage().getUrl();
 
                 append(extractListItems(result.getRelatedItems()));
 
@@ -100,7 +100,7 @@ abstract class AbstractInfoPlayQueue<T extends ListInfo, U extends InfoItem> ext
                 if (!result.hasNextPage()) {
                     isComplete = true;
                 }
-                nextUrl = result.getNextPageUrl();
+                nextUrl = result.getNextPage().getUrl();
 
                 append(extractListItems(result.getItems()));
 
