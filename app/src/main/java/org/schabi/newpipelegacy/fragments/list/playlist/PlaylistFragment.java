@@ -42,6 +42,7 @@ import org.schabi.newpipelegacy.report.ErrorActivity;
 import org.schabi.newpipelegacy.report.UserAction;
 import org.schabi.newpipelegacy.util.ExtractorHelper;
 import org.schabi.newpipelegacy.util.ImageDisplayConstants;
+import org.schabi.newpipelegacy.util.KoreUtil;
 import org.schabi.newpipelegacy.util.Localization;
 import org.schabi.newpipelegacy.util.NavigationHelper;
 import org.schabi.newpipelegacy.util.ShareUtils;
@@ -173,6 +174,9 @@ public class PlaylistFragment extends BaseListInfoFragment<PlaylistInfo> {
                     StreamDialogEntry.append_playlist,
                     StreamDialogEntry.share
             ));
+        }
+        if (KoreUtil.shouldShowPlayWithKodi(context, item.getServiceId())) {
+            entries.add(StreamDialogEntry.play_with_kodi);
         }
         StreamDialogEntry.setEnabledEntries(entries);
 
