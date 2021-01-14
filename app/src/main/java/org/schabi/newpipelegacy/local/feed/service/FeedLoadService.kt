@@ -50,13 +50,13 @@ import org.schabi.newpipelegacy.App
 import org.schabi.newpipelegacy.MainActivity.DEBUG
 import org.schabi.newpipelegacy.R
 import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity
+import org.schabi.newpipelegacy.ktx.isNetworkRelated
 import org.schabi.newpipelegacy.local.feed.FeedDatabaseManager
 import org.schabi.newpipelegacy.local.feed.service.FeedEventManager.Event.ErrorResultEvent
 import org.schabi.newpipelegacy.local.feed.service.FeedEventManager.Event.ProgressEvent
 import org.schabi.newpipelegacy.local.feed.service.FeedEventManager.Event.SuccessResultEvent
 import org.schabi.newpipelegacy.local.feed.service.FeedEventManager.postEvent
 import org.schabi.newpipelegacy.local.subscription.SubscriptionManager
-import org.schabi.newpipelegacy.util.ExceptionUtils
 import org.schabi.newpipelegacy.util.ExtractorHelper
 import java.io.IOException
 import java.time.OffsetDateTime
@@ -344,7 +344,7 @@ class FeedLoadService : Service() {
 
                     error is IOException -> throw error
                     cause is IOException -> throw cause
-                    ExceptionUtils.isNetworkRelated(error) -> throw IOException(error)
+                    error.isNetworkRelated -> throw IOException(error)
                 }
             }
         }

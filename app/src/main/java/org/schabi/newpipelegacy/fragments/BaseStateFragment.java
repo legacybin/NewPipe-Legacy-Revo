@@ -22,10 +22,10 @@ import org.schabi.newpipelegacy.ReCaptchaActivity;
 import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException;
 import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException;
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
+import org.schabi.newpipelegacy.ktx.ExceptionUtils;
 import org.schabi.newpipelegacy.report.ErrorActivity;
 import org.schabi.newpipelegacy.report.ErrorInfo;
 import org.schabi.newpipelegacy.report.UserAction;
-import org.schabi.newpipelegacy.util.ExceptionUtils;
 import org.schabi.newpipelegacy.util.InfoCache;
 
 import java.util.Collections;

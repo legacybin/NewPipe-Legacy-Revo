@@ -35,8 +35,8 @@ import org.schabi.newpipelegacy.database.subscription.SubscriptionEntity;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.channel.ChannelInfo;
 import org.schabi.newpipe.extractor.subscription.SubscriptionItem;
+import org.schabi.newpipelegacy.ktx.ExceptionUtils;
 import org.schabi.newpipelegacy.util.Constants;
-import org.schabi.newpipelegacy.util.ExceptionUtils;
 import org.schabi.newpipelegacy.util.ExtractorHelper;
 
 import java.io.File;
