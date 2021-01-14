@@ -70,7 +70,7 @@ import org.schabi.newpipelegacy.fragments.BackPressable;
 import org.schabi.newpipelegacy.fragments.MainFragment;
 import org.schabi.newpipelegacy.fragments.detail.VideoDetailFragment;
 import org.schabi.newpipelegacy.fragments.list.search.SearchFragment;
-import org.schabi.newpipelegacy.player.VideoPlayer;
+import org.schabi.newpipelegacy.player.Player;
 import org.schabi.newpipelegacy.player.event.OnKeyDownListener;
 import org.schabi.newpipelegacy.player.helper.PlayerHolder;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueue;
@@ -761,7 +761,7 @@ public class MainActivity extends AppCompatActivity {
                 switch (linkType) {
                     case STREAM:
                         final String intentCacheKey = intent.getStringExtra(
-                                VideoPlayer.PLAY_QUEUE_KEY);
+                                Player.PLAY_QUEUE_KEY);
                         final PlayQueue playQueue = intentCacheKey != null
                                 ? SerializedCache.getInstance()
                                 .take(intentCacheKey, PlayQueue.class)

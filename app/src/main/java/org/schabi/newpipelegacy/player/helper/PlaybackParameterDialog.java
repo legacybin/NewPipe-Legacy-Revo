@@ -18,7 +18,7 @@ import androidx.fragment.app.DialogFragment;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.util.SliderStrategy;
 
-import static org.schabi.newpipelegacy.player.BasePlayer.DEBUG;
+import static org.schabi.newpipelegacy.player.Player.DEBUG;
 import static org.schabi.newpipelegacy.util.Localization.assureCorrectAppLanguage;
 
 public class PlaybackParameterDialog extends DialogFragment {

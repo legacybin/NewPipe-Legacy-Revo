@@ -146,7 +146,7 @@
                             tools:text="The Video Artist  LONG very LONG very Long" />
                     </LinearLayout>
 
-                    <Button
+                    <TextView
                         android:id="@+id/qualityTextView"
                         android:layout_width="wrap_content"
                         android:layout_height="35dp"
@@ -156,13 +156,12 @@
                         android:gravity="center"
                         android:minWidth="0dp"
                         android:padding="@dimen/player_main_buttons_padding"
-                        android:text="720p"
-                        android:textAllCaps="false"
                         android:textColor="@android:color/white"
                         android:textStyle="bold"
-                        tools:ignore="HardcodedText,RtlHardcoded" />
+                        tools:ignore="HardcodedText,RtlHardcoded"
+                        tools:text="720p" />
 
-                    <Button
+                    <TextView
                         android:id="@+id/playbackSpeed"
                         android:layout_width="wrap_content"
                         android:layout_height="35dp"
@@ -172,7 +171,6 @@
                         android:gravity="center"
                         android:minWidth="0dp"
                         android:padding="@dimen/player_main_buttons_padding"
-                        android:textAllCaps="false"
                         android:textColor="@android:color/white"
                         android:textStyle="bold"
                         tools:ignore="RtlHardcoded,RtlSymmetry"
@@ -220,7 +218,7 @@
                     tools:ignore="RtlHardcoded"
                     tools:visibility="visible">
 
-                    <Button
+                    <TextView
                         android:id="@+id/resizeTextView"
                         android:layout_width="wrap_content"
                         android:layout_height="35dp"
