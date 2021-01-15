@@ -12,7 +12,7 @@
 <a href="https://www.bountysource.com/teams/newpipe" alt="Bountysource bounties"><img src="https://img.shields.io/bountysource/team/newpipe/activity.svg?colorB=cd201f"></a>
 </p>
 <hr>
-<p align="center"><a href="#screenshots">Screenshots</a> &bull; <a href="#description">Description</a> &bull; <a href="#features">Features</a> &bull; <a href="#updates">Updates</a> &bull; <a href="#contribution">Contribution</a> &bull; <a href="#donate">Donate</a> &bull; <a href="#license">License</a></p>
+<p align="center"><a href="#screenshots">Screenshots</a> &bull; <a href="#description">Description</a> &bull; <a href="#features">Features</a> &bull; <a href="#installation-and-updates">Installation and updates</a> &bull; <a href="#contribution">Contribution</a> &bull; <a href="#donate">Donate</a> &bull; <a href="#license">License</a></p>
 <p align="center"><a href="https://newpipe.net">Website</a> &bull; <a href="https://newpipe.net/blog/">Blog</a> &bull; <a href="https://newpipe.net/FAQ/">FAQ</a> &bull; <a href="https://newpipe.net/press/">Press</a></p>
 <hr>
 
@@ -80,14 +80,17 @@ NewPipe supports multiple services. Our [docs](https://teamnewpipe.github.io/doc
 * media.ccc.de \[beta\]
 * PeerTube instances \[beta\]
 
-## Updates
-When a change to the NewPipe code occurs (due to either adding features or bug fixing), eventually a release will occur. These are in the format x.xx.x . In order to get this new version, you can:
- 1. Build a debug APK yourself. This is the fastest way to get new features on your device, but is much more complicated, so we recommend using one of the other methods.
- 2. Add our custom repo to F-Droid and install it from there as soon as we publish a release. The instructions are here: https://newpipe.net/FAQ/tutorials/install-add-fdroid-repo/
- 3. Download the APK from [Github Releases](https://github.com/TeamNewPipe/NewPipe/releases) and install it as soon as we publish a release.
- 4. Update via F-droid. This is the slowest method of getting updates, as F-Droid must recognize changes, build the APK itself, sign it, then push the update to users.
+<!-- Hidden span to keep old links compatible. -->
+<span id="updates"></span>
 
-We recommend method 2 for most users. APKs installed using method 2 or 3 are compatible with each other, but not with those installed using method 4. This is due to the same signing key (ours) being used for 2 and 3, but a different signing key (F-Droid's) being used for 4. Building a debug APK using method 1 excludes a key entirely. Signing keys help ensure that a user isn't tricked into installing a malicious update to an app.
+## Installation and updates
+You can install NewPipe using one of the following methods:
+ 1. Add our custom repo to F-Droid and install it from there. The instructions are here: https://newpipe.schabi.org/FAQ/tutorials/install-add-fdroid-repo/
+ 2. Download the APK from [Github Releases](https://github.com/TeamNewPipe/NewPipe-legacy/releases) and install it.
+ 3. Update via F-Droid. This is the slowest method of getting updates, as F-Droid must recognize changes, build the APK itself, sign it, then push the update to users.
+ 4. Build a debug APK yourself. This is the fastest way to get new features on your device, but is much more complicated, so we recommend using one of the other methods.
+
+We recommend method 1 for most users. APKs installed using method 1 or 2 are compatible with each other, but not with those installed using method 3. This is due to the same signing key (ours) being used for 1 and 2, but a different signing key (F-Droid's) being used for 3. Building a debug APK using method 4 excludes a key entirely. Signing keys help ensure that a user isn't tricked into installing a malicious update to an app.
 
 In the meanwhile, if you want to switch sources for some reason (e.g. NewPipe's core functionality was broken and F-Droid doesn't have the update yet), we recommend following this procedure:
 1. Back up your data via Settings > Content > Export Database so you keep your history, subscriptions, and playlists
