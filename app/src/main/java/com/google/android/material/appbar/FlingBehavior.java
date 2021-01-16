@@ -10,6 +10,7 @@ import android.widget.OverScroller;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
 import org.schabi.newpipelegacy.R;
 
 import java.lang.reflect.Field;

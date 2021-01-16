@@ -1,9 +1,10 @@
 package org.schabi.newpipelegacy.info_list.holder;
 
-import androidx.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.InfoItem;

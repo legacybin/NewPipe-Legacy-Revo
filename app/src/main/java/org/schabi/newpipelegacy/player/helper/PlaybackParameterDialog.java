@@ -3,7 +3,6 @@ package org.schabi.newpipelegacy.player.helper;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
-import androidx.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
@@ -14,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.util.SliderStrategy;

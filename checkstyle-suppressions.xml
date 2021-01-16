@@ -12,14 +12,13 @@
       lines="253,325"/>
 
   <suppress checks="FinalParameters"
-      files="ListHelper.java"
-      lines="281,313"/>
+    files="ListHelper.java"
+    lines="280,312"/>
 
   <suppress checks="EmptyBlock"
-      files="ContentSettingsFragment.java"
-      lines="227,245"/>
+    files="ContentSettingsFragment.java"
+    lines="227,245"/>
 
-  <!-- org.schabi.newpipelegacy.streams -->
   <suppress checks="FinalParameters"
       files="DataReader.java"
       lines="46,93"/>
@@ -41,8 +40,8 @@
       lines="419,591"/>
 
   <suppress checks="LineLength"
-      files="WebMWriter.java"
-      lines="156,158"/>
+    files="WebMWriter.java"
+    lines="156,158"/>
 
   <suppress checks="MethodLength"
       files="WebMWriter.java"
@@ -73,8 +72,8 @@
       lines="504"/>
 
   <suppress checks="FileLength"
-            files="Player.java"/>
+    files="Player.java"/>
 
   <suppress checks="FileLength"
-      files="VideoDetailFragment.java"/>
+    files="VideoDetailFragment.java"/>
 </suppressions>

@@ -30,11 +30,11 @@ import com.xwray.groupie.Section
 import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import icepick.State
 import io.reactivex.rxjava3.disposables.CompositeDisposable
+import org.schabi.newpipe.extractor.channel.ChannelInfoItem
 import org.schabi.newpipelegacy.R
 import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity
 import org.schabi.newpipelegacy.databinding.DialogTitleBinding
 import org.schabi.newpipelegacy.databinding.FragmentSubscriptionBinding
-import org.schabi.newpipe.extractor.channel.ChannelInfoItem
 import org.schabi.newpipelegacy.fragments.BaseStateFragment
 import org.schabi.newpipelegacy.ktx.animate
 import org.schabi.newpipelegacy.local.subscription.SubscriptionViewModel.SubscriptionState
@@ -300,7 +300,7 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
 
         val actions = DialogInterface.OnClickListener { _, i ->
             when (i) {
-                0 -> ShareUtils.shareUrl(requireContext(), selectedItem.name, selectedItem.url)
+                0 -> ShareUtils.shareText(requireContext(), selectedItem.name, selectedItem.url)
                 1 -> deleteChannel(selectedItem)
             }
         }

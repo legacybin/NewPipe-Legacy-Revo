@@ -2,12 +2,12 @@ package org.schabi.newpipelegacy.settings;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import androidx.preference.PreferenceManager;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipelegacy.MainActivity;
 import org.schabi.newpipelegacy.util.ThemeHelper;
