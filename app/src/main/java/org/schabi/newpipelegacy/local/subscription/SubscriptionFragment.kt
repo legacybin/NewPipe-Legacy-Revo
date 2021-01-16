@@ -35,9 +35,8 @@ import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity
 import org.schabi.newpipelegacy.databinding.DialogTitleBinding
 import org.schabi.newpipelegacy.databinding.FragmentSubscriptionBinding
 import org.schabi.newpipe.extractor.channel.ChannelInfoItem
-import org.schabi.newpipelegacy.R
-import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity
 import org.schabi.newpipelegacy.fragments.BaseStateFragment
+import org.schabi.newpipelegacy.ktx.animate
 import org.schabi.newpipelegacy.local.subscription.SubscriptionViewModel.SubscriptionState
 import org.schabi.newpipelegacy.local.subscription.dialog.FeedGroupDialog
 import org.schabi.newpipelegacy.local.subscription.dialog.FeedGroupReorderDialog
@@ -58,7 +57,6 @@ import org.schabi.newpipelegacy.local.subscription.services.SubscriptionsImportS
 import org.schabi.newpipelegacy.local.subscription.services.SubscriptionsImportService.KEY_VALUE
 import org.schabi.newpipelegacy.local.subscription.services.SubscriptionsImportService.PREVIOUS_EXPORT_MODE
 import org.schabi.newpipelegacy.report.UserAction
-import org.schabi.newpipelegacy.util.AnimationUtils.animateView
 import org.schabi.newpipelegacy.util.FilePickerActivityHelper
 import org.schabi.newpipelegacy.util.NavigationHelper
 import org.schabi.newpipelegacy.util.OnClickGesture
@@ -409,12 +407,12 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
 
     override fun showLoading() {
         super.showLoading()
-        animateView(binding.itemsList, false, 100)
+        binding.itemsList.animate(false, 100)
     }
 
     override fun hideLoading() {
         super.hideLoading()
-        animateView(binding.itemsList, true, 200)
+        binding.itemsList.animate(true, 200)
     }
 
     // /////////////////////////////////////////////////////////////////////////

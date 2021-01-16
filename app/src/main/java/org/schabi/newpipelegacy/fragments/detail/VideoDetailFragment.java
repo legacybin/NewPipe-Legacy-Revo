@@ -77,11 +77,12 @@ import org.schabi.newpipelegacy.fragments.BaseStateFragment;
 import org.schabi.newpipelegacy.fragments.EmptyFragment;
 import org.schabi.newpipelegacy.fragments.list.comments.CommentsFragment;
 import org.schabi.newpipelegacy.fragments.list.videos.RelatedVideosFragment;
+import org.schabi.newpipelegacy.ktx.AnimationType;
 import org.schabi.newpipelegacy.local.dialog.PlaylistAppendDialog;
 import org.schabi.newpipelegacy.local.dialog.PlaylistCreationDialog;
 import org.schabi.newpipelegacy.local.history.HistoryRecordManager;
-import org.schabi.newpipelegacy.player.Player;
 import org.schabi.newpipelegacy.player.MainPlayer;
+import org.schabi.newpipelegacy.player.Player;
 import org.schabi.newpipelegacy.player.event.OnKeyDownListener;
 import org.schabi.newpipelegacy.player.event.PlayerServiceExtendedEventListener;
 import org.schabi.newpipelegacy.player.helper.PlayerHelper;
@@ -126,7 +127,7 @@ import static org.schabi.newpipe.extractor.stream.StreamExtractor.NO_AGE_LIMIT;
 import static org.schabi.newpipelegacy.player.helper.PlayerHelper.globalScreenOrientationLocked;
 import static org.schabi.newpipelegacy.player.helper.PlayerHelper.isClearingQueueConfirmationRequired;
 import static org.schabi.newpipelegacy.player.playqueue.PlayQueueItem.RECOVERY_UNSET;
-import static org.schabi.newpipelegacy.util.AnimationUtils.animateView;
+import static org.schabi.newpipelegacy.ktx.ViewUtils.animate;
 import static org.schabi.newpipelegacy.util.ExtractorHelper.showMetaInfoInTextView;
 
 public final class VideoDetailFragment
@@ -746,8 +747,10 @@ public final class VideoDetailFragment
             }
 
             if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                animateView(appendControlsDetail, true, 250, 0, () ->
-                        animateView(appendControlsDetail, false, 1500, 1000));
+                animate(appendControlsDetail, true, 250, AnimationType.ALPHA,
+                        0, () ->
+                        animate(appendControlsDetail, false, 1500,
+                                AnimationType.ALPHA, 1000));
             }
             return false;
         };
@@ -1335,8 +1338,8 @@ public final class VideoDetailFragment
 
         thumbnailImageView.setImageDrawable(
                 AppCompatResources.getDrawable(requireContext(), imageResource));
-        animateView(thumbnailImageView, false, 0, 0,
-                () -> animateView(thumbnailImageView, true, 500));
+        animate(thumbnailImageView, false, 0, AnimationType.ALPHA, 0,
+                () -> animate(thumbnailImageView, true, 500));
     }
 
     @Override
@@ -1418,14 +1421,14 @@ public final class VideoDetailFragment
             contentRootLayoutHiding.setVisibility(View.INVISIBLE);
         }
 
-        animateView(thumbnailPlayButton, false, 50);
-        animateView(detailDurationView, false, 100);
-        animateView(detailPositionView, false, 100);
-        animateView(positionView, false, 50);
+        animate(thumbnailPlayButton, false, 50);
+        animate(detailDurationView, false, 100);
+        animate(detailPositionView, false, 100);
+        animate(positionView, false, 50);
 
         videoTitleTextView.setText(title);
         videoTitleTextView.setMaxLines(1);
-        animateView(videoTitleTextView, true, 0);
+        animate(videoTitleTextView, true, 0);
 
         videoDescriptionRootLayout.setVisibility(View.GONE);
         videoTitleToggleArrow.setVisibility(View.GONE);
@@ -1467,7 +1470,7 @@ public final class VideoDetailFragment
                         player != null && player.isFullscreen() ? View.GONE : View.VISIBLE);
             }
         }
-        animateView(thumbnailPlayButton, true, 200);
+        animate(thumbnailPlayButton, true, 200);
         videoTitleTextView.setText(title);
 
         if (!isEmpty(info.getSubChannelName())) {
@@ -1531,12 +1534,12 @@ public final class VideoDetailFragment
             detailDurationView.setText(Localization.getDurationString(info.getDuration()));
             detailDurationView.setBackgroundColor(
                     ContextCompat.getColor(activity, R.color.duration_background_color));
-            animateView(detailDurationView, true, 100);
+            animate(detailDurationView, true, 100);
         } else if (info.getStreamType() == StreamType.LIVE_STREAM) {
             detailDurationView.setText(R.string.duration_live);
             detailDurationView.setBackgroundColor(
                     ContextCompat.getColor(activity, R.color.live_duration_background_color));
-            animateView(detailDurationView, true, 100);
+            animate(detailDurationView, true, 100);
         } else {
             detailDurationView.setVisibility(View.GONE);
         }
@@ -1705,8 +1708,8 @@ public final class VideoDetailFragment
                 // Show saved position from backStack if user allows it
                 showPlaybackProgress(playQueue.getItem().getRecoveryPosition(),
                         playQueue.getItem().getDuration() * 1000);
-                animateView(positionView, true, 500);
-                animateView(detailPositionView, true, 500);
+                animate(positionView, true, 500);
+                animate(detailPositionView, true, 500);
             }
             return;
         }
@@ -1720,8 +1723,8 @@ public final class VideoDetailFragment
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(state -> {
                     showPlaybackProgress(state.getProgressTime(), info.getDuration() * 1000);
-                    animateView(positionView, true, 500);
-                    animateView(detailPositionView, true, 500);
+                    animate(positionView, true, 500);
+                    animate(detailPositionView, true, 500);
                 }, e -> {
                     if (DEBUG) {
                         e.printStackTrace();
@@ -1749,8 +1752,8 @@ public final class VideoDetailFragment
             detailPositionView.setText(position);
         }
         if (positionView.getVisibility() != View.VISIBLE) {
-            animateView(positionView, true, 100);
-            animateView(detailPositionView, true, 100);
+            animate(positionView, true, 100);
+            animate(detailPositionView, true, 100);
         }
     }
 
@@ -1804,8 +1807,8 @@ public final class VideoDetailFragment
                         && player.getPlayQueue() != null
                         && player.getPlayQueue().getItem() != null
                         && player.getPlayQueue().getItem().getUrl().equals(url)) {
-                    animateView(positionView, true, 100);
-                    animateView(detailPositionView, true, 100);
+                    animate(positionView, true, 100);
+                    animate(detailPositionView, true, 100);
                 }
                 break;
         }

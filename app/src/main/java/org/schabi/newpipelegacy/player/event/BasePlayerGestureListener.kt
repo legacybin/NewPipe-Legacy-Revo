@@ -7,11 +7,11 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
+import org.schabi.newpipelegacy.ktx.animate
 import org.schabi.newpipelegacy.player.MainPlayer
 import org.schabi.newpipelegacy.player.Player
 import org.schabi.newpipelegacy.player.helper.PlayerHelper
 import org.schabi.newpipelegacy.player.helper.PlayerHelper.savePopupPositionAndSizeToPrefs
-import org.schabi.newpipelegacy.util.AnimationUtils
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.max
@@ -364,7 +364,7 @@ abstract class BasePlayerGestureListener(
         }
 
         if (!isMovingInPopup) {
-            AnimationUtils.animateView(player.closeOverlayButton, true, 200)
+            player.closeOverlayButton.animate(true, 200)
         }
 
         isMovingInPopup = true

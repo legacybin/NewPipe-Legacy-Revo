@@ -37,12 +37,12 @@ import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipelegacy.fragments.list.BaseListInfoFragment;
+import org.schabi.newpipelegacy.ktx.AnimationType;
 import org.schabi.newpipelegacy.local.subscription.SubscriptionManager;
 import org.schabi.newpipelegacy.player.playqueue.ChannelPlayQueue;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueue;
 import org.schabi.newpipelegacy.report.ErrorActivity;
 import org.schabi.newpipelegacy.report.UserAction;
-import org.schabi.newpipelegacy.util.AnimationUtils;
 import org.schabi.newpipelegacy.util.ExtractorHelper;
 import org.schabi.newpipelegacy.util.ImageDisplayConstants;
 import org.schabi.newpipelegacy.util.Localization;
@@ -64,9 +64,9 @@ import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.functions.Function;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-import static org.schabi.newpipelegacy.util.AnimationUtils.animateBackgroundColor;
-import static org.schabi.newpipelegacy.util.AnimationUtils.animateTextColor;
-import static org.schabi.newpipelegacy.util.AnimationUtils.animateView;
+import static org.schabi.newpipelegacy.ktx.TextViewUtils.animateTextColor;
+import static org.schabi.newpipelegacy.ktx.ViewUtils.animate;
+import static org.schabi.newpipelegacy.ktx.ViewUtils.animateBackgroundColor;
 
 public class ChannelFragment extends BaseListInfoFragment<ChannelInfo>
         implements View.OnClickListener {
@@ -224,7 +224,7 @@ public class ChannelFragment extends BaseListInfoFragment<ChannelInfo>
 
     private void monitorSubscription(final ChannelInfo info) {
         final Consumer<Throwable> onError = (Throwable throwable) -> {
-            animateView(headerBinding.channelSubscribeButton, false, 100);
+            animate(headerBinding.channelSubscribeButton, false, 100);
             showSnackBarError(throwable, UserAction.SUBSCRIPTION,
                     NewPipe.getNameOfService(currentInfo.getServiceId()),
                     "Get subscription status", 0);
@@ -379,8 +379,8 @@ public class ChannelFragment extends BaseListInfoFragment<ChannelInfo>
                     subscribedText);
         }
 
-        animateView(headerBinding.channelSubscribeButton, AnimationUtils.Type.LIGHT_SCALE_AND_ALPHA,
-                true, 100);
+        animate(headerBinding.channelSubscribeButton, true, 100,
+                AnimationType.LIGHT_SCALE_AND_ALPHA);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -436,7 +436,7 @@ public class ChannelFragment extends BaseListInfoFragment<ChannelInfo>
         IMAGE_LOADER.cancelDisplayTask(headerBinding.channelBannerImage);
         IMAGE_LOADER.cancelDisplayTask(headerBinding.channelAvatarView);
         IMAGE_LOADER.cancelDisplayTask(headerBinding.subChannelAvatarView);
-        animateView(headerBinding.channelSubscribeButton, false, 100);
+        animate(headerBinding.channelSubscribeButton, false, 100);
     }
 
     @Override

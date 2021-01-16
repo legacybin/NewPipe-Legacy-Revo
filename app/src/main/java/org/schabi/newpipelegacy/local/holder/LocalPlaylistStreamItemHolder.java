@@ -12,9 +12,9 @@ import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.database.LocalItem;
 import org.schabi.newpipelegacy.database.playlist.PlaylistStreamEntry;
 import org.schabi.newpipe.extractor.NewPipe;
+import org.schabi.newpipelegacy.ktx.ViewUtils;
 import org.schabi.newpipelegacy.local.LocalItemBuilder;
 import org.schabi.newpipelegacy.local.history.HistoryRecordManager;
-import org.schabi.newpipelegacy.util.AnimationUtils;
 import org.schabi.newpipelegacy.util.ImageDisplayConstants;
 import org.schabi.newpipelegacy.util.Localization;
 import org.schabi.newpipelegacy.views.AnimatedProgressBar;
@@ -117,10 +117,10 @@ public class LocalPlaylistStreamItemHolder extends LocalItemHolder {
             } else {
                 itemProgressView.setProgress((int) TimeUnit.MILLISECONDS
                         .toSeconds(item.getProgressTime()));
-                AnimationUtils.animateView(itemProgressView, true, 500);
+                ViewUtils.animate(itemProgressView, true, 500);
             }
         } else if (itemProgressView.getVisibility() == View.VISIBLE) {
-            AnimationUtils.animateView(itemProgressView, false, 500);
+            ViewUtils.animate(itemProgressView, false, 500);
         }
     }
 
