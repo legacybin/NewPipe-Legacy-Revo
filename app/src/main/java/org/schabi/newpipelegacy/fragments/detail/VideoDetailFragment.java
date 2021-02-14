@@ -1,7 +1,6 @@
 package org.schabi.newpipelegacy.fragments.detail;
 
 import android.animation.ValueAnimator;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
