@@ -24,6 +24,10 @@ import org.schabi.newpipelegacy.local.subscription.dialog.FeedGroupReorderDialog
 import org.schabi.newpipelegacy.local.subscription.item.FeedGroupReorderItem
 import org.schabi.newpipelegacy.util.ThemeHelper
 import java.util.Collections
+import kotlin.collections.ArrayList
+import kotlin.collections.List
+import kotlin.collections.map
+import kotlin.collections.sortedBy
 
 class FeedGroupReorderDialog : DialogFragment() {
     private var _binding: DialogFeedGroupReorderBinding? = null

@@ -14,11 +14,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipelegacy.R;
+import org.schabi.newpipelegacy.error.ErrorActivity;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
 import org.schabi.newpipelegacy.info_list.InfoItemBuilder;
 import org.schabi.newpipelegacy.local.history.HistoryRecordManager;
-import org.schabi.newpipelegacy.report.ErrorActivity;
 import org.schabi.newpipelegacy.util.CommentTextOnTouchListener;
 import org.schabi.newpipelegacy.util.DeviceUtils;
 import org.schabi.newpipelegacy.util.ImageDisplayConstants;
@@ -171,15 +171,15 @@ public class CommentsMiniInfoItemHolder extends InfoItemHolder {
         if (TextUtils.isEmpty(item.getUploaderUrl())) {
             return;
         }
+        final AppCompatActivity activity = (AppCompatActivity) itemBuilder.getContext();
         try {
-            final AppCompatActivity activity = (AppCompatActivity) itemBuilder.getContext();
             NavigationHelper.openChannelFragment(
                     activity.getSupportFragmentManager(),
                     item.getServiceId(),
                     item.getUploaderUrl(),
                     item.getUploaderName());
         } catch (final Exception e) {
-            ErrorActivity.reportUiError((AppCompatActivity) itemBuilder.getContext(), e);
+            ErrorActivity.reportUiErrorInSnackbar(activity, "Opening channel fragment", e);
         }
     }
 

@@ -14,7 +14,6 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,6 +21,7 @@ import androidx.viewbinding.ViewBinding;
 
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.databinding.PignateFooterBinding;
+import org.schabi.newpipelegacy.error.ErrorActivity;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.channel.ChannelInfoItem;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
@@ -33,7 +33,6 @@ import org.schabi.newpipelegacy.fragments.OnScrollBelowItemsListener;
 import org.schabi.newpipelegacy.info_list.InfoItemDialog;
 import org.schabi.newpipelegacy.info_list.InfoListAdapter;
 import org.schabi.newpipelegacy.player.helper.PlayerHolder;
-import org.schabi.newpipelegacy.report.ErrorActivity;
 import org.schabi.newpipelegacy.util.KoreUtil;
 import org.schabi.newpipelegacy.util.NavigationHelper;
 import org.schabi.newpipelegacy.util.OnClickGesture;
@@ -47,6 +46,7 @@ import java.util.List;
 import java.util.Queue;
 
 import static org.schabi.newpipelegacy.ktx.ViewUtils.animate;
+import static org.schabi.newpipelegacy.ktx.ViewUtils.animateHideRecyclerViewAllowingScrolling;
 
 public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
         implements ListViewContract<I, N>, StateSaver.WriteRead,
@@ -292,7 +292,8 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
                             selectedItem.getUrl(),
                             selectedItem.getName());
                 } catch (final Exception e) {
-                    ErrorActivity.reportUiError((AppCompatActivity) getActivity(), e);
+                    ErrorActivity.reportUiErrorInSnackbar(
+                            BaseListFragment.this, "Opening channel fragment", e);
                 }
             }
         });
@@ -307,7 +308,8 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
                             selectedItem.getUrl(),
                             selectedItem.getName());
                 } catch (final Exception e) {
-                    ErrorActivity.reportUiError((AppCompatActivity) getActivity(), e);
+                    ErrorActivity.reportUiErrorInSnackbar(BaseListFragment.this,
+                            "Opening playlist fragment", e);
                 }
             }
         });
@@ -407,22 +409,22 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
+    public void showLoading() {
+        super.showLoading();
+        animateHideRecyclerViewAllowingScrolling(itemsList);
+    }
+
+    @Override
     public void hideLoading() {
         super.hideLoading();
         animate(itemsList, true, 300);
     }
 
     @Override
-    public void showError(final String message, final boolean showRetryButton) {
-        super.showError(message, showRetryButton);
-        showListFooter(false);
-        animate(itemsList, false, 200);
-    }
-
-    @Override
     public void showEmptyState() {
         super.showEmptyState();
         showListFooter(false);
+        animateHideRecyclerViewAllowingScrolling(itemsList);
     }
 
     @Override
@@ -437,6 +439,13 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     @Override
     public void handleNextItems(final N result) {
         isLoading.set(false);
+    }
+
+    @Override
+    public void handleError() {
+        super.handleError();
+        showListFooter(false);
+        animateHideRecyclerViewAllowingScrolling(itemsList);
     }
 
     @Override

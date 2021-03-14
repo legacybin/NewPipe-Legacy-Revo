@@ -42,7 +42,6 @@ import org.schabi.newpipelegacy.local.subscription.item.PickerSubscriptionItem
 import org.schabi.newpipelegacy.util.DeviceUtils
 import org.schabi.newpipelegacy.util.ThemeHelper
 import java.io.Serializable
-import kotlin.collections.contains
 
 class FeedGroupDialog : DialogFragment(), BackPressable {
     private var _feedGroupCreateBinding: DialogFeedGroupCreateBinding? = null

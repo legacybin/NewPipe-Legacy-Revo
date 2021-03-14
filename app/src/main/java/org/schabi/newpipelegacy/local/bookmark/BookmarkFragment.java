@@ -23,10 +23,11 @@ import org.schabi.newpipelegacy.database.LocalItem;
 import org.schabi.newpipelegacy.database.playlist.PlaylistLocalItem;
 import org.schabi.newpipelegacy.database.playlist.PlaylistMetadataEntry;
 import org.schabi.newpipelegacy.database.playlist.model.PlaylistRemoteEntity;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipelegacy.local.BaseLocalListFragment;
 import org.schabi.newpipelegacy.local.playlist.LocalPlaylistManager;
 import org.schabi.newpipelegacy.local.playlist.RemotePlaylistManager;
-import org.schabi.newpipelegacy.report.UserAction;
 import org.schabi.newpipelegacy.util.NavigationHelper;
 import org.schabi.newpipelegacy.util.OnClickGesture;
 
@@ -206,7 +207,8 @@ public final class BookmarkFragment extends BaseLocalListFragment<List<PlaylistL
 
             @Override
             public void onError(final Throwable exception) {
-                BookmarkFragment.this.onError(exception);
+                showError(new ErrorInfo(exception,
+                        UserAction.REQUESTED_BOOKMARK, "Loading playlists"));
             }
 
             @Override
@@ -236,17 +238,6 @@ public final class BookmarkFragment extends BaseLocalListFragment<List<PlaylistL
     ///////////////////////////////////////////////////////////////////////////
     // Fragment Error Handling
     ///////////////////////////////////////////////////////////////////////////
-
-    @Override
-    protected boolean onError(final Throwable exception) {
-        if (super.onError(exception)) {
-            return true;
-        }
-
-        onUnrecoverableError(exception, UserAction.SOMETHING_ELSE,
-                "none", "Bookmark", R.string.general_error);
-        return true;
-    }
 
     @Override
     protected void resetFragment() {
@@ -295,8 +286,10 @@ public final class BookmarkFragment extends BaseLocalListFragment<List<PlaylistL
                 .setPositiveButton(R.string.delete, (dialog, i) ->
                         disposables.add(deleteReactor
                                 .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(ignored -> { /*Do nothing on success*/ }, this::onError))
-                )
+                                .subscribe(ignored -> { /*Do nothing on success*/ }, throwable ->
+                                        showError(new ErrorInfo(throwable,
+                                                UserAction.REQUESTED_BOOKMARK,
+                                                "Deleting playlist")))))
                 .setNegativeButton(R.string.cancel, null)
                 .show();
     }
@@ -314,7 +307,10 @@ public final class BookmarkFragment extends BaseLocalListFragment<List<PlaylistL
         localPlaylistManager.renamePlaylist(id, name);
         final Disposable disposable = localPlaylistManager.renamePlaylist(id, name)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(longs -> { /*Do nothing on success*/ }, this::onError);
+                .subscribe(longs -> { /*Do nothing on success*/ }, throwable -> showError(
+                        new ErrorInfo(throwable,
+                                UserAction.REQUESTED_BOOKMARK,
+                                "Changing playlist name")));
         disposables.add(disposable);
     }
 }

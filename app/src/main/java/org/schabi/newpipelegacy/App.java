@@ -20,12 +20,13 @@ import org.acra.ACRA;
 import org.acra.config.ACRAConfigurationException;
 import org.acra.config.CoreConfiguration;
 import org.acra.config.CoreConfigurationBuilder;
+import org.schabi.newpipelegacy.error.ErrorActivity;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.ReCaptchaActivity;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.downloader.Downloader;
 import org.schabi.newpipelegacy.ktx.ExceptionUtils;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.ErrorInfo;
-import org.schabi.newpipelegacy.report.UserAction;
 import org.schabi.newpipelegacy.settings.SettingsActivity;
 import org.schabi.newpipelegacy.util.Localization;
 import org.schabi.newpipelegacy.util.ServiceHelper;
@@ -224,14 +225,10 @@ public class App extends MultiDexApplication {
                     .setBuildConfigClass(BuildConfig.class)
                     .build();
             ACRA.init(this, acraConfig);
-        } catch (final ACRAConfigurationException ace) {
-            ace.printStackTrace();
-            ErrorActivity.reportError(this,
-                    ace,
-                    null,
-                    null,
-                    ErrorInfo.make(UserAction.SOMETHING_ELSE, "none",
-                            "Could not initialize ACRA crash report", R.string.app_ui_crash));
+        } catch (final ACRAConfigurationException exception) {
+            exception.printStackTrace();
+            ErrorActivity.reportError(this, new ErrorInfo(exception,
+                    UserAction.SOMETHING_ELSE, "Could not initialize ACRA crash report"));
         }
     }
 

@@ -1,4 +1,4 @@
-package org.schabi.newpipelegacy.report;
+package org.schabi.newpipelegacy.error;
 
 import android.content.Context;
 

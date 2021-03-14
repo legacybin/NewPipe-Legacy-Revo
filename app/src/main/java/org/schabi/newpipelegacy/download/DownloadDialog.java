@@ -37,6 +37,9 @@ import org.schabi.newpipelegacy.MainActivity;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.RouterActivity;
 import org.schabi.newpipelegacy.databinding.DownloadDialogBinding;
+import org.schabi.newpipelegacy.error.ErrorActivity;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipe.extractor.MediaFormat;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.localization.Localization;
@@ -45,9 +48,6 @@ import org.schabi.newpipe.extractor.stream.Stream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.SubtitlesStream;
 import org.schabi.newpipe.extractor.stream.VideoStream;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.ErrorInfo;
-import org.schabi.newpipelegacy.report.UserAction;
 import org.schabi.newpipelegacy.settings.NewPipeSettings;
 import org.schabi.newpipelegacy.util.FilePickerActivityHelper;
 import org.schabi.newpipelegacy.util.FilenameUtils;
@@ -61,7 +61,6 @@ import org.schabi.newpipelegacy.util.ThemeHelper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -591,17 +590,6 @@ public class DownloadDialog extends DialogFragment
                 .show();
     }
 
-    private void showErrorActivity(final Exception e) {
-        ErrorActivity.reportError(
-                context,
-                Collections.singletonList(e),
-                null,
-                null,
-                ErrorInfo
-                        .make(UserAction.SOMETHING_ELSE, "-", "-", R.string.general_error)
-        );
-    }
-
     private void prepareSelectedDownload() {
         final StoredDirectoryHelper mainStorage;
         final MediaFormat format;
@@ -705,7 +693,8 @@ public class DownloadDialog extends DialogFragment
                         mainStorage.getTag());
             }
         } catch (final Exception e) {
-            showErrorActivity(e);
+            ErrorActivity.reportErrorInSnackbar(this,
+                    new ErrorInfo(e, UserAction.DOWNLOAD_FAILED, "Getting storage"));
             return;
         }
 

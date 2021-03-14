@@ -13,6 +13,9 @@ import com.grack.nanojson.JsonSink;
 
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.database.LocalItem.LocalItemType;
+import org.schabi.newpipelegacy.error.ErrorActivity;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
@@ -26,9 +29,6 @@ import org.schabi.newpipelegacy.local.feed.FeedFragment;
 import org.schabi.newpipelegacy.local.history.StatisticsPlaylistFragment;
 import org.schabi.newpipelegacy.local.playlist.LocalPlaylistFragment;
 import org.schabi.newpipelegacy.local.subscription.SubscriptionFragment;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.ErrorInfo;
-import org.schabi.newpipelegacy.report.UserAction;
 import org.schabi.newpipelegacy.util.KioskTranslator;
 import org.schabi.newpipelegacy.util.ServiceHelper;
 import org.schabi.newpipelegacy.util.ThemeHelper;
@@ -482,9 +482,8 @@ public abstract class Tab {
                 final StreamingService service = NewPipe.getService(kioskServiceId);
                 kioskId = service.getKioskList().getDefaultKioskId();
             } catch (final ExtractionException e) {
-                ErrorActivity.reportError(context, e, null, null,
-                        ErrorInfo.make(UserAction.REQUESTED_KIOSK, "none",
-                                "Loading default kiosk from selected service", 0));
+                ErrorActivity.reportErrorInSnackbar(context, new ErrorInfo(e,
+                        UserAction.REQUESTED_KIOSK, "Loading default kiosk for selected service"));
             }
             return kioskId;
         }

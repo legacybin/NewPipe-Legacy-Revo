@@ -24,11 +24,11 @@ import org.schabi.newpipelegacy.database.LocalItem;
 import org.schabi.newpipelegacy.database.playlist.PlaylistLocalItem;
 import org.schabi.newpipelegacy.database.playlist.PlaylistMetadataEntry;
 import org.schabi.newpipelegacy.database.playlist.model.PlaylistRemoteEntity;
+import org.schabi.newpipelegacy.error.ErrorActivity;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipelegacy.local.playlist.LocalPlaylistManager;
 import org.schabi.newpipelegacy.local.playlist.RemotePlaylistManager;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.ErrorInfo;
-import org.schabi.newpipelegacy.report.UserAction;
 
 import java.util.List;
 import java.util.Vector;
@@ -115,8 +115,8 @@ public class SelectPlaylistFragment extends DialogFragment {
 
     protected void onError(final Throwable e) {
         final Activity activity = requireActivity();
-        ErrorActivity.reportError(activity, e, activity.getClass(), null, ErrorInfo
-                .make(UserAction.UI_ERROR, "none", "load_playlists", R.string.app_ui_crash));
+        ErrorActivity.reportErrorInSnackbar(activity, new ErrorInfo(e,
+                UserAction.UI_ERROR, "Loading playlists"));
     }
 
     /*//////////////////////////////////////////////////////////////////////////

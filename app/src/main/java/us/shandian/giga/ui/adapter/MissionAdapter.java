@@ -41,9 +41,9 @@ import com.google.android.material.snackbar.Snackbar;
 import org.schabi.newpipelegacy.BuildConfig;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.NewPipe;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.ErrorInfo;
-import org.schabi.newpipelegacy.report.UserAction;
+import org.schabi.newpipelegacy.error.ErrorActivity;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipelegacy.util.NavigationHelper;
 import org.schabi.newpipelegacy.util.ShareUtils;
 
@@ -583,16 +583,12 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         try {
             service = NewPipe.getServiceByUrl(mission.source).getServiceInfo().getName();
         } catch (Exception e) {
-            service = "-";
+            service = ErrorInfo.SERVICE_NONE;
         }
 
-        ErrorActivity.reportError(
-                mContext,
-                mission.errObject,
-                null,
-                null,
-                ErrorInfo.make(action, service, request.toString(), reason)
-        );
+        ErrorActivity.reportError(mContext,
+                new ErrorInfo(ErrorInfo.Companion.throwableToStringList(mission.errObject), action,
+                        service, request.toString(), reason, null));
     }
 
     public void clearFinishedDownloads(boolean delete) {

@@ -35,6 +35,8 @@ import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity
 import org.schabi.newpipelegacy.databinding.DialogTitleBinding
 import org.schabi.newpipelegacy.databinding.FeedItemCarouselBinding
 import org.schabi.newpipelegacy.databinding.FragmentSubscriptionBinding
+import org.schabi.newpipelegacy.error.ErrorInfo
+import org.schabi.newpipelegacy.error.UserAction
 import org.schabi.newpipelegacy.fragments.BaseStateFragment
 import org.schabi.newpipelegacy.ktx.animate
 import org.schabi.newpipelegacy.local.subscription.SubscriptionViewModel.SubscriptionState
@@ -56,7 +58,6 @@ import org.schabi.newpipelegacy.local.subscription.services.SubscriptionsImportS
 import org.schabi.newpipelegacy.local.subscription.services.SubscriptionsImportService.KEY_MODE
 import org.schabi.newpipelegacy.local.subscription.services.SubscriptionsImportService.KEY_VALUE
 import org.schabi.newpipelegacy.local.subscription.services.SubscriptionsImportService.PREVIOUS_EXPORT_MODE
-import org.schabi.newpipelegacy.report.UserAction
 import org.schabi.newpipelegacy.util.FilePickerActivityHelper
 import org.schabi.newpipelegacy.util.NavigationHelper
 import org.schabi.newpipelegacy.util.OnClickGesture
@@ -288,8 +289,8 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
         binding.itemsList.adapter = groupAdapter
 
         viewModel = ViewModelProvider(this).get(SubscriptionViewModel::class.java)
-        viewModel.stateLiveData.observe(viewLifecycleOwner, { it?.let(this::handleResult) })
-        viewModel.feedGroupsLiveData.observe(viewLifecycleOwner, { it?.let(this::handleFeedGroups) })
+        viewModel.stateLiveData.observe(viewLifecycleOwner) { it?.let(this::handleResult) }
+        viewModel.feedGroupsLiveData.observe(viewLifecycleOwner) { it?.let(this::handleFeedGroups) }
     }
 
     private fun showLongTapDialog(selectedItem: ChannelInfoItem) {
@@ -381,7 +382,9 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
                 }
             }
             is SubscriptionState.ErrorState -> {
-                result.error?.let { onError(result.error) }
+                result.error?.let {
+                    showError(ErrorInfo(result.error, UserAction.SOMETHING_ELSE, "Subscriptions"))
+                }
             }
         }
     }
@@ -410,17 +413,6 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
     override fun hideLoading() {
         super.hideLoading()
         binding.itemsList.animate(true, 200)
-    }
-
-    // /////////////////////////////////////////////////////////////////////////
-    // Fragment Error Handling
-    // /////////////////////////////////////////////////////////////////////////
-
-    override fun onError(exception: Throwable): Boolean {
-        if (super.onError(exception)) return true
-
-        onUnrecoverableError(exception, UserAction.SOMETHING_ELSE, "none", "Subscriptions", R.string.general_error)
-        return true
     }
 
     // /////////////////////////////////////////////////////////////////////////

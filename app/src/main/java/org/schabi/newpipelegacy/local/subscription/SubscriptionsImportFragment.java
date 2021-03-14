@@ -22,13 +22,13 @@ import com.nononsenseapps.filepicker.Utils;
 
 import org.schabi.newpipelegacy.BaseFragment;
 import org.schabi.newpipelegacy.R;
+import org.schabi.newpipelegacy.error.ErrorActivity;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.subscription.SubscriptionExtractor;
 import org.schabi.newpipelegacy.local.subscription.services.SubscriptionsImportService;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.ErrorInfo;
-import org.schabi.newpipelegacy.report.UserAction;
 import org.schabi.newpipelegacy.util.Constants;
 import org.schabi.newpipelegacy.util.FilePickerActivityHelper;
 import org.schabi.newpipelegacy.util.ServiceHelper;
@@ -84,10 +84,12 @@ public class SubscriptionsImportFragment extends BaseFragment {
 
         setupServiceVariables();
         if (supportedSources.isEmpty() && currentServiceId != Constants.NO_SERVICE_ID) {
-            ErrorActivity.reportError(activity, Collections.emptyList(), null, null,
-                    ErrorInfo.make(UserAction.SOMETHING_ELSE,
+            ErrorActivity.reportErrorInSnackbar(activity,
+                    new ErrorInfo(new String[]{}, UserAction.SUBSCRIPTION_IMPORT_EXPORT,
                             NewPipe.getNameOfService(currentServiceId),
-                            "Service don't support importing", R.string.general_error));
+                            "Service does not support importing subscriptions",
+                            R.string.general_error,
+                            null));
             activity.finish();
         }
     }
