@@ -1,7 +1,6 @@
 <p align="center"><a href="https://newpipe.schabi.org"><img src="assets/new_pipe_icon_5.png" width="150"></a></p> 
 <h2 align="center"><b>NewPipe</b></h2>
 <h4 align="center">A libre lightweight streaming frontend for Android.</h4>
-<p align="center"><a href="https://f-droid.org/packages/org.schabi.newpipe/"><img src="https://f-droid.org/wiki/images/0/06/F-Droid-button_get-it-on.png"></a></p> 
 
 <p align="center">
 <a href="https://github.com/juanpaulconte/teste" alt="GitHub release"><img src="https://img.shields.io/github/release/TeamNewPipe/NewPipe-legacy.svg" ></a>
@@ -41,7 +40,7 @@ NewPipe does not use any Google framework libraries, nor the YouTube API. Websit
 * Listen to YouTube videos
 * Popup mode (floating player)
 * Select streaming player to watch video with
-* Make Personalised Watch Later Playlist
+* Make Personalised inApp Playlist of Videos 
 * Open a video in Kodi
 * Show next/related videos
 * Search YouTube in a specific language
@@ -61,11 +60,6 @@ NewPipe does not use any Google framework libraries, nor the YouTube API. Websit
 * Livestream support
 * Show comments
 
-### Coming Features
-
-* Cast to UPnP and Cast
-* … and many more
-
 ### Supported Services
 
 NewPipe supports multiple services. Our [docs](https://teamnewpipe.github.io/documentation/) provide more info on how a new service can be added to the app and the extractor. Please get in touch with us if you intend to add a new one. Currently supported services are:
@@ -76,11 +70,8 @@ NewPipe supports multiple services. Our [docs](https://teamnewpipe.github.io/doc
 * PeerTube instances \[beta\]
 
 ## Updates
-When a change to the NewPipe code occurs (due to either adding features or bug fixing), eventually a release will occur. These are in the format x.xx.x . In order to get this new version, you can:
- * 1. Build a debug APK yourself. This is the fastest way to get new features on your device, but is much more complicated, so we recommend using one of the other methods.
- * 2. Add our custom repo to F-Droid and install it from there as soon as we publish a release. The instructions are here: https://newpipe.schabi.org/FAQ/tutorials/install-add-fdroid-repo/
- * 3. Download the APK from [releases](https://github.com/juanpaulconte/teste/releases) and install it.
- *  4. Update via F-droid. This is the slowest method of getting updates, as F-Droid must recognize changes, build the APK itself, sign it, then push the update to users.
+When a change to the NewPipe code occurs (due to either adding features or bug fixing), eventually a release will occur. These are in the format x.xx.x . In order to get this new version 
+ * 1. Download the APK from [releases](https://github.com/ShareASmile/NewPipe-Legacy-Revo/releases) and install it.
 
 When you install an APK from one of these options, it will be incompatible with an APK from one of the other options. This is due to different signing keys being used. Signing keys help ensure that a user isn't tricked into installing a malicious update to an app, and are independent. F-Droid and GitHub use different signing keys, and building an APK debug excludes a key. The signing key issue is being discussed in issue [#1981](https://github.com/TeamNewPipe/NewPipe/issues/1981), and may be fixed by setting up our own repository on F-Droid.
 
