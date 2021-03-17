@@ -3,7 +3,7 @@
 <h4 align="center">A libre lightweight streaming frontend for Android.</h4>
 
 <p align="center">
-<a href="https://github.com/juanpaulconte/teste" alt="GitHub release"><img src="https://img.shields.io/github/release/TeamNewPipe/NewPipe-legacy.svg" ></a>
+<a href="https://github.com/ShareASmile/NewPipe-Legacy-Revo/releases" alt="GitHub release"><img src="https://img.shields.io/github/release/TeamNewPipe/NewPipe-legacy.svg" ></a>
 <a href="https://www.gnu.org/licenses/gpl-3.0" alt="License: GPLv3"><img src="https://img.shields.io/badge/License-GPL%20v3-blue.svg"></a>
 <a href="https://travis-ci.org/TeamNewPipe/NewPipe-legacy" alt="Build Status"><img src="https://travis-ci.org/TeamNewPipe/NewPipe-legacy.svg"></a>
 <a href="https://hosted.weblate.org/engage/NewPipe/" alt="Translation Status"><img src="https://hosted.weblate.org/widgets/NewPipe/-/svg-badge.svg"></a>
