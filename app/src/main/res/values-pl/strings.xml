@@ -672,4 +672,15 @@
     <string name="open_with">Otwórz za pomocą</string>
     <string name="no_app_to_open_intent">Żadna aplikacja na Twoim urządzeniu nie może tego otworzyć</string>
     <string name="related_streams_tab_description">Powiązane strumienie</string>
+    <string name="crash_the_app">Awaria aplikacji</string>
+    <string name="paid_content">Ta zawartość jest płatna, więc jest dostępna tylko dla użytkowników, którzy za nią zapłacili, dlatego nie może być przesyłana strumieniowo lub pobierana przez NewPipe.</string>
+    <string name="youtube_music_premium_content">Ten film jest dostępny tylko dla subskrybentów YouTube Music Premium, więc nie może być przesyłany strumieniowo ani pobierany przez NewPipe.</string>
+    <string name="private_content">Ta zawartość jest prywatna, więc nie może być przesyłana strumieniowo ani pobierana przez NewPipe.</string>
+    <string name="georestricted_content">Ta zawartość nie jest dostępna w Twoim kraju.</string>
+    <string name="restricted_video_no_stream">Ten film jest ograniczony wiekowo.
+\nZe względu na nowe zasady YouTube z ograniczeniem wiekowym, NewPipe nie ma dostępu do żadnego z jego strumieni wideo i dlatego nie jest w stanie go odtworzyć.</string>
+    <string name="soundcloud_go_plus_content">To jest utwór SoundCloud Go+, przynajmniej w Twoim kraju, więc nie może być przesyłany strumieniowo lub pobierany przez NewPipe.</string>
+    <string name="radio">Radio</string>
+    <string name="featured">Polecane</string>
+    <string name="recaptcha_solve">Rozwiąż</string>
 </resources>
