@@ -10,6 +10,7 @@ import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.functions.Function4
 import io.reactivex.rxjava3.schedulers.Schedulers
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
+import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity
 import org.schabi.newpipelegacy.local.feed.service.FeedEventManager
 import org.schabi.newpipelegacy.local.feed.service.FeedEventManager.Event.ErrorResultEvent
 import org.schabi.newpipelegacy.local.feed.service.FeedEventManager.Event.IdleEvent

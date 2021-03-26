@@ -6,7 +6,7 @@
     <string name="did_you_mean">Vouliez-vous dire « %1$s » \?</string>
     <string name="download">Télécharger</string>
     <string name="download_path_title">Dossier de téléchargement vidéo</string>
-    <string name="download_path_dialog_title">Choisissez le dossier de téléchargement des fichiers vidéo</string>
+    <string name="download_path_dialog_title">Choisissez le dossier de téléchargement des vidéos</string>
     <string name="download_path_summary">Les fichiers vidéo téléchargés sont stockées ici</string>
     <string name="install">Installer</string>
     <string name="kore_not_found">Installer l’application Kore manquante \?</string>
@@ -271,7 +271,7 @@
     <string name="could_not_import_all_files">Avertissement : impossible d’importer tous les fichiers.</string>
     <string name="override_current_data">Cela effacera vos paramètres actuels.</string>
     <string name="show_info">Afficher les informations</string>
-    <string name="tab_bookmarks">Listes de lecture mises en favoris</string>
+    <string name="tab_bookmarks">Listes de lecture enregistrées</string>
     <string name="controls_add_to_playlist_title">Ajouter à</string>
     <string name="detail_drag_description">Glisser pour réordonner</string>
     <string name="create">Créer</string>
@@ -637,7 +637,7 @@
     <string name="notification_action_2_title">Troisième bouton d’action</string>
     <string name="notification_action_1_title">Deuxième bouton d’action</string>
     <string name="notification_action_0_title">Premier bouton d’action</string>
-    <string name="notification_scale_to_square_image_summary">Redimensionner la miniature de la vidéo affichée dans la notification du format 16:9 au 1:1 (peut introduire des distorsions)</string>
+    <string name="notification_scale_to_square_image_summary">Mettre à l\'échelle la miniature de la vidéo affichée dans la notification du format 16:9 au format 1:1 (peut provoquer des déformations)</string>
     <string name="notification_scale_to_square_image_title">Redimensionner la miniature au format 1:1</string>
     <string name="show_memory_leaks">Afficher les fuites de mémoire</string>
     <string name="enqueued">Ajouté à la file d’attente</string>
@@ -665,7 +665,7 @@
     <string name="comments_tab_description">Commentaires</string>
     <string name="show_description_summary">Désactiver pour masquer la description de la vidéo et les informations supplémentaires</string>
     <string name="show_description_title">Afficher la description</string>
-    <string name="crash_the_app">Plante l\'application</string>
+    <string name="crash_the_app">Faire planter l\'application</string>
     <string name="georestricted_content">Ce contenu n\'est pas disponible dans votre pays.</string>
     <string name="paid_content">Ce contenu est uniquement disponible pour les utilisateurs qui ont payé, il ne peut donc pas être diffusé en continu ni téléchargé par NewPipe.</string>
     <string name="youtube_music_premium_content">Cette vidéo n\'est disponible que pour les membres de YouTube Music Premium, elle ne peut donc pas être diffusée en continu ni téléchargée par NewPipe.</string>
@@ -679,4 +679,5 @@
     <string name="auto_device_theme_title">Automatique (thème de l\'appareil)</string>
     <string name="night_theme_summary">Choisissez votre thème nuit favori — %s</string>
     <string name="select_night_theme_toast">Vous pouvez choisir votre thème nuit favori</string>
+    <string name="download_has_started">Le téléchargement a démarré</string>
 </resources>

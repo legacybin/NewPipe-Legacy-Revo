@@ -71,7 +71,6 @@ public class ErrorActivity extends AppCompatActivity {
     public static final DateTimeFormatter CURRENT_TIMESTAMP_FORMATTER
             = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-
     private ErrorInfo errorInfo;
     private String currentTimeStamp;
 
