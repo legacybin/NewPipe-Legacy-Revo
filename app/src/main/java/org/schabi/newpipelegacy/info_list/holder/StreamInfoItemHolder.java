@@ -4,8 +4,6 @@ import android.text.TextUtils;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.preference.PreferenceManager;
-
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
@@ -13,6 +11,8 @@ import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipelegacy.info_list.InfoItemBuilder;
 import org.schabi.newpipelegacy.local.history.HistoryRecordManager;
 import org.schabi.newpipelegacy.util.Localization;
+
+import androidx.preference.PreferenceManager;
 
 import static org.schabi.newpipelegacy.MainActivity.DEBUG;
 
