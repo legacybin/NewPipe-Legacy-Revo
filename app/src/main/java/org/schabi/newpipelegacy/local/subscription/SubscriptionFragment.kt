@@ -62,7 +62,6 @@ import org.schabi.newpipelegacy.util.FilePickerActivityHelper
 import org.schabi.newpipelegacy.util.NavigationHelper
 import org.schabi.newpipelegacy.util.OnClickGesture
 import org.schabi.newpipelegacy.util.ShareUtils
-import org.schabi.newpipelegacy.util.ThemeHelper
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -257,7 +256,7 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
             feedGroupsCarousel = FeedGroupCarouselItem(requireContext(), carouselAdapter)
             feedGroupsSortMenuItem = HeaderWithMenuItem(
                 getString(R.string.feed_groups_header_title),
-                ThemeHelper.resolveResourceIdFromAttr(requireContext(), R.attr.ic_sort),
+                R.drawable.ic_sort,
                 menuItemOnClickListener = ::openReorderDialog
             )
             add(Section(feedGroupsSortMenuItem, listOf(feedGroupsCarousel)))

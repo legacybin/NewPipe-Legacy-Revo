@@ -31,7 +31,7 @@ import org.schabi.newpipelegacy.local.playlist.LocalPlaylistFragment;
 import org.schabi.newpipelegacy.local.subscription.SubscriptionFragment;
 import org.schabi.newpipelegacy.util.KioskTranslator;
 import org.schabi.newpipelegacy.util.ServiceHelper;
-import org.schabi.newpipelegacy.util.ThemeHelper;
+
 
 public abstract class Tab {
     private static final String JSON_TAB_ID_KEY = "tab_id";
@@ -187,7 +187,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_blank_page);
+            return R.drawable.ic_crop_portrait;
         }
 
         @Override
@@ -212,7 +212,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_channel);
+            return R.drawable.ic_tv;
         }
 
         @Override
@@ -238,7 +238,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_rss);
+            return R.drawable.ic_rss_feed;
         }
 
         @Override
@@ -263,7 +263,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_bookmark);
+            return R.drawable.ic_bookmark;
         }
 
         @Override
@@ -288,7 +288,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_history);
+            return R.drawable.ic_history;
         }
 
         @Override
@@ -408,7 +408,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_channel);
+            return R.drawable.ic_tv;
         }
 
         @Override
@@ -540,7 +540,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_bookmark);
+            return R.drawable.ic_bookmark;
         }
 
         @Override
