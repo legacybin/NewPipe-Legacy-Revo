@@ -17,8 +17,8 @@ android {
         resValue "string", "app_name", "NewPipe Legacy"
         minSdkVersion 16
         targetSdkVersion 29
-        versionCode 124
-        versionName "0.21.0"
+        versionCode 125
+        versionName "0.21.1"
 
         multiDexEnabled true
 
@@ -213,6 +213,10 @@ dependencies {
     // Instance state boilerplate elimination
     implementation "frankiesardo:icepick:${icepickVersion}"
     kapt "frankiesardo:icepick-processor:${icepickVersion}"
+    // NewPipe dependencies
+    // You can use a local version by uncommenting a few lines in settings.gradle
+    implementation 'com.github.TeamNewPipe:NewPipeExtractor:v0.21.1'
+    implementation "com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751"
 
     // HTML parser
     implementation "org.jsoup:jsoup:1.13.1"
