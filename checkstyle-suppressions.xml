@@ -61,7 +61,7 @@
 
   <suppress checks="EqualsHashCode"
       files="Tab.java"
-      lines="115,361,435,580"/>
+      lines="113,359,433,577"/>
 
   <suppress checks="EqualsHashCode"
       files="StreamStateEntity.java"
