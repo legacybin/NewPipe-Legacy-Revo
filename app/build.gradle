@@ -31,6 +31,9 @@ android {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
             }
         }
+
+        // Required when setting minSdkVersion to 20 or lower
+        multiDexEnabled true
     }
 
     splits {
@@ -93,6 +96,7 @@ android {
     }
 
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
         encoding 'utf-8'
@@ -166,6 +170,8 @@ afterEvaluate {
 }
 
 dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.0.9'
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     implementation "frankiesardo:icepick:${icepickVersion}"
@@ -191,7 +197,8 @@ dependencies {
         exclude module: 'support-annotations'
     }
 
-    implementation 'com.github.TeamNewPipe:NewPipeExtractor:v0.20.2'
+    implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
+    implementation 'com.github.TeamNewPipe:NewPipeExtractor:v0.21.2'
 
     testImplementation 'junit:junit:4.13'
 

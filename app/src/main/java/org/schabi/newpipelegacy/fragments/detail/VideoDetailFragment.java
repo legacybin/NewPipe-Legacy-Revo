@@ -1275,11 +1275,15 @@ public class VideoDetailFragment
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
-    protected boolean onError(Throwable exception) {
-        if (super.onError(exception)) return true;
+    protected boolean onError(final Throwable exception) {
+        if (super.onError(exception)) {
+            return true;
+        }
 
-        int errorId = exception instanceof YoutubeStreamExtractor.DecryptException ? R.string.youtube_signature_decryption_error
-                : exception instanceof ExtractionException ? R.string.parsing_error
+        final int errorId = exception instanceof YoutubeStreamExtractor.DeobfuscateException
+                ? R.string.youtube_signature_decryption_error
+                : exception instanceof ExtractionException
+                ? R.string.parsing_error
                 : R.string.general_error;
 
         onUnrecoverableError(exception, UserAction.REQUESTED_STREAM,
