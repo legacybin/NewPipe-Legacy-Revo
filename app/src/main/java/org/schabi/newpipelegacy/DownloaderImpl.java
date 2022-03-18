@@ -2,11 +2,12 @@ package org.schabi.newpipelegacy;
 
 import android.content.Context;
 import android.os.Build;
-import android.preference.PreferenceManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
 
+import org.schabi.newpipelegacy.error.ReCaptchaActivity;
 import org.schabi.newpipe.extractor.downloader.Downloader;
 import org.schabi.newpipe.extractor.downloader.Request;
 import org.schabi.newpipe.extractor.downloader.Response;
@@ -43,15 +44,15 @@ import static org.schabi.newpipelegacy.MainActivity.DEBUG;
 
 public final class DownloaderImpl extends Downloader {
     public static final String USER_AGENT
-            = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101 Firefox/68.0";
+            = "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0";
     public static final String YOUTUBE_RESTRICTED_MODE_COOKIE_KEY
             = "youtube_restricted_mode_key";
     public static final String YOUTUBE_RESTRICTED_MODE_COOKIE = "PREF=f2=8000000";
     public static final String YOUTUBE_DOMAIN = "youtube.com";
 
     private static DownloaderImpl instance;
-    private Map<String, String> mCookies;
-    private OkHttpClient client;
+    private final Map<String, String> mCookies;
+    private final OkHttpClient client;
 
     private DownloaderImpl(final OkHttpClient.Builder builder) {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
@@ -94,18 +95,18 @@ public final class DownloaderImpl extends Downloader {
     private static void enableModernTLS(final OkHttpClient.Builder builder) {
         try {
             // get the default TrustManager
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(
+            final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(
                     TrustManagerFactory.getDefaultAlgorithm());
             trustManagerFactory.init((KeyStore) null);
-            TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+            final TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
             if (trustManagers.length != 1 || !(trustManagers[0] instanceof X509TrustManager)) {
                 throw new IllegalStateException("Unexpected default trust managers:"
                         + Arrays.toString(trustManagers));
             }
-            X509TrustManager trustManager = (X509TrustManager) trustManagers[0];
+            final X509TrustManager trustManager = (X509TrustManager) trustManagers[0];
 
             // insert our own TLSSocketFactory
-            SSLSocketFactory sslSocketFactory = TLSSocketFactoryCompat.getInstance();
+            final SSLSocketFactory sslSocketFactory = TLSSocketFactoryCompat.getInstance();
 
             builder.sslSocketFactory(sslSocketFactory, trustManager);
 
@@ -114,16 +115,16 @@ public final class DownloaderImpl extends Downloader {
             // Necessary because some servers (e.g. Framatube.org)
             // don't support the old cipher suites.
             // https://github.com/square/okhttp/issues/4053#issuecomment-402579554
-            List<CipherSuite> cipherSuites = new ArrayList<>();
-            cipherSuites.addAll(ConnectionSpec.MODERN_TLS.cipherSuites());
+            final List<CipherSuite> cipherSuites =
+                    new ArrayList<>(ConnectionSpec.MODERN_TLS.cipherSuites());
             cipherSuites.add(CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA);
             cipherSuites.add(CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA);
-            ConnectionSpec legacyTLS = new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
+            final ConnectionSpec legacyTLS = new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
                     .cipherSuites(cipherSuites.toArray(new CipherSuite[0]))
                     .build();
 
             builder.connectionSpecs(Arrays.asList(legacyTLS, ConnectionSpec.CLEARTEXT));
-        } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
+        } catch (final KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
             if (DEBUG) {
                 e.printStackTrace();
             }
@@ -131,15 +132,15 @@ public final class DownloaderImpl extends Downloader {
     }
 
     public String getCookies(final String url) {
-        List<String> resultCookies = new ArrayList<>();
+        final List<String> resultCookies = new ArrayList<>();
         if (url.contains(YOUTUBE_DOMAIN)) {
-            String youtubeCookie = getCookie(YOUTUBE_RESTRICTED_MODE_COOKIE_KEY);
+            final String youtubeCookie = getCookie(YOUTUBE_RESTRICTED_MODE_COOKIE_KEY);
             if (youtubeCookie != null) {
                 resultCookies.add(youtubeCookie);
             }
         }
         // Recaptcha cookie is always added TODO: not sure if this is necessary
-        String recaptchaCookie = getCookie(ReCaptchaActivity.RECAPTCHA_COOKIES_KEY);
+        final String recaptchaCookie = getCookie(ReCaptchaActivity.RECAPTCHA_COOKIES_KEY);
         if (recaptchaCookie != null) {
             resultCookies.add(recaptchaCookie);
         }
@@ -159,9 +160,9 @@ public final class DownloaderImpl extends Downloader {
     }
 
     public void updateYoutubeRestrictedModeCookies(final Context context) {
-        String restrictedModeEnabledKey =
+        final String restrictedModeEnabledKey =
                 context.getString(R.string.youtube_restricted_mode_enabled);
-        boolean restrictedModeEnabled = PreferenceManager.getDefaultSharedPreferences(context)
+        final boolean restrictedModeEnabled = PreferenceManager.getDefaultSharedPreferences(context)
                 .getBoolean(restrictedModeEnabledKey, false);
         updateYoutubeRestrictedModeCookies(restrictedModeEnabled);
     }
@@ -186,9 +187,9 @@ public final class DownloaderImpl extends Downloader {
         try {
             final Response response = head(url);
             return Long.parseLong(response.getHeader("Content-Length"));
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             throw new IOException("Invalid content length", e);
-        } catch (ReCaptchaException e) {
+        } catch (final ReCaptchaException e) {
             throw new IOException(e);
         }
     }
@@ -199,7 +200,7 @@ public final class DownloaderImpl extends Downloader {
                     .method("GET", null).url(siteUrl)
                     .addHeader("User-Agent", USER_AGENT);
 
-            String cookies = getCookies(siteUrl);
+            final String cookies = getCookies(siteUrl);
             if (!cookies.isEmpty()) {
                 requestBuilder.addHeader("Cookie", cookies);
             }
@@ -218,7 +219,7 @@ public final class DownloaderImpl extends Downloader {
             }
 
             return body.byteStream();
-        } catch (ReCaptchaException e) {
+        } catch (final ReCaptchaException e) {
             throw new IOException(e.getMessage(), e.getCause());
         }
     }
@@ -240,18 +241,18 @@ public final class DownloaderImpl extends Downloader {
                 .method(httpMethod, requestBody).url(url)
                 .addHeader("User-Agent", USER_AGENT);
 
-        String cookies = getCookies(url);
+        final String cookies = getCookies(url);
         if (!cookies.isEmpty()) {
             requestBuilder.addHeader("Cookie", cookies);
         }
 
-        for (Map.Entry<String, List<String>> pair : headers.entrySet()) {
+        for (final Map.Entry<String, List<String>> pair : headers.entrySet()) {
             final String headerName = pair.getKey();
             final List<String> headerValueList = pair.getValue();
 
             if (headerValueList.size() > 1) {
                 requestBuilder.removeHeader(headerName);
-                for (String headerValue : headerValueList) {
+                for (final String headerValue : headerValueList) {
                     requestBuilder.addHeader(headerName, headerValue);
                 }
             } else if (headerValueList.size() == 1) {

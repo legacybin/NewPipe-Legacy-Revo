@@ -13,6 +13,9 @@ import com.grack.nanojson.JsonSink;
 
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.database.LocalItem.LocalItemType;
+import org.schabi.newpipelegacy.error.ErrorActivity;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
@@ -26,13 +29,9 @@ import org.schabi.newpipelegacy.local.feed.FeedFragment;
 import org.schabi.newpipelegacy.local.history.StatisticsPlaylistFragment;
 import org.schabi.newpipelegacy.local.playlist.LocalPlaylistFragment;
 import org.schabi.newpipelegacy.local.subscription.SubscriptionFragment;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.UserAction;
 import org.schabi.newpipelegacy.util.KioskTranslator;
 import org.schabi.newpipelegacy.util.ServiceHelper;
-import org.schabi.newpipelegacy.util.ThemeHelper;
 
-import java.util.Objects;
 
 public abstract class Tab {
     private static final String JSON_TAB_ID_KEY = "tab_id";
@@ -66,7 +65,7 @@ public abstract class Tab {
 
     @Nullable
     public static Type typeFrom(final int tabId) {
-        for (Type available : Type.values()) {
+        for (final Type available : Type.values()) {
             if (available.getTabId() == tabId) {
                 return available;
             }
@@ -117,7 +116,7 @@ public abstract class Tab {
             return true;
         }
 
-        return obj instanceof Tab && obj.getClass().equals(this.getClass())
+        return obj instanceof Tab && obj.getClass() == this.getClass()
                 && ((Tab) obj).getTabId() == this.getTabId();
     }
 
@@ -157,7 +156,7 @@ public abstract class Tab {
         CHANNEL(new ChannelTab()),
         PLAYLIST(new PlaylistTab());
 
-        private Tab tab;
+        private final Tab tab;
 
         Type(final Tab tab) {
             this.tab = tab;
@@ -188,7 +187,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_blank_page);
+            return R.drawable.ic_crop_portrait;
         }
 
         @Override
@@ -213,7 +212,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_channel);
+            return R.drawable.ic_tv;
         }
 
         @Override
@@ -239,7 +238,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_rss);
+            return R.drawable.ic_rss_feed;
         }
 
         @Override
@@ -264,7 +263,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_bookmark);
+            return R.drawable.ic_bookmark;
         }
 
         @Override
@@ -289,7 +288,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_history);
+            return R.drawable.ic_history;
         }
 
         @Override
@@ -409,7 +408,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_channel);
+            return R.drawable.ic_tv;
         }
 
         @Override
@@ -482,10 +481,9 @@ public abstract class Tab {
             try {
                 final StreamingService service = NewPipe.getService(kioskServiceId);
                 kioskId = service.getKioskList().getDefaultKioskId();
-            } catch (ExtractionException e) {
-                ErrorActivity.reportError(context, e, null, null,
-                        ErrorActivity.ErrorInfo.make(UserAction.REQUESTED_KIOSK, "none",
-                                "Loading default kiosk from selected service", 0));
+            } catch (final ExtractionException e) {
+                ErrorActivity.reportErrorInSnackbar(context, new ErrorInfo(e,
+                        UserAction.REQUESTED_KIOSK, "Loading default kiosk for selected service"));
             }
             return kioskId;
         }
@@ -542,7 +540,7 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_bookmark);
+            return R.drawable.ic_bookmark;
         }
 
         @Override
@@ -579,14 +577,14 @@ public abstract class Tab {
         @Override
         public boolean equals(final Object obj) {
             if (!(super.equals(obj)
-                    && Objects.equals(playlistType, ((PlaylistTab) obj).playlistType)
-                    && Objects.equals(playlistName, ((PlaylistTab) obj).playlistName))) {
+                    && ObjectsCompat.equals(playlistType, ((PlaylistTab) obj).playlistType)
+                    && ObjectsCompat.equals(playlistName, ((PlaylistTab) obj).playlistName))) {
                 return false; // base objects are different
             }
 
             return (playlistId == ((PlaylistTab) obj).playlistId)                     // local
                     || (playlistServiceId == ((PlaylistTab) obj).playlistServiceId    // remote
-                    && Objects.equals(playlistUrl, ((PlaylistTab) obj).playlistUrl));
+                    && ObjectsCompat.equals(playlistUrl, ((PlaylistTab) obj).playlistUrl));
         }
 
         public int getPlaylistServiceId() {

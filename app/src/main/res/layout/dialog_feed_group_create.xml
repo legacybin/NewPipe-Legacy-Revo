@@ -30,15 +30,16 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="ContentDescription"
-                tools:src="?attr/ic_asterisk" />
+                tools:src="@drawable/ic_asterisk" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/group_name_input_container"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
                 android:gravity="center_vertical"
-                android:hint="@string/feed_group_dialog_name_input"
+                android:hint="@string/name"
                 android:paddingTop="6dp"
                 android:paddingBottom="6dp"
                 app:errorEnabled="true"
@@ -109,16 +110,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:gravity="center_vertical"
-                android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.ActionBar"
-                app:titleTextAppearance="@style/Toolbar.Title">
+                android:theme="@style/ContrastToolbarTheme">
 
                 <LinearLayout
                     android:id="@+id/subscriptions_header_info_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -142,7 +141,7 @@
                 <include
                     android:id="@+id/subscriptions_header_search_container"
                     layout="@layout/toolbar_search_layout"
-                    android:visibility="gone"/>
+                    android:visibility="gone" />
 
             </androidx.appcompat.widget.Toolbar>
 
@@ -150,8 +149,8 @@
                 android:id="@+id/subscriptions_selector_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="2dp"
                 android:clipToPadding="false"
+                android:padding="2dp"
                 tools:itemCount="200"
                 tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                 tools:listitem="@layout/picker_subscription_item"
@@ -193,11 +192,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
             android:minWidth="0dp"
             android:scaleType="centerInside"
-            app:srcCompat="?attr/ic_delete"
             android:visibility="gone"
+            app:srcCompat="@drawable/ic_delete"
             tools:ignore="ContentDescription"
             tools:visibility="visible" />
 
@@ -207,6 +207,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toStartOf="@+id/confirm_button"
+            android:layout_toLeftOf="@+id/confirm_button"
             android:text="@android:string/cancel" />
 
         <Button
@@ -215,6 +216,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:text="@string/create" />
     </RelativeLayout>
 </LinearLayout>

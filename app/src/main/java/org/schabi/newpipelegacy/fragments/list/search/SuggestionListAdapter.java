@@ -1,14 +1,12 @@
 package org.schabi.newpipelegacy.fragments.list.search;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.AttrRes;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.schabi.newpipelegacy.R;
@@ -33,7 +31,7 @@ public class SuggestionListAdapter
             this.items.addAll(items);
         } else {
             // remove history items if history is disabled
-            for (SuggestionItem item : items) {
+            for (final SuggestionItem item : items) {
                 if (!item.fromHistory) {
                     this.items.add(item);
                 }
@@ -117,16 +115,8 @@ public class SuggestionListAdapter
             queryView = rootView.findViewById(R.id.suggestion_search);
             insertView = rootView.findViewById(R.id.suggestion_insert);
 
-            historyResId = resolveResourceIdFromAttr(rootView.getContext(), R.attr.ic_history);
-            searchResId = resolveResourceIdFromAttr(rootView.getContext(), R.attr.ic_search);
-        }
-
-        private static int resolveResourceIdFromAttr(final Context context,
-                                                     @AttrRes final int attr) {
-            TypedArray a = context.getTheme().obtainStyledAttributes(new int[]{attr});
-            int attributeResourceId = a.getResourceId(0, 0);
-            a.recycle();
-            return attributeResourceId;
+            historyResId = R.drawable.ic_history;
+            searchResId = R.drawable.ic_search;
         }
 
         private void updateFrom(final SuggestionItem item) {

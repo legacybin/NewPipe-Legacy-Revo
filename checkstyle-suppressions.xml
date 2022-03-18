@@ -5,17 +5,20 @@
 <suppressions>
   <suppress checks="FinalParameters"
     files="LocalItemListAdapter.java"
-    lines="220,292"/>
+    lines="221,293"/>
 
   <suppress checks="FinalParameters"
-    files="InfoListAdapter.java"
-    lines="253,325"/>
+      files="InfoListAdapter.java"
+      lines="253,325"/>
 
   <suppress checks="FinalParameters"
-      files="ListHelper.java"
-      lines="278,310"/>
+    files="ListHelper.java"
+    lines="280,312"/>
 
-  <!-- org.schabi.newpipelegacy.streams -->
+  <suppress checks="EmptyBlock"
+    files="ContentSettingsFragment.java"
+    lines="227,245"/>
+
   <suppress checks="FinalParameters"
       files="DataReader.java"
       lines="46,93"/>
@@ -37,8 +40,8 @@
       lines="419,591"/>
 
   <suppress checks="LineLength"
-      files="WebMWriter.java"
-      lines="156,158"/>
+    files="WebMWriter.java"
+    lines="156,158"/>
 
   <suppress checks="MethodLength"
       files="WebMWriter.java"
@@ -52,11 +55,25 @@
       files="PopupVideoPlayer.java"
       lines="618"/>
 
+  <suppress checks="ParameterNumber"
+      files="NavigationHelper.java"
+      lines="115"/>
+
   <suppress checks="EqualsHashCode"
       files="Tab.java"
-      lines="106,351,425"/>
+      lines="113,359,433,577"/>
 
   <suppress checks="EqualsHashCode"
       files="StreamStateEntity.java"
-      lines="69"/>
+      lines="72"/>
+
+  <suppress checks="EqualsHashCode"
+      files="PlayQueue.java"
+      lines="504"/>
+
+  <suppress checks="FileLength"
+    files="Player.java"/>
+
+  <suppress checks="FileLength"
+    files="VideoDetailFragment.java"/>
 </suppressions>

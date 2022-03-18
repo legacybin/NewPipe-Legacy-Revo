@@ -23,9 +23,9 @@ import org.schabi.newpipelegacy.player.playqueue.SinglePlayQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.reactivex.Single;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class CommentTextOnTouchListener implements View.OnTouchListener {
     public static final CommentTextOnTouchListener INSTANCE = new CommentTextOnTouchListener();
@@ -37,12 +37,12 @@ public class CommentTextOnTouchListener implements View.OnTouchListener {
         if (!(v instanceof TextView)) {
             return false;
         }
-        TextView widget = (TextView) v;
-        Object text = widget.getText();
+        final TextView widget = (TextView) v;
+        final Object text = widget.getText();
         if (text instanceof Spanned) {
-            Spannable buffer = (Spannable) text;
+            final Spannable buffer = (Spannable) text;
 
-            int action = event.getAction();
+            final int action = event.getAction();
 
             if (action == MotionEvent.ACTION_UP
                     || action == MotionEvent.ACTION_DOWN) {
@@ -55,11 +55,11 @@ public class CommentTextOnTouchListener implements View.OnTouchListener {
                 x += widget.getScrollX();
                 y += widget.getScrollY();
 
-                Layout layout = widget.getLayout();
-                int line = layout.getLineForVertical(y);
-                int off = layout.getOffsetForHorizontal(line, x);
+                final Layout layout = widget.getLayout();
+                final int line = layout.getLineForVertical(y);
+                final int off = layout.getOffsetForHorizontal(line, x);
 
-                ClickableSpan[] link = buffer.getSpans(off, off,
+                final ClickableSpan[] link = buffer.getSpans(off, off,
                         ClickableSpan.class);
 
                 if (link.length != 0) {
@@ -69,7 +69,8 @@ public class CommentTextOnTouchListener implements View.OnTouchListener {
                             handled = handleUrl(v.getContext(), (URLSpan) link[0]);
                         }
                         if (!handled) {
-                            link[0].onClick(widget);
+                            ShareUtils.openUrlInBrowser(v.getContext(),
+                                    ((URLSpan) link[0]).getURL(), false);
                         }
                     } else if (action == MotionEvent.ACTION_DOWN) {
                         Selection.setSelection(buffer,
@@ -86,17 +87,17 @@ public class CommentTextOnTouchListener implements View.OnTouchListener {
     private boolean handleUrl(final Context context, final URLSpan urlSpan) {
         String url = urlSpan.getURL();
         int seconds = -1;
-        Matcher matcher = TIMESTAMP_PATTERN.matcher(url);
+        final Matcher matcher = TIMESTAMP_PATTERN.matcher(url);
         if (matcher.matches()) {
             url = matcher.group(1);
             seconds = Integer.parseInt(matcher.group(2));
         }
-        StreamingService service;
-        StreamingService.LinkType linkType;
+        final StreamingService service;
+        final StreamingService.LinkType linkType;
         try {
             service = NewPipe.getServiceByUrl(url);
             linkType = service.getLinkTypeByUrl(url);
-        } catch (ExtractionException e) {
+        } catch (final ExtractionException e) {
             return false;
         }
         if (linkType == StreamingService.LinkType.NONE) {
@@ -112,18 +113,20 @@ public class CommentTextOnTouchListener implements View.OnTouchListener {
 
     private boolean playOnPopup(final Context context, final String url,
                                 final StreamingService service, final int seconds) {
-        LinkHandlerFactory factory = service.getStreamLHFactory();
-        String cleanUrl = null;
+        final LinkHandlerFactory factory = service.getStreamLHFactory();
+        final String cleanUrl;
         try {
             cleanUrl = factory.getUrl(factory.getId(url));
-        } catch (ParsingException e) {
+        } catch (final ParsingException e) {
             return false;
         }
-        Single single = ExtractorHelper.getStreamInfo(service.getServiceId(), cleanUrl, false);
+        final Single single
+                = ExtractorHelper.getStreamInfo(service.getServiceId(), cleanUrl, false);
         single.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(info -> {
-                    PlayQueue playQueue = new SinglePlayQueue((StreamInfo) info, seconds * 1000);
+                    final PlayQueue playQueue
+                            = new SinglePlayQueue((StreamInfo) info, seconds * 1000);
                     NavigationHelper.playOnPopupPlayer(context, playQueue, false);
                 });
         return true;

@@ -29,13 +29,14 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.schabi.newpipelegacy.App;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.database.subscription.SubscriptionEntity;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.channel.ChannelInfo;
 import org.schabi.newpipe.extractor.subscription.SubscriptionItem;
+import org.schabi.newpipelegacy.ktx.ExceptionUtils;
 import org.schabi.newpipelegacy.util.Constants;
-import org.schabi.newpipelegacy.util.ExceptionUtils;
 import org.schabi.newpipelegacy.util.ExtractorHelper;
 
 import java.io.File;
@@ -46,12 +47,12 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.reactivex.Flowable;
-import io.reactivex.Notification;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Notification;
+import io.reactivex.rxjava3.functions.Consumer;
+import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import static org.schabi.newpipelegacy.MainActivity.DEBUG;
 
@@ -66,8 +67,8 @@ public class SubscriptionsImportService extends BaseImportExportService {
      * A {@link LocalBroadcastManager local broadcast} will be made with this action
      * when the import is successfully completed.
      */
-    public static final String IMPORT_COMPLETE_ACTION = "org.schabi.newpipelegacy.local"
-            + ".subscription.services.SubscriptionsImportService.IMPORT_COMPLETE";
+    public static final String IMPORT_COMPLETE_ACTION = App.PACKAGE_NAME + ".local.subscription"
+            + ".services.SubscriptionsImportService.IMPORT_COMPLETE";
 
     /**
      * How many extractions running in parallel.
@@ -110,7 +111,7 @@ public class SubscriptionsImportService extends BaseImportExportService {
 
             try {
                 inputStream = new FileInputStream(new File(filePath));
-            } catch (FileNotFoundException e) {
+            } catch (final FileNotFoundException e) {
                 handleError(e);
                 return START_NOT_STICKY;
             }
@@ -187,7 +188,7 @@ public class SubscriptionsImportService extends BaseImportExportService {
                                 .getChannelInfo(subscriptionItem.getServiceId(),
                                         subscriptionItem.getUrl(), true)
                                 .blockingGet());
-                    } catch (Throwable e) {
+                    } catch (final Throwable e) {
                         return Notification.createOnError(e);
                     }
                 })
@@ -239,7 +240,7 @@ public class SubscriptionsImportService extends BaseImportExportService {
     private Consumer<Notification<ChannelInfo>> getNotificationsConsumer() {
         return notification -> {
             if (notification.isOnNext()) {
-                String name = notification.getValue().getName();
+                final String name = notification.getValue().getName();
                 eventListener.onItemCompleted(!TextUtils.isEmpty(name) ? name : "");
             } else if (notification.isOnError()) {
                 final Throwable error = notification.getError();
@@ -260,7 +261,7 @@ public class SubscriptionsImportService extends BaseImportExportService {
     private Function<List<Notification<ChannelInfo>>, List<SubscriptionEntity>> upsertBatch() {
         return notificationList -> {
             final List<ChannelInfo> infoList = new ArrayList<>(notificationList.size());
-            for (Notification<ChannelInfo> n : notificationList) {
+            for (final Notification<ChannelInfo> n : notificationList) {
                 if (n.isOnNext()) {
                     infoList.add(n.getValue());
                 }

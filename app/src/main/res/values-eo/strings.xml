@@ -9,7 +9,7 @@
     <string name="download">Elŝuti</string>
     <string name="search">Serĉi</string>
     <string name="settings">Agordoj</string>
-    <string name="did_you_mean">Ĉu vi signifis: %1$s\?</string>
+    <string name="did_you_mean">Ĉu vi signifis \"%1$s\"\?</string>
     <string name="share_dialog_title">Konigi kun</string>
     <string name="choose_browser">Elekti retumilon</string>
     <string name="screen_rotation">turno</string>
@@ -23,15 +23,14 @@
     <string name="theme_title">Etoso</string>
     <string name="dark_theme_title">Malluma</string>
     <string name="light_theme_title">Luma</string>
+    <string name="black_theme_title">Nigra</string>
     <string name="download_dialog_title">Elŝuti</string>
-    <string name="next_video_title">Vica filmeto</string>
-    <string name="url_not_supported_toast">Ligilo ne subtenita</string>
+    <string name="unsupported_url">Ligilo ne subtenita</string>
     <string name="content_language_title">Preferata enhavlingvo</string>
     <string name="settings_category_video_audio_title">Filmeto kaj sono</string>
     <string name="settings_category_appearance_title">Apero</string>
     <string name="settings_category_other_title">Alia</string>
     <string name="background_player_playing_toast">Ludanta fone</string>
-    <string name="play_btn_text">Ludi</string>
     <string name="general_error">Eraro</string>
     <string name="network_error">Reteraro</string>
     <string name="content_not_available">Enhavo malhavebla</string>
@@ -42,7 +41,7 @@
     <string name="kore_not_found">Ĉu instali la mankan aplikaĵon Kore\?</string>
     <string name="show_next_and_similar_title">Montri la sekvan filmeton kaj similajn filmetojn</string>
     <string name="could_not_load_thumbnails">Ĉiuj bildetoj ne ŝargeblas</string>
-    <string name="youtube_signature_decryption_error">La subskribo de la ligilo de la filmeto ne malĉifreblas</string>
+    <string name="youtube_signature_deobfuscation_error">La subskribo de la ligilo de la filmeto ne malĉifreblas</string>
     <string name="parsing_error">La retejo ne analizeblas</string>
     <string name="list_thumbnail_view_description">Bildeto de la antaŭrigardo de la filmeto</string>
     <string name="detail_thumbnail_view_description">Ludi filmeton, daŭro:</string>
@@ -66,7 +65,8 @@
     <string name="report_error">Signali eraron</string>
     <string name="video">Filmeto</string>
     <string name="retry">Reprovi</string>
-    <string name="main_bg_subtitle">Premi \"Serĉi\" por komenci</string>
+    <string name="main_bg_subtitle">Premi \"Serĉi\" por komenci
+\n</string>
     <string name="no_player_found_toast">Neniu elsendlflua ludilo trovita (instalu VLC por ludi ĝin).</string>
     <string name="open_in_popup_mode">Malfermi en ŝprucfenestran modon</string>
     <string name="use_external_video_player_summary">Forigas aŭdon ĉe kelkaj rezolucioj</string>
@@ -91,7 +91,6 @@
     <string name="show_higher_resolutions_title">Montri pli altajn rezoluciojn</string>
     <string name="show_higher_resolutions_summary">Nur kelkaj aparatoj povas ludi 2K / 4K filmetojn</string>
     <string name="default_video_format_title">Defaŭlta fomato de filmeto</string>
-    <string name="black_theme_title">Nigra</string>
     <string name="popup_remember_size_pos_title">Memoru ŝprucfenestran grandecon kaj pozicion</string>
     <string name="popup_remember_size_pos_summary">Memoru lastan grandecon kaj pozicion de ŝprucfenestro</string>
     <string name="use_inexact_seek_title">Uzi rapide, ne precizan serĉon</string>
@@ -100,7 +99,6 @@
     <string name="could_not_setup_download_menu">Ne povis konstrui la dosierujon de elŝuto</string>
     <string name="live_streams_not_supported">Nunaj filmetoj ne estas ankoraŭ subtenataj</string>
     <string name="show_age_restricted_content_title">Enhavo limigita al aĝo</string>
-    <string name="video_is_age_restricted">Montri limigitan al aĝo filmeto. Postaj ŝanĝoj eblas ĉe la agordoj.</string>
     <string name="light_parsing_error">Ne povis tute analizi la retejon</string>
     <string name="could_not_get_stream">Ne povis akiri ajnan torenton</string>
     <string name="duration_live">Nuna</string>
@@ -127,7 +125,6 @@
     <string name="refresh">Aktualigi</string>
     <string name="clear">Forviŝi</string>
     <string name="settings_category_popup_title">Ŝprucfenestro</string>
-    <string name="popup_resizing_indicator_title">Regrandiganta</string>
     <string name="player_gesture_controls_title">Kontrolo de gesto de ludilo</string>
     <string name="player_gesture_controls_summary">Uzi gestojn por kontroli la brilon kaj volumenon</string>
     <string name="show_search_suggestions_title">Serĉi sugestojn</string>
@@ -153,7 +150,7 @@
     <string name="kiosk">Kiosko</string>
     <string name="trending">Tendencoj</string>
     <string name="top_50">Supro 50</string>
-    <string name="new_and_hot">Nova &amp; varma</string>
+    <string name="new_and_hot">Nova kaj varma</string>
     <string name="show_hold_to_append_title">Montri la indiko « Tenu por aldoni »</string>
     <string name="show_hold_to_append_summary">Montri indikon premante la fona aŭ la ŝprucfenestra butono en filmeta \"Detaloj:\"</string>
     <string name="background_player_append">Viciĝita en la fona ludilo</string>
@@ -162,15 +159,11 @@
     <string name="player_stream_failure">Ne povis ludi tion torenton</string>
     <string name="player_unrecoverable_failure">Neatendebla eraro de ludilo okazis</string>
     <string name="player_recoverable_failure">Reakiri el eraro de la ludilo</string>
-    <string name="title_activity_background_player">Fona ludilo</string>
-    <string name="title_activity_popup_player">Ŝprucfenestra ludilo</string>
     <string name="play_queue_remove">Retiri</string>
     <string name="play_queue_stream_detail">Detalado</string>
     <string name="play_queue_audio_settings">Sonaj parametroj</string>
     <string name="hold_to_append">Teni por viciĝi</string>
     <string name="unknown_content">[Nekonata]</string>
-    <string name="enqueue_on_background">Viciĝi en la fona ludilo</string>
-    <string name="enqueue_on_popup">Viciĝi en ŝprucfenestro</string>
     <string name="start_here_on_popup">Komenci ludi en nova ŝprucfenestro</string>
     <string name="default_content_country_title">Preferata enhavlando</string>
     <string name="toggle_orientation">Ŝangi Orientiĝon</string>
@@ -192,7 +185,7 @@
     <string name="create_playlist">Nova ludlisto</string>
     <string name="delete_playlist">Forviŝi</string>
     <string name="rename_playlist">Alinomi</string>
-    <string name="playlist_name_input">Nomo</string>
+    <string name="name">Nomo</string>
     <string name="append_playlist">Aldoni al la ludlisto</string>
     <string name="set_as_playlist_thumbnail">Meti kiel bildeto de ludlisto</string>
     <string name="bookmark_playlist">Legosigno Ludlisto</string>
@@ -214,7 +207,10 @@
 \n
 \n1. Iru ĉe tiu retpaĝo: %1$s
 \n2. Ensalutu kiam oni petas vin
-\n3. Elŝuto devus komenci (ĝi estas la dosiero de eksporto)</string>
+\n3. Click on \"All data included\", then on \"Deselect all\", then select only \"subscriptions\" and click \"OK\"
+\n4. Click on \"Next step\" and then on \"Create export\"
+\n5. Click on the \"Download\" button after it appears and
+\n6. From the downloaded takeout zip extract the .json file (usually under \"YouTube and YouTube Music/subscriptions/subscriptions.json\") and import it here.</string>
     <string name="import_soundcloud_instructions">Importu Soundcloud-n profilon tajpante ĉu la ligilon, ĉu vian ID :
 \n 
 \n1. Ebligu komputilon modon en retumilon (la retejo malhaveblas por poŝtelefonoj)
@@ -293,9 +289,9 @@
     <string name="delete_playback_states_alert">Ĉu vi volas forviŝi ĉiujn ludajn poziciojn \?</string>
     <string name="download_choose_new_path">Ŝanĝu la elŝutojn dosierujojn por efekti</string>
     <string name="sorry_string">Pardonu, eraro okazis.</string>
-    <string name="error_snackbar_message">Pardonu, kelkaj eraroj okazis.</string>
+    <string name="error_snackbar_message">Pardonon, io mizokasis.</string>
     <string name="what_happened_headline">Kio okazis:</string>
-    <string name="info_labels">Kio:\\nPeto:\\nEnhavlingvo:\\nServo:\\nGMT Horo:\\nPako:\\nVersio:\\nOperaciumo versio:</string>
+    <string name="info_labels">Kio:\\nPeto:\\nEnhavlingvo:\\nEnhavlando:\\nAplingvo:\\nServo:\\nGMT Horo:\\nPako:\\nVersio:\\nOperaciumo versio:</string>
     <string name="audio">Aŭdio</string>
     <string name="storage_permission_denied">Permesi la konservadon unue</string>
     <string name="user_report">Uzantosignalo</string>
@@ -404,7 +400,6 @@
     <string name="resize_zoom">Zomi</string>
     <string name="drawer_header_action_paceholder_text">Io aperos ĉi tie baldaŭ ;D</string>
     <string name="caption_auto_generated">Aŭtomate generita</string>
-    <string name="enable_leak_canary_title">LeakCanary</string>
     <string name="enable_leak_canary_summary">La monitorado de la memorlikadoj povas frostigi la apon dum la hejta dumpingo</string>
     <string name="enable_disposed_exceptions_title">Signali ekster-vivciklajn erarojn</string>
     <string name="enable_disposed_exceptions_summary">Perforti signalante neenretigaj Rx esceptoj eksere la fragmento aŭ aktiveco vivciklo post dispono</string>
@@ -444,7 +439,7 @@
     <string name="decline">Rifuzi</string>
     <string name="limit_data_usage_none_description">Neniu limo</string>
     <string name="minimize_on_exit_title">Minimumigi dum la apo ŝanĝo</string>
-    <string name="minimize_on_exit_summary">Ago dum ŝanĝante al alia apo el la ĉefa filmetludilo</string>
+    <string name="minimize_on_exit_summary">Ago dum ŝanĝante al alia apo el la ĉefa filmetludilo — %s</string>
     <string name="minimize_on_exit_none_description">Neniu</string>
     <string name="minimize_on_exit_background_description">Minimumigi por ludi fone</string>
     <string name="skip_silence_checkbox">Plirapidigi dum silentoj</string>
@@ -526,8 +521,6 @@
     <string name="recovering">Reakiranta</string>
     <string name="error_download_resource_gone">Ne povas reakiri tion elŝuton</string>
     <string name="choose_instance_prompt">Elektu instancon</string>
-    <string name="enable_lock_screen_video_thumbnail_title">Bildeta filmeton ĉe ŝlosita ekrano</string>
-    <string name="enable_lock_screen_video_thumbnail_summary">Bildeta filmeto estas montrita ĉe ŝlosita ekrano uzante la fona ludilo</string>
     <string name="clear_download_history">Forviŝi la historion de elŝutoj</string>
     <string name="delete_downloaded_files">Forviŝi elŝutitajn dosierojn</string>
     <string name="deleted_downloads">%1$d elŝutoj forviŝitaj</string>
@@ -535,7 +528,7 @@
     <string name="permission_display_over_apps">Doni la permeson por afiŝiĝi supre aliaj apoj</string>
     <string name="app_language_title">Preferata aplingvo</string>
     <string name="systems_language">Sistemnormo</string>
-    <string name="subtitle_activity_recaptcha">Premu « Finita » kiam solvita</string>
+    <string name="subtitle_activity_recaptcha">Premu “Finita” kiam solvita</string>
     <string name="recaptcha_done_button">Finita</string>
     <plurals name="seconds">
         <item quantity="one">%d sekundo</item>
@@ -566,7 +559,6 @@
     </plurals>
     <string name="feed_group_dialog_empty_selection">No subscription selected</string>
     <string name="feed_group_dialog_empty_name">Malplena grupa nomo</string>
-    <string name="feed_group_dialog_name_input">Nomo</string>
     <string name="feed_group_dialog_delete_message">Ĉu vi volas forviŝi tion grupon?</string>
     <string name="feed_create_new_group_button_title">Nova</string>
     <string name="settings_category_feed_title">Abonfluo</string>

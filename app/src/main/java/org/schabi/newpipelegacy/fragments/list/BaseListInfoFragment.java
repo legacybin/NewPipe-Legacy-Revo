@@ -7,19 +7,25 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipe.extractor.ListExtractor;
 import org.schabi.newpipe.extractor.ListInfo;
 import org.schabi.newpipe.extractor.Page;
+import org.schabi.newpipe.extractor.channel.ChannelInfo;
+import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException;
 import org.schabi.newpipelegacy.util.Constants;
 import org.schabi.newpipelegacy.views.NewPipeRecyclerView;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 
 import icepick.State;
-import io.reactivex.Single;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public abstract class BaseListInfoFragment<I extends ListInfo>
         extends BaseListFragment<I, ListExtractor.InfoItemsPage> {
@@ -30,9 +36,14 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
     @State
     protected String url;
 
+    private final UserAction errorUserAction;
     protected I currentInfo;
     protected Page currentNextPage;
     protected Disposable currentWorker;
+
+    protected BaseListInfoFragment(final UserAction errorUserAction) {
+        this.errorUserAction = errorUserAction;
+    }
 
     @Override
     protected void initViews(final View rootView, final Bundle savedInstanceState) {
@@ -134,7 +145,9 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
                     currentInfo = result;
                     currentNextPage = result.getNextPage();
                     handleResult(result);
-                }, (@NonNull Throwable throwable) -> onError(throwable));
+                }, throwable ->
+                        showError(new ErrorInfo(throwable, errorUserAction,
+                                "Start loading: " + url, serviceId)));
     }
 
     /**
@@ -162,10 +175,9 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
                 .subscribe((@NonNull ListExtractor.InfoItemsPage InfoItemsPage) -> {
                     isLoading.set(false);
                     handleNextItems(InfoItemsPage);
-                }, (@NonNull Throwable throwable) -> {
-                    isLoading.set(false);
-                    onError(throwable);
-                });
+                }, (@NonNull Throwable throwable) ->
+                        dynamicallyShowErrorPanelOrSnackbar(new ErrorInfo(throwable,
+                                errorUserAction, "Loading more items: " + url, serviceId)));
     }
 
     private void forbidDownwardFocusScroll() {
@@ -183,10 +195,16 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
     @Override
     public void handleNextItems(final ListExtractor.InfoItemsPage result) {
         super.handleNextItems(result);
+
         currentNextPage = result.getNextPage();
         infoListAdapter.addInfoItemList(result.getItems());
 
         showListFooter(hasMoreItems());
+
+        if (!result.getErrors().isEmpty()) {
+            dynamicallyShowErrorPanelOrSnackbar(new ErrorInfo(result.getErrors(), errorUserAction,
+                    "Get next items of: " + url, serviceId));
+        }
     }
 
     @Override
@@ -205,13 +223,29 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
         name = result.getName();
         setTitle(name);
 
-        if (infoListAdapter.getItemsList().size() == 0) {
+        if (infoListAdapter.getItemsList().isEmpty()) {
             if (result.getRelatedItems().size() > 0) {
                 infoListAdapter.addInfoItemList(result.getRelatedItems());
                 showListFooter(hasMoreItems());
             } else {
                 infoListAdapter.clearStreamItemList();
-                showEmptyState();
+                // showEmptyState should be called only if there is no item as
+                // well as no header in infoListAdapter
+                if (!(result instanceof ChannelInfo && infoListAdapter.getItemCount() == 1)) {
+                    showEmptyState();
+                }
+            }
+        }
+
+        if (!result.getErrors().isEmpty()) {
+            final List<Throwable> errors = new ArrayList<>(result.getErrors());
+            // handling ContentNotSupportedException not to show the error but an appropriate string
+            // so that crashes won't be sent uselessly and the user will understand what happened
+            errors.removeIf(throwable -> throwable instanceof ContentNotSupportedException);
+
+            if (!errors.isEmpty()) {
+                dynamicallyShowErrorPanelOrSnackbar(new ErrorInfo(result.getErrors(),
+                        errorUserAction, "Start loading: " + url, serviceId));
             }
         }
     }
@@ -224,5 +258,15 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
         this.serviceId = sid;
         this.url = u;
         this.name = !TextUtils.isEmpty(title) ? title : "";
+    }
+
+    private void dynamicallyShowErrorPanelOrSnackbar(final ErrorInfo errorInfo) {
+        if (infoListAdapter.getItemCount() == 0) {
+            // show error panel only if no items already visible
+            showError(errorInfo);
+        } else {
+            isLoading.set(false);
+            showSnackBarError(errorInfo);
+        }
     }
 }

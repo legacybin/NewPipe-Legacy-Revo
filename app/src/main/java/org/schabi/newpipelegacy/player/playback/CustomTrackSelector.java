@@ -13,7 +13,7 @@ import com.google.android.exoplayer2.RendererCapabilities.Capabilities;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
+import com.google.android.exoplayer2.trackselection.ExoTrackSelection;
 import com.google.android.exoplayer2.util.Assertions;
 
 /**
@@ -28,7 +28,7 @@ public class CustomTrackSelector extends DefaultTrackSelector {
     private String preferredTextLanguage;
 
     public CustomTrackSelector(final Context context,
-                               final TrackSelection.Factory adaptiveTrackSelectionFactory) {
+                               final ExoTrackSelection.Factory adaptiveTrackSelectionFactory) {
         super(context, adaptiveTrackSelectionFactory);
     }
 
@@ -50,7 +50,7 @@ public class CustomTrackSelector extends DefaultTrackSelector {
 
     @Override
     @Nullable
-    protected Pair<TrackSelection.Definition, TextTrackScore> selectTextTrack(
+    protected Pair<ExoTrackSelection.Definition, TextTrackScore> selectTextTrack(
             final TrackGroupArray groups,
             @NonNull final int[][] formatSupport,
             @NonNull final Parameters params,
@@ -60,14 +60,14 @@ public class CustomTrackSelector extends DefaultTrackSelector {
         TextTrackScore selectedTrackScore = null;
 
         for (int groupIndex = 0; groupIndex < groups.length; groupIndex++) {
-            TrackGroup trackGroup = groups.get(groupIndex);
-            @Capabilities int[] trackFormatSupport = formatSupport[groupIndex];
+            final TrackGroup trackGroup = groups.get(groupIndex);
+            @Capabilities final int[] trackFormatSupport = formatSupport[groupIndex];
 
             for (int trackIndex = 0; trackIndex < trackGroup.length; trackIndex++) {
                 if (isSupported(trackFormatSupport[trackIndex],
                         params.exceedRendererCapabilitiesIfNecessary)) {
-                    Format format = trackGroup.getFormat(trackIndex);
-                    TextTrackScore trackScore = new TextTrackScore(format, params,
+                    final Format format = trackGroup.getFormat(trackIndex);
+                    final TextTrackScore trackScore = new TextTrackScore(format, params,
                             trackFormatSupport[trackIndex], selectedAudioLanguage);
 
                     if (formatHasLanguage(format, preferredTextLanguage)) {
@@ -86,7 +86,7 @@ public class CustomTrackSelector extends DefaultTrackSelector {
             }
         }
         return selectedGroup == null ? null
-                : Pair.create(new TrackSelection.Definition(selectedGroup, selectedTrackIndex),
+                : Pair.create(new ExoTrackSelection.Definition(selectedGroup, selectedTrackIndex),
                         Assertions.checkNotNull(selectedTrackScore));
     }
 }

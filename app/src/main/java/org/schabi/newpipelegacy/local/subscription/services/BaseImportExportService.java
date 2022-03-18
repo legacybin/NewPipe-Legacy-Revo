@@ -19,6 +19,7 @@
 
 package org.schabi.newpipelegacy.local.subscription.services;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Build;
@@ -31,25 +32,26 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.ServiceCompat;
 
 import org.reactivestreams.Publisher;
 import org.schabi.newpipelegacy.R;
+import org.schabi.newpipelegacy.error.ErrorActivity;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipe.extractor.subscription.SubscriptionExtractor;
+import org.schabi.newpipelegacy.ktx.ExceptionUtils;
 import org.schabi.newpipelegacy.local.subscription.SubscriptionManager;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.UserAction;
-import org.schabi.newpipelegacy.util.ExceptionUtils;
 
 import java.io.FileNotFoundException;
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.reactivex.Flowable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Function;
-import io.reactivex.processors.PublishProcessor;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.rxjava3.processors.PublishProcessor;
 
 public abstract class BaseImportExportService extends Service {
     protected final String TAG = this.getClass().getSimpleName();
@@ -119,7 +121,7 @@ public abstract class BaseImportExportService extends Service {
         startForeground(getNotificationId(), notificationBuilder.build());
 
         final Function<Flowable<String>, Publisher<String>> throttleAfterFirstEmission = flow ->
-                flow.limit(1).concatWith(flow.skip(1)
+                flow.take(1).concatWith(flow.skip(1)
                         .throttleLast(NOTIFICATION_SAMPLING_PERIOD, TimeUnit.MILLISECONDS));
 
         disposables.add(notificationUpdater
@@ -150,18 +152,15 @@ public abstract class BaseImportExportService extends Service {
         postErrorResult(null, null);
     }
 
-    protected void stopAndReportError(@Nullable final Throwable error, final String request) {
+    protected void stopAndReportError(final Throwable throwable, final String request) {
         stopService();
-
-        final ErrorActivity.ErrorInfo errorInfo = ErrorActivity.ErrorInfo
-                .make(UserAction.SUBSCRIPTION, "unknown", request, R.string.general_error);
-        ErrorActivity.reportError(this, error != null ? Collections.singletonList(error)
-                        : Collections.emptyList(), null, null, errorInfo);
+        ErrorActivity.reportError(this, new ErrorInfo(
+                throwable, UserAction.SUBSCRIPTION_IMPORT_EXPORT, request));
     }
 
     protected void postErrorResult(final String title, final String text) {
         disposeAll();
-        stopForeground(true);
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
         stopSelf();
 
         if (title == null) {
@@ -209,6 +208,7 @@ public abstract class BaseImportExportService extends Service {
     // Error handling
     //////////////////////////////////////////////////////////////////////////*/
 
+    @SuppressLint("StringFormatInvalid")
     protected void handleError(@StringRes final int errorTitle, @NonNull final Throwable error) {
         String message = getErrorMessage(error);
 

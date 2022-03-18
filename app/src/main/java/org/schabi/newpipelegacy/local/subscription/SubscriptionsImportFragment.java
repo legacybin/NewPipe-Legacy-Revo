@@ -22,12 +22,13 @@ import com.nononsenseapps.filepicker.Utils;
 
 import org.schabi.newpipelegacy.BaseFragment;
 import org.schabi.newpipelegacy.R;
+import org.schabi.newpipelegacy.error.ErrorActivity;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.subscription.SubscriptionExtractor;
 import org.schabi.newpipelegacy.local.subscription.services.SubscriptionsImportService;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.UserAction;
 import org.schabi.newpipelegacy.util.Constants;
 import org.schabi.newpipelegacy.util.FilePickerActivityHelper;
 import org.schabi.newpipelegacy.util.ServiceHelper;
@@ -64,7 +65,7 @@ public class SubscriptionsImportFragment extends BaseFragment {
     private Button inputButton;
 
     public static SubscriptionsImportFragment getInstance(final int serviceId) {
-        SubscriptionsImportFragment instance = new SubscriptionsImportFragment();
+        final SubscriptionsImportFragment instance = new SubscriptionsImportFragment();
         instance.setInitialData(serviceId);
         return instance;
     }
@@ -83,10 +84,12 @@ public class SubscriptionsImportFragment extends BaseFragment {
 
         setupServiceVariables();
         if (supportedSources.isEmpty() && currentServiceId != Constants.NO_SERVICE_ID) {
-            ErrorActivity.reportError(activity, Collections.emptyList(), null, null,
-                    ErrorActivity.ErrorInfo.make(UserAction.SOMETHING_ELSE,
+            ErrorActivity.reportErrorInSnackbar(activity,
+                    new ErrorInfo(new String[]{}, UserAction.SUBSCRIPTION_IMPORT_EXPORT,
                             NewPipe.getNameOfService(currentServiceId),
-                            "Service don't support importing", R.string.general_error));
+                            "Service does not support importing subscriptions",
+                            R.string.general_error,
+                            null));
             activity.finish();
         }
     }
@@ -140,7 +143,7 @@ public class SubscriptionsImportFragment extends BaseFragment {
             setInfoText("");
         }
 
-        ActionBar supportActionBar = activity.getSupportActionBar();
+        final ActionBar supportActionBar = activity.getSupportActionBar();
         if (supportActionBar != null) {
             supportActionBar.setDisplayShowTitleEnabled(true);
             setTitle(getString(R.string.import_title));
@@ -206,7 +209,7 @@ public class SubscriptionsImportFragment extends BaseFragment {
                 relatedUrl = extractor.getRelatedUrl();
                 instructionsString = ServiceHelper.getImportInstructions(currentServiceId);
                 return;
-            } catch (ExtractionException ignored) {
+            } catch (final ExtractionException ignored) {
             }
         }
 

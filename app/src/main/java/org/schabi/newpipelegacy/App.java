@@ -1,7 +1,5 @@
 package org.schabi.newpipelegacy;
 
-import android.annotation.TargetApi;
-import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -10,6 +8,8 @@ import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.multidex.MultiDexApplication;
 import androidx.preference.PreferenceManager;
 
 import com.nostra13.universalimageloader.cache.memory.impl.LRULimitedMemoryCache;
@@ -20,14 +20,14 @@ import org.acra.ACRA;
 import org.acra.config.ACRAConfigurationException;
 import org.acra.config.CoreConfiguration;
 import org.acra.config.CoreConfigurationBuilder;
-import org.acra.sender.ReportSenderFactory;
+import org.schabi.newpipelegacy.error.ErrorActivity;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.ReCaptchaActivity;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.downloader.Downloader;
-import org.schabi.newpipelegacy.report.AcraReportSenderFactory;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.UserAction;
+import org.schabi.newpipelegacy.ktx.ExceptionUtils;
 import org.schabi.newpipelegacy.settings.SettingsActivity;
-import org.schabi.newpipelegacy.util.ExceptionUtils;
 import org.schabi.newpipelegacy.util.Localization;
 import org.schabi.newpipelegacy.util.ServiceHelper;
 import org.schabi.newpipelegacy.util.StateSaver;
@@ -35,15 +35,17 @@ import org.schabi.newpipelegacy.util.StateSaver;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.SocketException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import io.reactivex.exceptions.CompositeException;
-import io.reactivex.exceptions.MissingBackpressureException;
-import io.reactivex.exceptions.OnErrorNotImplementedException;
-import io.reactivex.exceptions.UndeliverableException;
-import io.reactivex.functions.Consumer;
-import io.reactivex.plugins.RxJavaPlugins;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.exceptions.CompositeException;
+import io.reactivex.rxjava3.exceptions.MissingBackpressureException;
+import io.reactivex.rxjava3.exceptions.OnErrorNotImplementedException;
+import io.reactivex.rxjava3.exceptions.UndeliverableException;
+import io.reactivex.rxjava3.functions.Consumer;
+import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 
 /*
  * Copyright (C) Hans-Christoph Steiner 2016 <hans@eds.org>
@@ -63,13 +65,15 @@ import io.reactivex.plugins.RxJavaPlugins;
  * along with NewPipe.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-public class App extends Application {
+public class App extends MultiDexApplication {
     protected static final String TAG = App.class.toString();
-    @SuppressWarnings("unchecked")
-    private static final Class<? extends ReportSenderFactory>[]
-            REPORT_SENDER_FACTORY_CLASSES = new Class[]{AcraReportSenderFactory.class};
     private static App app;
+    public static final String PACKAGE_NAME = BuildConfig.APPLICATION_ID;
 
+    @Nullable
+    private Disposable disposable = null;
+
+    @NonNull
     public static App getApp() {
         return app;
     }
@@ -77,7 +81,6 @@ public class App extends Application {
     @Override
     protected void attachBaseContext(final Context base) {
         super.attachBaseContext(base);
-
         initACRA();
     }
 
@@ -91,12 +94,12 @@ public class App extends Application {
         SettingsActivity.initSettings(this);
 
         NewPipe.init(getDownloader(),
-                Localization.getPreferredLocalization(this),
-                Localization.getPreferredContentCountry(this));
-        Localization.init(getApplicationContext());
+            Localization.getPreferredLocalization(this),
+            Localization.getPreferredContentCountry(this));
+        Localization.initPrettyTime(Localization.resolvePrettyTime(getApplicationContext()));
 
         StateSaver.init(this);
-        initNotificationChannel();
+        initNotificationChannels();
 
         ServiceHelper.initServices(this);
 
@@ -106,11 +109,19 @@ public class App extends Application {
         configureRxJavaErrorHandler();
 
         // Check for new version
-        new CheckForNewAppVersionTask().execute();
+        disposable = CheckForNewAppVersion.checkNewVersion(this);
+    }
+
+    @Override
+    public void onTerminate() {
+        if (disposable != null) {
+            disposable.dispose();
+        }
+        super.onTerminate();
     }
 
     protected Downloader getDownloader() {
-        DownloaderImpl downloader = DownloaderImpl.init(null);
+        final DownloaderImpl downloader = DownloaderImpl.init(null);
         setCookiesToDownloader(downloader);
         return downloader;
     }
@@ -200,67 +211,61 @@ public class App extends Application {
                 .build();
     }
 
-    private void initACRA() {
-        try {
-            final CoreConfiguration acraConfig = new CoreConfigurationBuilder(this)
-                    .setReportSenderFactoryClasses(REPORT_SENDER_FACTORY_CLASSES)
-                    .setBuildConfigClass(BuildConfig.class)
-                    .build();
-            ACRA.init(this, acraConfig);
-        } catch (ACRAConfigurationException ace) {
-            ace.printStackTrace();
-            ErrorActivity.reportError(this,
-                    ace,
-                    null,
-                    null,
-                    ErrorActivity.ErrorInfo.make(UserAction.SOMETHING_ELSE, "none",
-                            "Could not initialize ACRA crash report", R.string.app_ui_crash));
-        }
-    }
-
-    public void initNotificationChannel() {
-        if (Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
+    /**
+     * Called in {@link #attachBaseContext(Context)} after calling the {@code super} method.
+     * Should be overridden if MultiDex is enabled, since it has to be initialized before ACRA.
+     */
+    protected void initACRA() {
+        if (ACRA.isACRASenderServiceProcess()) {
             return;
         }
 
-        final String id = getString(R.string.notification_channel_id);
-        final CharSequence name = getString(R.string.notification_channel_name);
-        final String description = getString(R.string.notification_channel_description);
-
-        // Keep this below DEFAULT to avoid making noise on every notification update
-        final int importance = NotificationManager.IMPORTANCE_LOW;
-
-        NotificationChannel mChannel = new NotificationChannel(id, name, importance);
-        mChannel.setDescription(description);
-
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.createNotificationChannel(mChannel);
-
-        setUpUpdateNotificationChannel(importance);
+        try {
+            final CoreConfiguration acraConfig = new CoreConfigurationBuilder(this)
+                    .setBuildConfigClass(BuildConfig.class)
+                    .build();
+            ACRA.init(this, acraConfig);
+        } catch (final ACRAConfigurationException exception) {
+            exception.printStackTrace();
+            ErrorActivity.reportError(this, new ErrorInfo(exception,
+                    UserAction.SOMETHING_ELSE, "Could not initialize ACRA crash report"));
+        }
     }
 
-    /**
-     * Set up notification channel for app update.
-     *
-     * @param importance
-     */
-    @TargetApi(Build.VERSION_CODES.O)
-    private void setUpUpdateNotificationChannel(final int importance) {
-        final String appUpdateId
-                = getString(R.string.app_update_notification_channel_id);
-        final CharSequence appUpdateName
-                = getString(R.string.app_update_notification_channel_name);
-        final String appUpdateDescription
-                = getString(R.string.app_update_notification_channel_description);
+    private void initNotificationChannels() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return;
+        }
 
-        NotificationChannel appUpdateChannel
-                = new NotificationChannel(appUpdateId, appUpdateName, importance);
-        appUpdateChannel.setDescription(appUpdateDescription);
+        String id = getString(R.string.notification_channel_id);
+        String name = getString(R.string.notification_channel_name);
+        String description = getString(R.string.notification_channel_description);
 
-        NotificationManager appUpdateNotificationManager
-                = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        appUpdateNotificationManager.createNotificationChannel(appUpdateChannel);
+        // Keep this below DEFAULT to avoid making noise on every notification update for the main
+        // and update channels
+        int importance = NotificationManager.IMPORTANCE_LOW;
+
+        final NotificationChannel mainChannel = new NotificationChannel(id, name, importance);
+        mainChannel.setDescription(description);
+
+        id = getString(R.string.app_update_notification_channel_id);
+        name = getString(R.string.app_update_notification_channel_name);
+        description = getString(R.string.app_update_notification_channel_description);
+
+        final NotificationChannel appUpdateChannel = new NotificationChannel(id, name, importance);
+        appUpdateChannel.setDescription(description);
+
+        id = getString(R.string.hash_channel_id);
+        name = getString(R.string.hash_channel_name);
+        description = getString(R.string.hash_channel_description);
+        importance = NotificationManager.IMPORTANCE_HIGH;
+
+        final NotificationChannel hashChannel = new NotificationChannel(id, name, importance);
+        hashChannel.setDescription(description);
+
+        final NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannels(Arrays.asList(mainChannel,
+                appUpdateChannel, hashChannel));
     }
 
     protected boolean isDisposedRxExceptionsReported() {

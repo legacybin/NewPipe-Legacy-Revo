@@ -1,7 +1,6 @@
 package us.shandian.giga.ui.fragment;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -11,7 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,7 +18,9 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -66,7 +66,7 @@ public class MissionsFragment extends Fragment {
 
     private DownloadMission unsafeMissionTarget = null;
 
-    private ServiceConnection mConnection = new ServiceConnection() {
+    private final ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
@@ -97,7 +97,7 @@ public class MissionsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.missions, container, false);
 
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(requireActivity());
         mLinear = mPrefs.getBoolean("linear", false);
 
         // Bind the service
@@ -225,8 +225,8 @@ public class MissionsFragment extends Fragment {
 
         if (mSwitch != null) {
             mSwitch.setIcon(mLinear
-                    ? ThemeHelper.resolveResourceIdFromAttr(requireContext(), R.attr.ic_grid)
-                    : ThemeHelper.resolveResourceIdFromAttr(requireContext(), R.attr.ic_list));
+                            ? R.drawable.ic_apps
+                            : R.drawable.ic_list);
             mSwitch.setTitle(mLinear ? R.string.grid : R.string.list);
             mPrefs.edit().putBoolean("linear", mLinear).apply();
         }

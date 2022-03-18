@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,12 +21,11 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,16 +44,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import io.reactivex.Single;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class PeertubeInstanceListFragment extends Fragment {
     private static final int MENU_ITEM_RESTORE_ID = 123456;
 
-    private List<PeertubeInstance> instanceList = new ArrayList<>();
+    private final List<PeertubeInstance> instanceList = new ArrayList<>();
     private PeertubeInstance selectedInstance;
     private String savedInstanceListKey;
     private InstanceListAdapter instanceListAdapter;
@@ -96,16 +94,16 @@ public class PeertubeInstanceListFragment extends Fragment {
     }
 
     private void initViews(@NonNull final View rootView) {
-        TextView instanceHelpTV = rootView.findViewById(R.id.instanceHelpTV);
+        final TextView instanceHelpTV = rootView.findViewById(R.id.instanceHelpTV);
         instanceHelpTV.setText(getString(R.string.peertube_instance_url_help,
                 getString(R.string.peertube_instance_list_url)));
 
         initButton(rootView);
 
-        RecyclerView listInstances = rootView.findViewById(R.id.instances);
+        final RecyclerView listInstances = rootView.findViewById(R.id.instances);
         listInstances.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(getItemTouchCallback());
+        final ItemTouchHelper itemTouchHelper = new ItemTouchHelper(getItemTouchCallback());
         itemTouchHelper.attachToRecyclerView(listInstances);
 
         instanceListAdapter = new InstanceListAdapter(requireContext(), itemTouchHelper);
@@ -117,7 +115,8 @@ public class PeertubeInstanceListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        updateTitle();
+        ThemeHelper.setTitleToAppCompatActivity(getActivity(),
+                getString(R.string.peertube_instance_url_title));
     }
 
     @Override
@@ -146,10 +145,8 @@ public class PeertubeInstanceListFragment extends Fragment {
         final MenuItem restoreItem = menu
                 .add(Menu.NONE, MENU_ITEM_RESTORE_ID, Menu.NONE, R.string.restore_defaults);
         restoreItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-
-        final int restoreIcon = ThemeHelper
-                .resolveResourceIdFromAttr(requireContext(), R.attr.ic_restore_defaults);
-        restoreItem.setIcon(AppCompatResources.getDrawable(requireContext(), restoreIcon));
+        restoreItem.setIcon(AppCompatResources.getDrawable(requireContext(),
+                R.drawable.ic_settings_backup_restore));
     }
 
     @Override
@@ -176,29 +173,20 @@ public class PeertubeInstanceListFragment extends Fragment {
         sharedPreferences.edit().putBoolean(Constants.KEY_MAIN_PAGE_CHANGE, true).apply();
     }
 
-    private void updateTitle() {
-        if (getActivity() instanceof AppCompatActivity) {
-            ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-            if (actionBar != null) {
-                actionBar.setTitle(R.string.peertube_instance_url_title);
-            }
-        }
-    }
-
     private void saveChanges() {
-        JsonStringWriter jsonWriter = JsonWriter.string().object().array("instances");
-        for (PeertubeInstance instance : instanceList) {
+        final JsonStringWriter jsonWriter = JsonWriter.string().object().array("instances");
+        for (final PeertubeInstance instance : instanceList) {
             jsonWriter.object();
             jsonWriter.value("name", instance.getName());
             jsonWriter.value("url", instance.getUrl());
             jsonWriter.end();
         }
-        String jsonToSave = jsonWriter.end().end().done();
+        final String jsonToSave = jsonWriter.end().end().done();
         sharedPreferences.edit().putString(savedInstanceListKey, jsonToSave).apply();
     }
 
     private void restoreDefaults() {
-        new AlertDialog.Builder(requireContext(), ThemeHelper.getDialogTheme(requireContext()))
+        new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.restore_defaults)
                 .setMessage(R.string.restore_defaults_confirmation)
                 .setNegativeButton(R.string.cancel, null)
@@ -213,21 +201,20 @@ public class PeertubeInstanceListFragment extends Fragment {
 
     private void initButton(final View rootView) {
         final FloatingActionButton fab = rootView.findViewById(R.id.addInstanceButton);
-        fab.setOnClickListener(v -> {
-            showAddItemDialog(requireContext());
-        });
+        fab.setOnClickListener(v ->
+                showAddItemDialog(requireContext()));
     }
 
     private void showAddItemDialog(final Context c) {
         final EditText urlET = new EditText(c);
         urlET.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         urlET.setHint(R.string.peertube_instance_add_help);
-        AlertDialog dialog = new AlertDialog.Builder(c)
+        final AlertDialog dialog = new AlertDialog.Builder(c)
                 .setTitle(R.string.peertube_instance_add_title)
                 .setIcon(R.drawable.place_holder_peertube)
                 .setNegativeButton(R.string.cancel, null)
                 .setPositiveButton(R.string.finish, (dialog1, which) -> {
-                    String url = urlET.getText().toString();
+                    final String url = urlET.getText().toString();
                     addInstance(url);
                 })
                 .create();
@@ -236,13 +223,13 @@ public class PeertubeInstanceListFragment extends Fragment {
     }
 
     private void addInstance(final String url) {
-        String cleanUrl = cleanUrl(url);
+        final String cleanUrl = cleanUrl(url);
         if (cleanUrl == null) {
             return;
         }
         progressBar.setVisibility(View.VISIBLE);
-        Disposable disposable = Single.fromCallable(() -> {
-            PeertubeInstance instance = new PeertubeInstance(cleanUrl);
+        final Disposable disposable = Single.fromCallable(() -> {
+            final PeertubeInstance instance = new PeertubeInstance(cleanUrl);
             instance.fetchInstanceMetaData();
             return instance;
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
@@ -273,7 +260,7 @@ public class PeertubeInstanceListFragment extends Fragment {
             return null;
         }
         // only allow if not already exists
-        for (PeertubeInstance instance : instanceList) {
+        for (final PeertubeInstance instance : instanceList) {
             if (instance.getUrl().equals(cleanUrl)) {
                 Toast.makeText(getActivity(), R.string.peertube_instance_add_exists,
                         Toast.LENGTH_SHORT).show();
@@ -331,7 +318,7 @@ public class PeertubeInstanceListFragment extends Fragment {
 
             @Override
             public void onSwiped(final RecyclerView.ViewHolder viewHolder, final int swipeDir) {
-                int position = viewHolder.getAdapterPosition();
+                final int position = viewHolder.getAdapterPosition();
                 // do not allow swiping the selected instance
                 if (instanceList.get(position).getUrl().equals(selectedInstance.getUrl())) {
                     instanceListAdapter.notifyItemChanged(position);
@@ -355,7 +342,7 @@ public class PeertubeInstanceListFragment extends Fragment {
     private class InstanceListAdapter
             extends RecyclerView.Adapter<InstanceListAdapter.TabViewHolder> {
         private final LayoutInflater inflater;
-        private ItemTouchHelper itemTouchHelper;
+        private final ItemTouchHelper itemTouchHelper;
         private RadioButton lastChecked;
 
         InstanceListAdapter(final Context context, final ItemTouchHelper itemTouchHelper) {
@@ -372,7 +359,7 @@ public class PeertubeInstanceListFragment extends Fragment {
         @Override
         public InstanceListAdapter.TabViewHolder onCreateViewHolder(@NonNull final ViewGroup parent,
                                                                     final int viewType) {
-            View view = inflater.inflate(R.layout.item_instance, parent, false);
+            final View view = inflater.inflate(R.layout.item_instance, parent, false);
             return new InstanceListAdapter.TabViewHolder(view);
         }
 
@@ -388,11 +375,11 @@ public class PeertubeInstanceListFragment extends Fragment {
         }
 
         class TabViewHolder extends RecyclerView.ViewHolder {
-            private AppCompatImageView instanceIconView;
-            private TextView instanceNameView;
-            private TextView instanceUrlView;
-            private RadioButton instanceRB;
-            private ImageView handle;
+            private final AppCompatImageView instanceIconView;
+            private final TextView instanceNameView;
+            private final TextView instanceUrlView;
+            private final RadioButton instanceRB;
+            private final ImageView handle;
 
             TabViewHolder(final View itemView) {
                 super(itemView);

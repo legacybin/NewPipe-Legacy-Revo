@@ -13,8 +13,8 @@ import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipelegacy.info_list.InfoItemBuilder;
+import org.schabi.newpipelegacy.ktx.ViewUtils;
 import org.schabi.newpipelegacy.local.history.HistoryRecordManager;
-import org.schabi.newpipelegacy.util.AnimationUtils;
 import org.schabi.newpipelegacy.util.ImageDisplayConstants;
 import org.schabi.newpipelegacy.util.Localization;
 import org.schabi.newpipelegacy.views.AnimatedProgressBar;
@@ -60,7 +60,7 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
                     R.color.duration_background_color));
             itemDurationView.setVisibility(View.VISIBLE);
 
-            StreamStateEntity state2 = historyRecordManager.loadStreamState(infoItem)
+            final StreamStateEntity state2 = historyRecordManager.loadStreamState(infoItem)
                     .blockingGet()[0];
             if (state2 != null) {
                 itemProgressView.setVisibility(View.VISIBLE);
@@ -70,7 +70,8 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
             } else {
                 itemProgressView.setVisibility(View.GONE);
             }
-        } else if (item.getStreamType() == StreamType.LIVE_STREAM) {
+        } else if (item.getStreamType() == StreamType.LIVE_STREAM
+                || item.getStreamType() == StreamType.AUDIO_LIVE_STREAM) {
             itemDurationView.setText(R.string.duration_live);
             itemDurationView.setBackgroundColor(ContextCompat.getColor(itemBuilder.getContext(),
                     R.color.live_duration_background_color));
@@ -113,7 +114,8 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
                             final HistoryRecordManager historyRecordManager) {
         final StreamInfoItem item = (StreamInfoItem) infoItem;
 
-        StreamStateEntity state = historyRecordManager.loadStreamState(infoItem).blockingGet()[0];
+        final StreamStateEntity state
+                = historyRecordManager.loadStreamState(infoItem).blockingGet()[0];
         if (state != null && item.getDuration() > 0
                 && item.getStreamType() != StreamType.LIVE_STREAM) {
             itemProgressView.setMax((int) item.getDuration());
@@ -123,10 +125,10 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
             } else {
                 itemProgressView.setProgress((int) TimeUnit.MILLISECONDS
                         .toSeconds(state.getProgressTime()));
-                AnimationUtils.animateView(itemProgressView, true, 500);
+                ViewUtils.animate(itemProgressView, true, 500);
             }
         } else if (itemProgressView.getVisibility() == View.VISIBLE) {
-            AnimationUtils.animateView(itemProgressView, false, 500);
+            ViewUtils.animate(itemProgressView, false, 500);
         }
     }
 

@@ -24,7 +24,6 @@ import android.os.Handler.Callback;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Parcelable;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.SparseArray;
 import android.widget.Toast;
@@ -34,6 +33,9 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.Builder;
+import androidx.core.app.ServiceCompat;
+import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.download.DownloadActivity;
@@ -107,7 +109,7 @@ public class DownloadManagerService extends Service {
 
     private int downloadFailedNotificationID = DOWNLOADS_NOTIFICATION_ID + 1;
     private Builder downloadFailedNotification = null;
-    private SparseArray<DownloadMission> mFailedDownloads = new SparseArray<>(5);
+    private final SparseArray<DownloadMission> mFailedDownloads = new SparseArray<>(5);
 
     private Bitmap icLauncher;
     private Bitmap icDownloadDone;
@@ -157,10 +159,12 @@ public class DownloadManagerService extends Service {
 
         mNotification = builder.build();
 
-        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mConnectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        mNotificationManager = ContextCompat.getSystemService(this,
+                NotificationManager.class);
+        mConnectivityManager = ContextCompat.getSystemService(this,
+                ConnectivityManager.class);
 
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mNetworkStateListenerL = new ConnectivityManager.NetworkCallback() {
                 @Override
                 public void onAvailable(Network network) {
@@ -231,7 +235,7 @@ public class DownloadManagerService extends Service {
             Log.d(TAG, "Destroying");
         }
 
-        stopForeground(true);
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
 
         if (mNotificationManager != null && downloadDoneNotification != null) {
             downloadDoneNotification.setDeleteIntent(null);// prevent NewPipe running when is killed, cleared from recent, etc
@@ -240,7 +244,7 @@ public class DownloadManagerService extends Service {
 
         manageLock(false);
 
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             mConnectivityManager.unregisterNetworkCallback(mNetworkStateListenerL);
         else
             unregisterReceiver(mNetworkStateListener);
@@ -359,7 +363,7 @@ public class DownloadManagerService extends Service {
         if (state) {
             startForeground(FOREGROUND_NOTIFICATION_ID, mNotification);
         } else {
-            stopForeground(true);
+            ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
         }
 
         manageLock(state);
@@ -466,7 +470,7 @@ public class DownloadManagerService extends Service {
         if (downloadDoneCount < 1) {
             downloadDoneList.append(name);
 
-            if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 downloadDoneNotification.setContentTitle(getString(R.string.app_name));
             } else {
                 downloadDoneNotification.setContentTitle(null);
@@ -505,7 +509,7 @@ public class DownloadManagerService extends Service {
                     .setContentIntent(mOpenDownloadList);
         }
 
-        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             downloadFailedNotification.setContentTitle(getString(R.string.app_name));
             downloadFailedNotification.setStyle(new NotificationCompat.BigTextStyle()
                     .bigText(getString(R.string.download_failed).concat(": ").concat(mission.storage.getName())));

@@ -5,7 +5,7 @@ import android.content.Context;
 import org.schabi.newpipelegacy.R;
 
 /**
- * Created by Chrsitian Schabesberger on 28.09.17.
+ * Created by Christian Schabesberger on 28.09.17.
  * KioskTranslator.java is part of NewPipe.
  * <p>
  * NewPipe is free software: you can redistribute it and/or modify
@@ -44,6 +44,14 @@ public final class KioskTranslator {
                 return c.getString(R.string.most_liked);
             case "conferences":
                 return c.getString(R.string.conferences);
+            case "recent":
+                return c.getString(R.string.recent);
+            case "live":
+                return c.getString(R.string.duration_live);
+            case "Featured":
+                return c.getString(R.string.featured);
+            case "Radio":
+                return c.getString(R.string.radio);
             default:
                 return kioskId;
         }
@@ -55,13 +63,20 @@ public final class KioskTranslator {
             case "Top 50":
             case "New & hot":
             case "conferences":
-                return ThemeHelper.resolveResourceIdFromAttr(c, R.attr.ic_kiosk_hot);
+                return R.drawable.ic_whatshot;
             case "Local":
-                return ThemeHelper.resolveResourceIdFromAttr(c, R.attr.ic_kiosk_local);
+                return R.drawable.ic_home;
             case "Recently added":
-                return ThemeHelper.resolveResourceIdFromAttr(c, R.attr.ic_kiosk_recent);
+            case "recent":
+                return R.drawable.ic_add_circle_outline;
             case "Most liked":
-                return ThemeHelper.resolveResourceIdFromAttr(c, R.attr.ic_thumb_up);
+                return R.drawable.ic_thumb_up;
+            case "live":
+                return R.drawable.ic_live_tv;
+            case "Featured":
+                return R.drawable.ic_stars;
+            case "Radio":
+                return R.drawable.ic_radio;
             default:
                 return 0;
         }

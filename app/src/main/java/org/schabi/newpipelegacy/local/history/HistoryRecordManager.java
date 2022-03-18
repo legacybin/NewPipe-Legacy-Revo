@@ -20,9 +20,9 @@ package org.schabi.newpipelegacy.local.history;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 
 import androidx.annotation.NonNull;
+import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipelegacy.NewPipeDatabase;
 import org.schabi.newpipelegacy.R;
@@ -44,16 +44,17 @@ import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueueItem;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
-import io.reactivex.Completable;
-import io.reactivex.Flowable;
-import io.reactivex.Maybe;
-import io.reactivex.Single;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class HistoryRecordManager {
     private final AppDatabase database;
@@ -85,10 +86,10 @@ public class HistoryRecordManager {
             return Maybe.empty();
         }
 
-        final Date currentTime = new Date();
+        final OffsetDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC);
         return Maybe.fromCallable(() -> database.runInTransaction(() -> {
             final long streamId = streamTable.upsert(new StreamEntity(info));
-            StreamHistoryEntity latestEntry = streamHistoryTable.getLatestEntry(streamId);
+            final StreamHistoryEntity latestEntry = streamHistoryTable.getLatestEntry(streamId);
 
             if (latestEntry != null) {
                 streamHistoryTable.delete(latestEntry);
@@ -101,9 +102,11 @@ public class HistoryRecordManager {
         })).subscribeOn(Schedulers.io());
     }
 
-    public Single<Integer> deleteStreamHistory(final long streamId) {
-        return Single.fromCallable(() -> streamHistoryTable.deleteStreamHistory(streamId))
-                .subscribeOn(Schedulers.io());
+    public Completable deleteStreamHistoryAndState(final long streamId) {
+        return Completable.fromAction(() -> {
+            streamStateTable.deleteState(streamId);
+            streamHistoryTable.deleteStreamHistory(streamId);
+        }).subscribeOn(Schedulers.io());
     }
 
     public Single<Integer> deleteWholeStreamHistory() {
@@ -111,7 +114,7 @@ public class HistoryRecordManager {
                 .subscribeOn(Schedulers.io());
     }
 
-    public Single<Integer> deleteCompelteStreamStateHistory() {
+    public Single<Integer> deleteCompleteStreamStateHistory() {
         return Single.fromCallable(streamStateTable::deleteAll)
                 .subscribeOn(Schedulers.io());
     }
@@ -129,7 +132,7 @@ public class HistoryRecordManager {
     }
 
     public Single<List<Long>> insertStreamHistory(final Collection<StreamHistoryEntry> entries) {
-        List<StreamHistoryEntity> entities = new ArrayList<>(entries.size());
+        final List<StreamHistoryEntity> entities = new ArrayList<>(entries.size());
         for (final StreamHistoryEntry entry : entries) {
             entities.add(entry.toStreamHistoryEntity());
         }
@@ -138,7 +141,7 @@ public class HistoryRecordManager {
     }
 
     public Single<Integer> deleteStreamHistory(final Collection<StreamHistoryEntry> entries) {
-        List<StreamHistoryEntity> entities = new ArrayList<>(entries.size());
+        final List<StreamHistoryEntity> entities = new ArrayList<>(entries.size());
         for (final StreamHistoryEntry entry : entries) {
             entities.add(entry.toStreamHistoryEntity());
         }
@@ -159,11 +162,11 @@ public class HistoryRecordManager {
             return Maybe.empty();
         }
 
-        final Date currentTime = new Date();
+        final OffsetDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC);
         final SearchHistoryEntry newEntry = new SearchHistoryEntry(currentTime, serviceId, search);
 
         return Maybe.fromCallable(() -> database.runInTransaction(() -> {
-            SearchHistoryEntry latestEntry = searchHistoryTable.getLatestEntry();
+            final SearchHistoryEntry latestEntry = searchHistoryTable.getLatestEntry();
             if (latestEntry != null && latestEntry.hasEqualValues(newEntry)) {
                 latestEntry.setCreationDate(currentTime);
                 return (long) searchHistoryTable.update(latestEntry);
@@ -256,7 +259,7 @@ public class HistoryRecordManager {
     public Single<List<StreamStateEntity>> loadStreamStateBatch(final List<InfoItem> infos) {
         return Single.fromCallable(() -> {
             final List<StreamStateEntity> result = new ArrayList<>(infos.size());
-            for (InfoItem info : infos) {
+            for (final InfoItem info : infos) {
                 final List<StreamEntity> entities = streamTable
                         .getStream(info.getServiceId(), info.getUrl()).blockingFirst();
                 if (entities.isEmpty()) {
@@ -279,8 +282,8 @@ public class HistoryRecordManager {
             final List<? extends LocalItem> items) {
         return Single.fromCallable(() -> {
             final List<StreamStateEntity> result = new ArrayList<>(items.size());
-            for (LocalItem item : items) {
-                long streamId;
+            for (final LocalItem item : items) {
+                final long streamId;
                 if (item instanceof StreamStatisticsEntry) {
                     streamId = ((StreamStatisticsEntry) item).getStreamId();
                 } else if (item instanceof PlaylistStreamEntity) {

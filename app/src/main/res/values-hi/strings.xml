@@ -25,7 +25,6 @@
     <string name="black_theme_title">काली</string>
     <string name="enable_watch_history_title">देखे हुए वीडियो की सूची</string>
     <string name="download_dialog_title">डाउनलोड</string>
-    <string name="next_video_title">अगला</string>
     <string name="settings_category_video_audio_title">वीडियो और ऑडियो</string>
     <string name="settings_category_history_title">इतिहास और कैश भंडार</string>
     <string name="background_player_playing_toast">बैकग्राउंड में चल रहा है</string>
@@ -52,7 +51,8 @@
     <string name="item_deleted">Item हटा दिया गया है</string>
     <string name="trending">फ़िलहाल चर्चा में है</string>
     <string name="play_queue_audio_settings">ऑडियो सेटिंग</string>
-    <string name="main_bg_subtitle">शुरू करने के लिए खोज चिह्न दबाएं</string>
+    <string name="main_bg_subtitle">शुरू करने के लिए \"खोज\" चिह्न दबाएं
+\n</string>
     <string name="cancel">रद्द करें</string>
     <string name="did_you_mean">क्या आप का मतलब %1$s है?</string>
     <string name="share_dialog_title">शेयर करें</string>
@@ -74,9 +74,9 @@
     <string name="default_popup_resolution_title">विडियो पॉपअप का डिफ़ॉल्ट रिज़ॉल्यूशन</string>
     <string name="show_higher_resolutions_title">उच्च रिज़ॉल्यूशन दिखाएं</string>
     <string name="show_higher_resolutions_summary">केवल कुछ ही यंत्र है जो 2K/4K विडियो चला सकते हैं</string>
-    <string name="play_with_kodi_title">Kodi से चलाये</string>
+    <string name="play_with_kodi_title">Kodi से चलायें</string>
     <string name="kore_not_found">Kore एप्प नहीं मिली, इसे इनस्टॉल करें\?</string>
-    <string name="show_play_with_kodi_title">\"Kodi से चलाये\" वाला विकल्प दिखाए</string>
+    <string name="show_play_with_kodi_title">\"Kodi से चलायें\" वाला विकल्प दिखाएँ</string>
     <string name="show_play_with_kodi_summary">कोडी मीडिया सेंटर के माध्यम से वीडियो चलाने के लिए एक विकल्प प्रदर्शित करें</string>
     <string name="default_audio_format_title">डिफ़ॉल्ट ऑडियो का फॉर्मेट</string>
     <string name="default_video_format_title">डिफ़ॉल्ट विडियो का फॉर्मेट</string>
@@ -96,7 +96,7 @@
     <string name="show_next_and_similar_title">\'अगला\' और \'पहले समान\' वीडियो दिखाए</string>
     <string name="show_hold_to_append_title">\"जोड़ने के लिए पकड़ें रहे\" दिखाए</string>
     <string name="show_hold_to_append_summary">जब बैकग्राउंड और पॉपअप बटन विडियो के विवरण पन्ने में दबाई जाए तो tip को दिखाए</string>
-    <string name="url_not_supported_toast">ये वाला URL इसमें नहीं चलेगा</string>
+    <string name="unsupported_url">ये वाला URL इसमें नहीं चलेगा</string>
     <string name="content_language_title">डिफ़ॉल्ट विषय की भाषा</string>
     <string name="settings_category_player_title">प्लेयर</string>
     <string name="settings_category_player_behavior_title">चाल चलन</string>
@@ -106,10 +106,8 @@
     <string name="popup_playing_toast">विडियो पॉपअप के अंदाज में चल रहा</string>
     <string name="background_player_append">बैकग्राउंड प्लेयर की कतार पर</string>
     <string name="popup_playing_append">पॉपअप प्लेयर की कतार पर</string>
-    <string name="play_btn_text">चलाये</string>
     <string name="content">विषयवस्तु</string>
     <string name="show_age_restricted_content_title">उम्र प्रतिबंधित विषय वस्तु</string>
-    <string name="video_is_age_restricted">उम्र प्रतिबंदित विडियो है .इस प्रकार की विषयवस्तु को अनुमति देने के लिए सेटिंग से संभव है |</string>
     <string name="duration_live">लाइव</string>
     <string name="downloads">डाउनलोड</string>
     <string name="downloads_title">डाउनलोड</string>
@@ -123,7 +121,6 @@
     <string name="filter">छलनी</string>
     <string name="refresh">तरोताजा</string>
     <string name="clear">साफ़</string>
-    <string name="popup_resizing_indicator_title">आकार को छोटा-बड़ा करे</string>
     <string name="best_resolution">बेहतर विडियो की क्वालिटी</string>
     <string name="undo">वापस जाए</string>
     <string name="play_all">सारे प्ले करे</string>
@@ -133,12 +130,12 @@
     <string name="general_error">त्रुटी</string>
     <string name="network_error">नेटवर्क में त्रुटी</string>
     <string name="could_not_load_thumbnails">सारे thumbnail(फोटो जो फ़ोन की मेमोरी में है ) भरे नहीं जा सकते</string>
-    <string name="youtube_signature_decryption_error">विडियो के URL signature को decrypt नहीं कर सकते</string>
+    <string name="youtube_signature_deobfuscation_error">विडियो के URL signature को decrypt नहीं कर सकते</string>
     <string name="parsing_error">इस website का निरंक्षण नहीं कर सकते</string>
     <string name="light_parsing_error">website का पूरी तरह से निरंक्षण नहीं हो सकता</string>
     <string name="content_not_available">विषय वस्तु उपलब्ध नहीं है</string>
     <string name="could_not_setup_download_menu">डाउनलोड मेनू को स्थापित नहीं कर सकते</string>
-    <string name="live_streams_not_supported">"सीधे प्रसारण के लिये फिलहाल समर्थन नहीं है "</string>
+    <string name="live_streams_not_supported">सीधे प्रसारण के लिये फिलहाल समर्थन नहीं है</string>
     <string name="could_not_get_stream">कोई भी विडियो नहीं मिल रहा</string>
     <string name="could_not_load_image">फोटो को load नहीं कर सकते</string>
     <string name="app_ui_crash">APP/UI टूट गया</string>
@@ -165,7 +162,7 @@
     <string name="user_report">उपयोगकर्ता की रिपोर्ट</string>
     <string name="search_no_results">कोई परिणाम नहीं मिला</string>
     <string name="empty_subscription_feed_subtitle">यंहा कुछ नहीं है</string>
-    <string name="err_dir_create">"डाउनलोड वाली डायरेक्टरी को बना नहीं सकते  \'%1$s\'"</string>
+    <string name="err_dir_create">डाउनलोड वाली डायरेक्टरी को बना नहीं सकते \'%1$s\'</string>
     <string name="info_dir_created">डाउनलोड की निर्देशिका बना दी गई है \'%1$s\'</string>
     <string name="video">विडियो</string>
     <string name="audio">ऑडियो</string>
@@ -188,9 +185,9 @@
         <item quantity="other">%s वीडियो</item>
     </plurals>
     <string name="start">शुरू</string>
-    <string name="pause">रोके</string>
+    <string name="pause">रोकें</string>
     <string name="view">चलाये</string>
-    <string name="delete">मिटाए</string>
+    <string name="delete">मिटाएँ</string>
     <string name="checksum">checksum</string>
     <string name="add">नया मिशन</string>
     <string name="finish">ठीक है</string>
@@ -202,7 +199,7 @@
     <string name="msg_url_malform">URL सही नहीं है या फिर हो सकता है इन्टरनेट उपलब्ध नहीं है</string>
     <string name="msg_running">न्यूपाइप डाउनलोड हो रहा है</string>
     <string name="msg_running_detail">विवरण देखने के लिए दबाये</string>
-    <string name="msg_wait">कृपया इंतज़ार करे…</string>
+    <string name="msg_wait">कृपया प्रतीक्षा करें…</string>
     <string name="msg_copied">क्लिपबोर्ड पर कॉपी हो गया है</string>
     <string name="no_available_dir">कृपया बाद में सेटिंग्स में डाउनलोड स्थान चुने</string>
     <string name="msg_popup_permission">पॉपअप के तरीके में खोलने के लिए अनुमति की जरुरत है</string>
@@ -232,13 +229,9 @@
     <string name="kiosk">kiosk</string>
     <string name="top_50">टॉप 50</string>
     <string name="new_and_hot">नया और गरम</string>
-    <string name="title_activity_background_player">पृष्ठभूमि प्लेयर</string>
-    <string name="title_activity_popup_player">पॉपअप प्लेयर</string>
     <string name="play_queue_remove">निकाले</string>
     <string name="play_queue_stream_detail">विवरण</string>
     <string name="hold_to_append">जोड़ने के लिए पकड़ें रहे</string>
-    <string name="enqueue_on_background">पृष्टभूमि की कतार में लगाए</string>
-    <string name="enqueue_on_popup">नए पॉपअप कि कतार में लगाए</string>
     <string name="start_here_on_main">यंहा से चलाना शुरू करे</string>
     <string name="start_here_on_background">पृष्टभूमि में चलाना शुरू करे</string>
     <string name="start_here_on_popup">पॉपअप में चलाना शुरू करे</string>
@@ -248,7 +241,7 @@
     <string name="tab_bookmarks">बुकमार्क किये गए प्लेलिस्टस</string>
     <string name="controls_add_to_playlist_title">में जोड़े</string>
     <string name="default_content_country_title">डिफ़ॉल्ट देश का विषय</string>
-    <string name="service_title">सर्विस</string>
+    <string name="service_title">सेवा</string>
     <string name="always">हमेशा के लिए</string>
     <string name="just_once">सिर्फ एक बार के लिए</string>
     <string name="toggle_orientation">टॉगल ओरिएंटेशन</string>
@@ -295,7 +288,7 @@
     <string name="create_playlist">नई प्लेलिस्ट</string>
     <string name="delete_playlist">हटाएं</string>
     <string name="rename_playlist">नाम बदलें</string>
-    <string name="playlist_name_input">नाम</string>
+    <string name="name">नाम</string>
     <string name="append_playlist">प्लेलिस्ट में जोड़ें</string>
     <string name="set_as_playlist_thumbnail">प्लेलिस्ट थंबनेल के रूप में सेट करें</string>
     <string name="bookmark_playlist">प्लेलिस्ट बुकमार्क करें</string>
@@ -311,12 +304,11 @@
     <string name="resize_zoom">ज़ूम करें</string>
     <string name="settings_category_debug_title">डीबग करें</string>
     <string name="caption_auto_generated">ऑटो-जनरेटेड</string>
-    <string name="enable_leak_canary_title">LeakCanary सक्षम करें</string>
     <string name="enable_leak_canary_summary">हीप डंप करने के दौरान मेमोरी लीक मॉनिटरिंग ऐप को अनुत्तरदायी बना सकता है</string>
     <string name="enable_disposed_exceptions_title">Out-of-Lifecycle त्रुटियों की रिपोर्ट करें</string>
     <string name="download_thumbnail_title">छायाप्रारुप लोड करें</string>
     <string name="use_inexact_seek_title">तेजी से अचूक तलाश का प्रयोग करें</string>
-    <string name="use_inexact_seek_summary">अचूक खोज प्लेयर को कम परिशुद्धता के साथ तेजी से पदों की तलाश करने की अनुमति देता है</string>
+    <string name="use_inexact_seek_summary">अचूक खोज प्लेयर को कम परिशुद्धता के साथ तेजी से पदों की तलाश करने की अनुमति देता है|</string>
     <string name="download_thumbnail_summary">थंबनेल लोड करने, डेटा और मेमोरी उपयोग को रोकने के लिए बंद करें। इन-मेमोरी और ऑन-डिस्क छवि कैश दोनों को बदलता है|</string>
     <string name="thumbnail_cache_wipe_complete_notice">छवि कैश मिटा दिया</string>
     <string name="metadata_cache_wipe_title">कैश मेटाडेटा वाइप करें</string>
@@ -376,7 +368,7 @@
     <string name="playback_speed_control">चलाने की गति के नियंत्रण</string>
     <string name="playback_tempo">गति</string>
     <string name="playback_pitch">ऊंचाई</string>
-    <string name="unhook_checkbox">अनलिंक (बिगाड़ सकता है)</string>
+    <string name="unhook_checkbox">अनहुक (बिगाड़ सकता है)</string>
     <string name="skip_silence_checkbox">खामोशी के समय तेज़ी से आगे बढ़े</string>
     <string name="playback_step">कदम</string>
     <string name="playback_reset">रिसेट</string>
@@ -404,7 +396,7 @@
     <string name="app_update_notification_channel_description">नए NewPipe अपडेट की अधिसूचना</string>
     <string name="download_to_sdcard_error_title">एक्सटर्नल स्टोरेज अनुपलब्ध</string>
     <string name="download_to_sdcard_error_message">SD कार्ड पर डाउनलोड करना संभव नहीं।डाउनलोड स्थान पुनः चुने\?</string>
-    <string name="restore_defaults">सामान्य चुनाव पर लौटे</string>
+    <string name="restore_defaults">सामान्य चुनाव पर लौटें</string>
     <string name="restore_defaults_confirmation">क्या आप सामान्य चुनाव पर लौटना चाहते है\?</string>
     <string name="subscribers_count_not_available">अभिदाता संख्या अनुपलब्ध</string>
     <string name="main_page_content_summary">मुख्य पृष्ठ पर कौन से टैब दिखाए जाते हैं</string>
@@ -443,7 +435,7 @@
     <string name="pause_downloads_on_mobile_desc">मोबाइल डाटा का इस्तेमाल करते समय उपयोगी है, परन्तु कुछ डौन्लोडस रोके नहीं जा सकते है</string>
     <string name="events">घटनायें</string>
     <string name="conferences">सम्मेलनों</string>
-    <string name="show_comments_title">टिप्पणियाँ दिखाए</string>
+    <string name="show_comments_title">टिप्पणियाँ दिखाएं</string>
     <string name="show_comments_summary">टिप्पणियाँ न देखने के लिए बंद करे</string>
     <string name="autoplay_title">ऑटोप्ले</string>
     <string name="no_comments">कोई टिपण्णी नहीं</string>
@@ -508,5 +500,103 @@
         <item quantity="other">%s श्रोता</item>
     </plurals>
     <string name="localization_changes_requires_app_restart">ऐप के पुनः आरंभ होने के बाद भाषा बदल जाएगी।</string>
-    <string name="enable_lock_screen_video_thumbnail_title">लॉक स्क्रीन पर वीडियो की छोटी तस्वीर दिखाए</string>
+    <string name="feed_use_dedicated_fetch_method_enable_button">तेज मोड सक्षम करें</string>
+    <string name="feed_use_dedicated_fetch_method_disable_button">तेज मोड अक्षम करें</string>
+    <string name="feed_use_dedicated_fetch_method_help_text">क्या आपको लगता है कि फीड लोडिंग बहुत धीमी है\? यदि ऐसा है, तो तेज़ लोडिंग को सक्षम करने का प्रयास करें (आप इसे सेटिंग्स में या नीचे दिए गए बटन को दबाकर बदल सकते हैं)।
+\n
+\nNewPipe दो फीड लोडिंग रणनीति प्रदान करता है:
+\n• संपूर्ण सदस्यता चैनल प्राप्त करना, जो धीमा है लेकिन पूरा होता है।
+\n• एक समर्पित सेवा के समापन बिंदु का उपयोग करना, जो तेज़ है लेकिन आमतौर पर पूरा नहीं होता है।
+\n
+\nदोनों के बीच अंतर यह है कि तेज वाली रणनीति में आमतौर पर कुछ जानकारी का अभाव होता है, जैसे कि आइटम की अवधि या प्रकार (लाइव वीडियो और सामान्य वीडियो के बीच अंतर पता नहीं लगा सकते हैं) और ऐसा भी हो सकता है कि ये कम आइटम दिखाए।
+\n
+\nYouTube उस सेवा का एक उदाहरण है जो RSS फ़ीड के साथ तेज़ विधि प्रदान करता है।
+\n
+\nतो आखिर में चुनाव आपकी पसंद पर है: गति या फिर सटीक जानकारी।</string>
+    <string name="content_not_supported">यह सामग्री फिलहाल NewPipe सपोर्ट नहीं करता है। 
+\n
+\nइसे आशा से भविष्य के संस्करणों में सपोर्ट किया जायेगा।</string>
+    <string name="detail_sub_channel_thumbnail_view_description">चैनल का avatar थंबनेल</string>
+    <string name="video_detail_by">%s के द्वारा</string>
+    <string name="channel_created_by">%s के द्वारा बनाया गया</string>
+    <string name="playlist_page_summary">प्लेलिस्ट पृष्ठ</string>
+    <string name="search_showing_result_for">परिणाम दिखा रहे हैं : %s</string>
+    <string name="recaptcha_done_button">हो गया</string>
+    <string name="artists">कलाकार</string>
+    <string name="songs">गाने</string>
+    <string name="never">कभी नहीं</string>
+    <string name="help">सहायता</string>
+    <string name="recaptcha_cookies_cleared">reCAPTCHA कुकीज़ को साफ़ कर दिए गए हैं</string>
+    <string name="clear_cookie_title">ReCAPTCHA कुकीज़ साफ़ करें</string>
+    <string name="albums">एल्बम</string>
+    <string name="videos_string">वीडियो</string>
+    <string name="restricted_video">यह वीडियो उम्र प्रतिबंधित है।
+\n
+\nयदि आप इसे देखना चाहते हैं तो सेटिंग में \"%1$s\" चालू करें।</string>
+    <string name="youtube_restricted_mode_enabled_summary">यूट्यूब एक \"प्रतिबंधित मोड\" प्रदान करता है जो संभावित रूप से परिपक्व सामग्री को छुपाता है</string>
+    <string name="youtube_restricted_mode_enabled_title">यूट्यूब का \"प्रतिबंधित मोड\" चालू करें</string>
+    <string name="show_age_restricted_content_summary">बच्चों के लिए अनुपयुक्त सामग्री दिखाएं क्योंकि इसकी आयु सीमा है (जैसे 18)</string>
+    <string name="settings_category_notification_title">अधिसूचना</string>
+    <string name="peertube_instance_add_https_only">केवल हटितीपीस यूआरएल समर्थित हैं</string>
+    <string name="unsupported_url_dialog_message">यूआरएल को नहीं पहचान पाये। दूसरे ऐप से खोलें\?</string>
+    <string name="auto_queue_toggle">ऑटो कतार</string>
+    <string name="clear_queue_confirmation_title">कतार को साफ़ करने से पहले पुष्टि के लिए पूछें</string>
+    <string name="seek_duration_title">फास्ट-फ़ॉरवर्ड /- रिवाइंड</string>
+    <string name="notification_colorize_summary">एंड्रॉइड को थंबनेल में मुख्य रंग के अनुसार अधिसूचना के रंग को अनुकूलित करने दें (ध्यान दें कि यह सभी फोन पर उपलब्ध नहीं है)</string>
+    <string name="notification_colorize_title">अधिसूचना को रंग दें</string>
+    <string name="notification_action_nothing">कुछ नहीं</string>
+    <string name="notification_action_buffering">बफरिंग</string>
+    <string name="notification_action_shuffle">फेरबदल करे</string>
+    <string name="notification_action_repeat">दोहराएं</string>
+    <string name="notification_actions_at_most_three">कॉम्पैक्ट अधिसूचना में दिखाने के लिए आप अधिकतम तीन क्रियाओं का चयन कर सकते हैं!</string>
+    <string name="notification_actions_summary">इस पर टैप करके नीचे दी गई प्रत्येक सूचना को संपादित करें। दाईं ओर चेकबॉक्स का उपयोग करके कॉम्पैक्ट अधिसूचना में दिखाए जाने के लिए उनमें से तीन तक का चयन करें।</string>
+    <string name="notification_action_4_title">पांचवा एक्शन बटन</string>
+    <string name="notification_action_3_title">चौथा एक्शन बटन</string>
+    <string name="notification_action_2_title">तीसरा एक्शन बटन</string>
+    <string name="notification_action_1_title">दूसरा एक्शन बटन</string>
+    <string name="notification_action_0_title">पहला एक्शन बटन</string>
+    <string name="notification_scale_to_square_image_summary">अधिसूचना में दिखाए गए वीडियो थंबनेल को 16: 9 से 1: 1 के अनुपात में दिखाया गया है (विकृतियों का परिचय दे सकता है)</string>
+    <string name="notification_scale_to_square_image_title">वीडियो छवि को 1:1 के आस्पेक्ट अनुपात मैं देखें</string>
+    <plurals name="hours">
+        <item quantity="one">%dघंटा</item>
+        <item quantity="other">%dघंटे</item>
+    </plurals>
+    <plurals name="seconds">
+        <item quantity="one">%dसेकंड</item>
+        <item quantity="other">Seconds</item>
+    </plurals>
+    <string name="remove_watched_popup_title">देखे गए वीडियो हटायें\?</string>
+    <string name="remove_watched">देखे गए को हटा दें</string>
+    <string name="systems_language">सिस्टम डिफ़ॉल्ट</string>
+    <string name="app_language_title">ऐप भाषा</string>
+    <string name="deleted_downloads">%1$d डाउनलोड को हटा दिया गया</string>
+    <string name="delete_downloaded_files">डाउनलोड की गई फ़ाइलें हटाएं</string>
+    <string name="clear_download_history">डाउनलोड इतिहास हटायें</string>
+    <string name="wifi_only">केवल वाईफाई पर</string>
+    <string name="autoplay_summary">स्वचालित रूप से प्लेबैक शुरू करें —%s</string>
+    <string name="show_memory_leaks">मेमरी लीक दर्शाएँ</string>
+    <string name="unmute">अन्म्यूट</string>
+    <string name="mute">म्यूट</string>
+    <string name="most_liked">सबसे ज्यादा पसंद</string>
+    <string name="recently_added">हाल ही में जोड़ा</string>
+    <string name="local">लोकल</string>
+    <string name="no_playlist_bookmarked_yet">कोई प्लेलिस्ट का बुक्मार्क्स नहीं है</string>
+    <string name="select_a_playlist">एक प्लेलिस्ट का चयन करें</string>
+    <string name="infinite_videos">∞ विडीओ</string>
+    <string name="more_than_100_videos">१००+ विडीओ</string>
+    <string name="description_tab_description">विवरण</string>
+    <string name="related_items_tab_description">संबंधित स्ट्रीमस</string>
+    <string name="comments_tab_description">टिप्पणियाँ</string>
+    <string name="error_report_open_github_notice">कृपया जांचें लें कि क्या आपके क्रैश पर चर्चा करने वाला मुद्दा पहले से मौजूद है। डुप्लिकेट टिकट बनाते समय, आप हमसे समय लेते हैं जो हम वास्तविक बग को ठीक करने के साथ खर्च कर सकते हैं।</string>
+    <string name="error_report_open_issue_button_text">गिटहब पर रिपोर्ट करें</string>
+    <string name="permission_display_over_apps">अन्य ऐप्स पर प्रदर्शित करने की अनुमति दें</string>
+    <string name="hash_channel_description">विडीओ हैशिंग की प्रगति की सूचना</string>
+    <string name="hash_channel_name">वीडियो हैश अधिसूचना</string>
+    <string name="show_meta_info_summary">स्ट्रीम निर्माता, स्ट्रीम विषय सूची या खोज अनुरोध के बारे में अतिरिक्त जानकारी के साथ मेटा जानकारी बक्से को छिपाने के लिए बंद करें.</string>
+    <string name="show_meta_info_title">मेटा जानकारी दिखाएँ</string>
+    <string name="show_description_summary">वीडियो विवरण और अतिरिक्त जानकारी छिपाने के लिए बंद करें</string>
+    <string name="show_description_title">विवरण दिखाएं</string>
+    <string name="clear_queue_confirmation_description">सक्रिय प्लेअर क़तार को बदल दिया जाएगा</string>
+    <string name="clear_queue_confirmation_summary">एक प्लेअर से दूसरे प्लेअर पर स्विच करने पर आपके क़तार बदल सकते है</string>
+    <string name="open_with">के साथ खोलें</string>
 </resources>

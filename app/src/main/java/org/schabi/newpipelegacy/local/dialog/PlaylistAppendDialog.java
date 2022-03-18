@@ -1,5 +1,6 @@
 package org.schabi.newpipelegacy.local.dialog;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,8 +28,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 public final class PlaylistAppendDialog extends PlaylistDialog {
     private static final String TAG = PlaylistAppendDialog.class.getCanonicalName();
@@ -36,17 +38,34 @@ public final class PlaylistAppendDialog extends PlaylistDialog {
     private RecyclerView playlistRecyclerView;
     private LocalItemListAdapter playlistAdapter;
 
-    private CompositeDisposable playlistDisposables = new CompositeDisposable();
+    private final CompositeDisposable playlistDisposables = new CompositeDisposable();
+
+    public static Disposable onPlaylistFound(
+            final Context context, final Runnable onSuccess, final Runnable onFailed
+    ) {
+        final LocalPlaylistManager playlistManager =
+                new LocalPlaylistManager(NewPipeDatabase.getInstance(context));
+
+        return playlistManager.hasPlaylists()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(hasPlaylists -> {
+                    if (hasPlaylists) {
+                        onSuccess.run();
+                    } else {
+                        onFailed.run();
+                    }
+                });
+    }
 
     public static PlaylistAppendDialog fromStreamInfo(final StreamInfo info) {
-        PlaylistAppendDialog dialog = new PlaylistAppendDialog();
+        final PlaylistAppendDialog dialog = new PlaylistAppendDialog();
         dialog.setInfo(Collections.singletonList(new StreamEntity(info)));
         return dialog;
     }
 
     public static PlaylistAppendDialog fromStreamInfoItems(final List<StreamInfoItem> items) {
-        PlaylistAppendDialog dialog = new PlaylistAppendDialog();
-        List<StreamEntity> entities = new ArrayList<>(items.size());
+        final PlaylistAppendDialog dialog = new PlaylistAppendDialog();
+        final List<StreamEntity> entities = new ArrayList<>(items.size());
         for (final StreamInfoItem item : items) {
             entities.add(new StreamEntity(item));
         }
@@ -55,8 +74,8 @@ public final class PlaylistAppendDialog extends PlaylistDialog {
     }
 
     public static PlaylistAppendDialog fromPlayQueueItems(final List<PlayQueueItem> items) {
-        PlaylistAppendDialog dialog = new PlaylistAppendDialog();
-        List<StreamEntity> entities = new ArrayList<>(items.size());
+        final PlaylistAppendDialog dialog = new PlaylistAppendDialog();
+        final List<StreamEntity> entities = new ArrayList<>(items.size());
         for (final PlayQueueItem item : items) {
             entities.add(new StreamEntity(item));
         }
@@ -79,7 +98,7 @@ public final class PlaylistAppendDialog extends PlaylistDialog {
         super.onViewCreated(view, savedInstanceState);
 
         final LocalPlaylistManager playlistManager =
-                new LocalPlaylistManager(NewPipeDatabase.getInstance(getContext()));
+                new LocalPlaylistManager(NewPipeDatabase.getInstance(requireContext()));
 
         playlistAdapter = new LocalItemListAdapter(getActivity());
         playlistAdapter.setSelectedListener(new OnClickGesture<LocalItem>() {
@@ -94,7 +113,7 @@ public final class PlaylistAppendDialog extends PlaylistDialog {
         });
 
         playlistRecyclerView = view.findViewById(R.id.playlist_list);
-        playlistRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        playlistRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         playlistRecyclerView.setAdapter(playlistAdapter);
 
         final View newPlaylistButton = view.findViewById(R.id.newPlaylist);
@@ -127,20 +146,15 @@ public final class PlaylistAppendDialog extends PlaylistDialog {
     //////////////////////////////////////////////////////////////////////////*/
 
     public void openCreatePlaylistDialog() {
-        if (getStreams() == null || getFragmentManager() == null) {
+        if (getStreams() == null || !isAdded()) {
             return;
         }
 
-        PlaylistCreationDialog.newInstance(getStreams()).show(getFragmentManager(), TAG);
-        getDialog().dismiss();
+        PlaylistCreationDialog.newInstance(getStreams()).show(getParentFragmentManager(), TAG);
+        requireDialog().dismiss();
     }
 
     private void onPlaylistsReceived(@NonNull final List<PlaylistMetadataEntry> playlists) {
-        if (playlists.isEmpty()) {
-            openCreatePlaylistDialog();
-            return;
-        }
-
         if (playlistAdapter != null && playlistRecyclerView != null) {
             playlistAdapter.clearStreamItemList();
             playlistAdapter.addItems(playlists);
@@ -169,6 +183,6 @@ public final class PlaylistAppendDialog extends PlaylistDialog {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(ignored -> successToast.show()));
 
-        getDialog().dismiss();
+        requireDialog().dismiss();
     }
 }

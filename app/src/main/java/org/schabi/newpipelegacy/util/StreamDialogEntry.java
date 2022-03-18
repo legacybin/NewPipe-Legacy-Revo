@@ -1,28 +1,54 @@
 package org.schabi.newpipelegacy.util;
 
 import android.content.Context;
+import android.net.Uri;
 
 import androidx.fragment.app.Fragment;
 
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipelegacy.local.dialog.PlaylistAppendDialog;
+import org.schabi.newpipelegacy.local.dialog.PlaylistCreationDialog;
+import org.schabi.newpipelegacy.player.MainPlayer;
+import org.schabi.newpipelegacy.player.helper.PlayerHolder;
 import org.schabi.newpipelegacy.player.playqueue.SinglePlayQueue;
 
 import java.util.Collections;
+import java.util.List;
+
+import static org.schabi.newpipelegacy.player.MainPlayer.PlayerType.AUDIO;
+import static org.schabi.newpipelegacy.player.MainPlayer.PlayerType.POPUP;
 
 public enum StreamDialogEntry {
     //////////////////////////////////////
     // enum values with DEFAULT actions //
     //////////////////////////////////////
 
-    enqueue_on_background(R.string.enqueue_on_background, (fragment, item) ->
-            NavigationHelper.enqueueOnBackgroundPlayer(fragment.getContext(),
-                    new SinglePlayQueue(item), false)),
+    show_channel_details(R.string.show_channel_details, (fragment, item) ->
+        // For some reason `getParentFragmentManager()` doesn't work, but this does.
+        NavigationHelper.openChannelFragment(fragment.getActivity().getSupportFragmentManager(),
+                item.getServiceId(), item.getUploaderUrl(), item.getUploaderName())
+    ),
 
-    enqueue_on_popup(R.string.enqueue_on_popup, (fragment, item) ->
+    /**
+     * Enqueues the stream automatically to the current PlayerType.<br>
+     * <br>
+     * Info: Add this entry within showStreamDialog.
+     */
+    enqueue(R.string.enqueue_stream, (fragment, item) -> {
+        final MainPlayer.PlayerType type = PlayerHolder.getType();
+
+        if (type == AUDIO) {
+            NavigationHelper.enqueueOnBackgroundPlayer(fragment.getContext(),
+                    new SinglePlayQueue(item), false);
+        } else if (type == POPUP) {
             NavigationHelper.enqueueOnPopupPlayer(fragment.getContext(),
-                    new SinglePlayQueue(item), false)),
+                    new SinglePlayQueue(item), false);
+        } else /* type == VIDEO */ {
+            NavigationHelper.enqueueOnVideoPlayer(fragment.getContext(),
+                    new SinglePlayQueue(item), false);
+        }
+    }),
 
     start_here_on_background(R.string.start_here_on_background, (fragment, item) ->
             NavigationHelper.playOnBackgroundPlayer(fragment.getContext(),
@@ -40,13 +66,28 @@ public enum StreamDialogEntry {
 
     append_playlist(R.string.append_playlist, (fragment, item) -> {
         if (fragment.getFragmentManager() != null) {
-            PlaylistAppendDialog.fromStreamInfoItems(Collections.singletonList(item))
-                    .show(fragment.getFragmentManager(), "StreamDialogEntry@append_playlist");
+            final PlaylistAppendDialog d = PlaylistAppendDialog
+                    .fromStreamInfoItems(Collections.singletonList(item));
+
+            PlaylistAppendDialog.onPlaylistFound(fragment.getContext(),
+                () -> d.show(fragment.getFragmentManager(), "StreamDialogEntry@append_playlist"),
+                () -> PlaylistCreationDialog.newInstance(d)
+                        .show(fragment.getFragmentManager(), "StreamDialogEntry@create_playlist")
+            );
+        }
+    }),
+
+    play_with_kodi(R.string.play_with_kodi_title, (fragment, item) -> {
+        final Uri videoUrl = Uri.parse(item.getUrl());
+        try {
+            NavigationHelper.playWithKore(fragment.getContext(), videoUrl);
+        } catch (final Exception e) {
+            KoreUtil.showInstallKoreDialog(fragment.getActivity());
         }
     }),
 
     share(R.string.share, (fragment, item) ->
-            ShareUtils.shareUrl(fragment.getContext(), item.getName(), item.getUrl()));
+            ShareUtils.shareText(fragment.getContext(), item.getName(), item.getUrl()));
 
 
     ///////////////
@@ -69,6 +110,10 @@ public enum StreamDialogEntry {
     // non-static methods to initialize and edit entries //
     ///////////////////////////////////////////////////////
 
+    public static void setEnabledEntries(final List<StreamDialogEntry> entries) {
+        setEnabledEntries(entries.toArray(new StreamDialogEntry[0]));
+    }
+
     /**
      * To be called before using {@link #setCustomAction(StreamDialogEntryAction)}.
      *
@@ -76,7 +121,7 @@ public enum StreamDialogEntry {
      */
     public static void setEnabledEntries(final StreamDialogEntry... entries) {
         // cleanup from last time StreamDialogEntry was used
-        for (StreamDialogEntry streamDialogEntry : values()) {
+        for (final StreamDialogEntry streamDialogEntry : values()) {
             streamDialogEntry.customAction = null;
         }
 
@@ -84,7 +129,7 @@ public enum StreamDialogEntry {
     }
 
     public static String[] getCommands(final Context context) {
-        String[] commands = new String[enabledEntries.length];
+        final String[] commands = new String[enabledEntries.length];
         for (int i = 0; i != enabledEntries.length; ++i) {
             commands[i] = context.getResources().getString(enabledEntries[i].resource);
         }
