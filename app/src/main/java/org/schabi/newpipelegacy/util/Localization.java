@@ -13,14 +13,14 @@ import android.util.DisplayMetrics;
 import androidx.annotation.NonNull;
 import androidx.annotation.PluralsRes;
 import androidx.annotation.StringRes;
+import androidx.core.math.MathUtils;
 import androidx.preference.PreferenceManager;
 
 import org.ocpsoft.prettytime.PrettyTime;
 import org.ocpsoft.prettytime.units.Decade;
-import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.ListExtractor;
 import org.schabi.newpipe.extractor.localization.ContentCountry;
-import org.schabi.newpipelegacy.ktx.OffsetDateTimeKt;
+import org.schabi.newpipelegacy.R;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -30,7 +30,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -61,10 +60,6 @@ public final class Localization {
     private static PrettyTime prettyTime;
 
     private Localization() { }
-
-    public static void init(final Context context) {
-        initPrettyTime(context);
-    }
 
     @NonNull
     public static String concatenateStrings(final String... strings) {
@@ -232,6 +227,16 @@ public final class Localization {
                 shortCount(context, subscriberCount));
     }
 
+    public static String downloadCount(final Context context, final int downloadCount) {
+        return getQuantity(context, R.plurals.download_finished_notification, 0,
+                downloadCount, shortCount(context, downloadCount));
+    }
+
+    public static String deletedDownloadCount(final Context context, final int deletedCount) {
+        return getQuantity(context, R.plurals.deleted_downloads_toast, 0,
+                deletedCount, shortCount(context, deletedCount));
+    }
+
     private static String getQuantity(final Context context, @PluralsRes final int pluralId,
                                       @StringRes final int zeroCaseStringId, final long count,
                                       final String formattedCount) {
@@ -243,8 +248,7 @@ public final class Localization {
         // is not the responsibility of this method handle long numbers
         // (it probably will fall in the "other" category,
         // or some language have some specific rule... then we have to change it)
-        final int safeCount = count > Integer.MAX_VALUE ? Integer.MAX_VALUE
-                : count < Integer.MIN_VALUE ? Integer.MIN_VALUE : (int) count;
+        final int safeCount = (int) MathUtils.clamp(count, Integer.MIN_VALUE, Integer.MAX_VALUE);
         return context.getResources().getQuantityString(pluralId, safeCount, formattedCount);
     }
 
@@ -307,28 +311,24 @@ public final class Localization {
     // Pretty Time
     //////////////////////////////////////////////////////////////////////////*/
 
-    private static void initPrettyTime(final Context context) {
-        prettyTime = new PrettyTime(getAppLocale(context));
+    public static void initPrettyTime(final PrettyTime time) {
+        prettyTime = time;
         // Do not use decades as YouTube doesn't either.
         prettyTime.removeUnit(Decade.class);
     }
 
-    public static String relativeTime(final OffsetDateTime offsetDateTime) {
-        return relativeTime(OffsetDateTimeKt.toCalendar(offsetDateTime));
+    public static PrettyTime resolvePrettyTime(final Context context) {
+        return new PrettyTime(getAppLocale(context));
     }
 
-    public static String relativeTime(final Calendar calendarTime) {
-        return prettyTime.formatUnrounded(calendarTime);
+    public static String relativeTime(final OffsetDateTime offsetDateTime) {
+        return prettyTime.formatUnrounded(offsetDateTime);
     }
 
     private static void changeAppLanguage(final Locale loc, final Resources res) {
         final DisplayMetrics dm = res.getDisplayMetrics();
         final Configuration conf = res.getConfiguration();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            conf.setLocale(loc);
-        } else {
-            conf.locale = loc;
-        }
+        conf.setLocale(loc);
         res.updateConfiguration(conf, dm);
     }
 
@@ -357,5 +357,20 @@ public final class Localization {
 
     private static double round(final double value, final int places) {
         return new BigDecimal(value).setScale(places, RoundingMode.HALF_UP).doubleValue();
+    }
+
+    /**
+     * Workaround to match normalized captions like english to English or deutsch to Deutsch.
+     * @param list the list to search into
+     * @param toFind the string to look for
+     * @return whether the string was found or not
+     */
+    public static boolean containsCaseInsensitive(final List<String> list, final String toFind) {
+        for (final String i : list) {
+            if (i.equalsIgnoreCase(toFind)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -21,13 +20,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:layout_marginLeft="12dp"
             android:layout_toStartOf="@+id/refreshIcon"
-            android:layout_toLeftOf="@+id/refreshIcon"
             android:gravity="center_vertical"
             android:orientation="vertical">
 
-            <TextView
+            <org.schabi.newpipelegacy.views.NewPipeTextView
                 android:id="@+id/refresh_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -38,7 +35,7 @@
                 android:textSize="14sp"
                 tools:text="@tools:sample/lorem/random" />
 
-            <TextView
+            <org.schabi.newpipelegacy.views.NewPipeTextView
                 android:id="@+id/refresh_subtitle_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -57,12 +54,9 @@
             android:layout_alignTop="@+id/refresh_info_container"
             android:layout_alignBottom="@+id/refresh_info_container"
             android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
             android:layout_marginStart="6dp"
-            android:layout_marginLeft="6dp"
             android:layout_marginEnd="12dp"
-            android:layout_marginRight="12dp"
-            app:srcCompat="?attr/ic_refresh"
+            android:src="@drawable/ic_refresh"
             tools:ignore="ContentDescription" />
 
         <View
@@ -76,7 +70,7 @@
     </RelativeLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swiperefresh"
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/refresh_root_view">
@@ -92,8 +86,20 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+    <Button
+        android:id="@+id/new_items_loaded_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/swipeRefreshLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="5sp"
+        android:text="@string/feed_new_items"
+        android:textSize="12sp"
+        android:theme="@style/ServiceColoredButton"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
     <LinearLayout
-        android:id="@+id/loading_panel_root"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
@@ -111,7 +117,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <org.schabi.newpipelegacy.views.NewPipeTextView
             android:id="@+id/loading_progress_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -127,7 +133,7 @@
     <!--ERROR PANEL-->
     <include
         android:id="@+id/error_panel"
-        layout="@layout/error_retry"
+        layout="@layout/error_panel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"

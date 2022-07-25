@@ -121,6 +121,7 @@ public class WebMWriter implements Closeable {
         clustersOffsetsSizes = null;
     }
 
+    @SuppressWarnings("MethodLength")
     public void build(final SharpStream out) throws IOException, RuntimeException {
         if (!out.canRewind()) {
             throw new IOException("The output stream must be allow seek");
@@ -719,7 +720,7 @@ public class WebMWriter implements Closeable {
             return 0;
         }
 
-        // TODO: in the adove code, find and select the shortest track for the desired kind
+        // TODO: in the above code, find and select the shortest track for the desired kind
         for (i = 0; i < infoTracks.length; i++) {
             if (kind == infoTracks[i].trackType) {
                 return i;

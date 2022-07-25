@@ -1,6 +1,6 @@
 /*
  * Copyright 2017 Mauricio Colli <mauriciocolli@outlook.com>
- * Extractors.java is part of NewPipe
+ * ExtractorHelper.java is part of NewPipe
  *
  * License: GPL-3.0+
  * This program is free software: you can redistribute it and/or modify
@@ -19,22 +19,17 @@
 
 package org.schabi.newpipelegacy.util;
 
+import static org.schabi.newpipe.extractor.utils.Utils.isNullOrEmpty;
+
 import android.content.Context;
-import android.content.Intent;
-import android.os.Handler;
-import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.core.text.HtmlCompat;
 import androidx.preference.PreferenceManager;
 
-import org.schabi.newpipelegacy.MainActivity;
-import org.schabi.newpipelegacy.R;
-import org.schabi.newpipelegacy.ReCaptchaActivity;
 import org.schabi.newpipe.extractor.Info;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.ListExtractor.InfoItemsPage;
@@ -45,30 +40,25 @@ import org.schabi.newpipe.extractor.Page;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.channel.ChannelInfo;
 import org.schabi.newpipe.extractor.comments.CommentsInfo;
-import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException;
-import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException;
-import org.schabi.newpipe.extractor.exceptions.ParsingException;
-import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
+import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
 import org.schabi.newpipe.extractor.feed.FeedExtractor;
 import org.schabi.newpipe.extractor.feed.FeedInfo;
 import org.schabi.newpipe.extractor.kiosk.KioskInfo;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfo;
 import org.schabi.newpipe.extractor.search.SearchInfo;
-import org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeStreamExtractor;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.suggestion.SuggestionExtractor;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.ErrorInfo;
-import org.schabi.newpipelegacy.report.UserAction;
+import org.schabi.newpipelegacy.util.external_communication.TextLinkifier;
+import org.schabi.newpipelegacy.MainActivity;
+import org.schabi.newpipelegacy.R;
 
 import java.util.Collections;
 import java.util.List;
 
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
-
-import static org.schabi.newpipe.extractor.utils.Utils.isNullOrEmpty;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
 public final class ExtractorHelper {
     private static final String TAG = ExtractorHelper.class.getSimpleName();
@@ -95,11 +85,12 @@ public final class ExtractorHelper {
                                 .fromQuery(searchString, contentFilter, sortFilter)));
     }
 
-    public static Single<InfoItemsPage> getMoreSearchItems(final int serviceId,
-                                                           final String searchString,
-                                                           final List<String> contentFilter,
-                                                           final String sortFilter,
-                                                           final Page page) {
+    public static Single<InfoItemsPage<InfoItem>> getMoreSearchItems(
+            final int serviceId,
+            final String searchString,
+            final List<String> contentFilter,
+            final String sortFilter,
+            final Page page) {
         checkServiceId(serviceId);
         return Single.fromCallable(() ->
                 SearchInfo.getMoreItems(NewPipe.getService(serviceId),
@@ -135,8 +126,9 @@ public final class ExtractorHelper {
                         ChannelInfo.getInfo(NewPipe.getService(serviceId), url)));
     }
 
-    public static Single<InfoItemsPage> getMoreChannelItems(final int serviceId, final String url,
-                                                            final Page nextPage) {
+    public static Single<InfoItemsPage<StreamInfoItem>> getMoreChannelItems(final int serviceId,
+                                                                            final String url,
+                                                                            final Page nextPage) {
         checkServiceId(serviceId);
         return Single.fromCallable(() ->
                 ChannelInfo.getMoreItems(NewPipe.getService(serviceId), url, nextPage));
@@ -166,15 +158,17 @@ public final class ExtractorHelper {
                         CommentsInfo.getInfo(NewPipe.getService(serviceId), url)));
     }
 
-    public static Single<InfoItemsPage> getMoreCommentItems(final int serviceId,
-                                                            final CommentsInfo info,
-                                                            final Page nextPage) {
+    public static Single<InfoItemsPage<CommentsInfoItem>> getMoreCommentItems(
+            final int serviceId,
+            final CommentsInfo info,
+            final Page nextPage) {
         checkServiceId(serviceId);
         return Single.fromCallable(() ->
                 CommentsInfo.getMoreItems(NewPipe.getService(serviceId), info, nextPage));
     }
 
-    public static Single<PlaylistInfo> getPlaylistInfo(final int serviceId, final String url,
+    public static Single<PlaylistInfo> getPlaylistInfo(final int serviceId,
+                                                       final String url,
                                                        final boolean forceLoad) {
         checkServiceId(serviceId);
         return checkCache(forceLoad, serviceId, url, InfoItem.InfoType.PLAYLIST,
@@ -182,8 +176,9 @@ public final class ExtractorHelper {
                         PlaylistInfo.getInfo(NewPipe.getService(serviceId), url)));
     }
 
-    public static Single<InfoItemsPage> getMorePlaylistItems(final int serviceId, final String url,
-                                                             final Page nextPage) {
+    public static Single<InfoItemsPage<StreamInfoItem>> getMorePlaylistItems(final int serviceId,
+                                                                             final String url,
+                                                                             final Page nextPage) {
         checkServiceId(serviceId);
         return Single.fromCallable(() ->
                 PlaylistInfo.getMoreItems(NewPipe.getService(serviceId), url, nextPage));
@@ -195,8 +190,9 @@ public final class ExtractorHelper {
                 Single.fromCallable(() -> KioskInfo.getInfo(NewPipe.getService(serviceId), url)));
     }
 
-    public static Single<InfoItemsPage> getMoreKioskItems(final int serviceId, final String url,
-                                                          final Page nextPage) {
+    public static Single<InfoItemsPage<StreamInfoItem>> getMoreKioskItems(final int serviceId,
+                                                                          final String url,
+                                                                          final Page nextPage) {
         return Single.fromCallable(() ->
                 KioskInfo.getMoreItems(NewPipe.getService(serviceId), url, nextPage));
     }
@@ -274,65 +270,23 @@ public final class ExtractorHelper {
     }
 
     /**
-     * A simple and general error handler that show a Toast for known exceptions,
-     * and for others, opens the report error activity with the (optional) error message.
-     *
-     * @param context              Android app context
-     * @param serviceId            the service the exception happened in
-     * @param url                  the URL where the exception happened
-     * @param exception            the exception to be handled
-     * @param userAction           the action of the user that caused the exception
-     * @param optionalErrorMessage the optional error message
-     */
-    public static void handleGeneralException(final Context context, final int serviceId,
-                                              final String url, final Throwable exception,
-                                              final UserAction userAction,
-                                              final String optionalErrorMessage) {
-        final Handler handler = new Handler(context.getMainLooper());
-
-        handler.post(() -> {
-            if (exception instanceof ReCaptchaException) {
-                Toast.makeText(context, R.string.recaptcha_request_toast, Toast.LENGTH_LONG).show();
-                // Starting ReCaptcha Challenge Activity
-                final Intent intent = new Intent(context, ReCaptchaActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
-            } else if (ExceptionUtils.isNetworkRelated(exception)) {
-                Toast.makeText(context, R.string.network_error, Toast.LENGTH_LONG).show();
-            } else if (exception instanceof ContentNotAvailableException) {
-                Toast.makeText(context, R.string.content_not_available, Toast.LENGTH_LONG).show();
-            } else if (exception instanceof ContentNotSupportedException) {
-                Toast.makeText(context, R.string.content_not_supported, Toast.LENGTH_LONG).show();
-            } else {
-                final int errorId = exception instanceof YoutubeStreamExtractor.DeobfuscateException
-                        ? R.string.youtube_signature_deobfuscation_error
-                        : exception instanceof ParsingException
-                        ? R.string.parsing_error : R.string.general_error;
-                ErrorActivity.reportError(handler, context, exception, MainActivity.class, null,
-                        ErrorInfo.make(userAction, serviceId == -1 ? "none"
-                                : NewPipe.getNameOfService(serviceId),
-                                url + (optionalErrorMessage == null ? ""
-                                        : optionalErrorMessage), errorId));
-            }
-        });
-    }
-
-    /**
      * Formats the text contained in the meta info list as HTML and puts it into the text view,
      * while also making the separator visible. If the list is null or empty, or the user chose not
      * to see meta information, both the text view and the separator are hidden
      * @param metaInfos a list of meta information, can be null or empty
      * @param metaInfoTextView the text view in which to show the formatted HTML
      * @param metaInfoSeparator another view to be shown or hidden accordingly to the text view
+     * @param disposables disposables created by the method are added here and their lifecycle
+     *                    should be handled by the calling class
      */
     public static void showMetaInfoInTextView(@Nullable final List<MetaInfo> metaInfos,
                                               final TextView metaInfoTextView,
-                                              final View metaInfoSeparator) {
+                                              final View metaInfoSeparator,
+                                              final CompositeDisposable disposables) {
         final Context context = metaInfoTextView.getContext();
-        final boolean showMetaInfo = PreferenceManager.getDefaultSharedPreferences(context)
-                .getBoolean(context.getString(R.string.show_meta_info_key), true);
-
-        if (!showMetaInfo || metaInfos == null || metaInfos.isEmpty()) {
+        if (metaInfos == null || metaInfos.isEmpty()
+                || !PreferenceManager.getDefaultSharedPreferences(context).getBoolean(
+                        context.getString(R.string.show_meta_info_key), true)) {
             metaInfoTextView.setVisibility(View.GONE);
             metaInfoSeparator.setVisibility(View.GONE);
 
@@ -364,11 +318,9 @@ public final class ExtractorHelper {
                 }
             }
 
-            metaInfoTextView.setText(HtmlCompat.fromHtml(stringBuilder.toString(),
-                    HtmlCompat.FROM_HTML_SEPARATOR_LINE_BREAK_HEADING));
-            metaInfoTextView.setMovementMethod(LinkMovementMethod.getInstance());
-            metaInfoTextView.setVisibility(View.VISIBLE);
             metaInfoSeparator.setVisibility(View.VISIBLE);
+            TextLinkifier.createLinksFromHtmlBlock(metaInfoTextView, stringBuilder.toString(),
+                    HtmlCompat.FROM_HTML_SEPARATOR_LINE_BREAK_HEADING, null, disposables);
         }
     }
 

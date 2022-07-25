@@ -1,11 +1,13 @@
 package org.schabi.newpipelegacy.info_list.holder;
 
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
+import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.info_list.InfoItemBuilder;
 import org.schabi.newpipelegacy.local.history.HistoryRecordManager;
 
@@ -31,11 +33,15 @@ import org.schabi.newpipelegacy.local.history.HistoryRecordManager;
 
 public class CommentsInfoItemHolder extends CommentsMiniInfoItemHolder {
     public final TextView itemTitleView;
+    private final ImageView itemHeartView;
+    private final ImageView itemPinnedView;
 
     public CommentsInfoItemHolder(final InfoItemBuilder infoItemBuilder, final ViewGroup parent) {
         super(infoItemBuilder, R.layout.list_comments_item, parent);
 
         itemTitleView = itemView.findViewById(R.id.itemTitleView);
+        itemHeartView = itemView.findViewById(R.id.detail_heart_image_view);
+        itemPinnedView = itemView.findViewById(R.id.detail_pinned_view);
     }
 
     @Override
@@ -49,5 +55,9 @@ public class CommentsInfoItemHolder extends CommentsMiniInfoItemHolder {
         final CommentsInfoItem item = (CommentsInfoItem) infoItem;
 
         itemTitleView.setText(item.getUploaderName());
+
+        itemHeartView.setVisibility(item.isHeartedByUploader() ? View.VISIBLE : View.GONE);
+
+        itemPinnedView.setVisibility(item.isPinned() ? View.VISIBLE : View.GONE);
     }
 }

@@ -13,13 +13,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.media.session.MediaButtonReceiver;
 
+import com.google.android.exoplayer2.ForwardingPlayer;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 
 import org.schabi.newpipelegacy.MainActivity;
 import org.schabi.newpipelegacy.player.mediasession.MediaSessionCallback;
 import org.schabi.newpipelegacy.player.mediasession.PlayQueueNavigator;
-import org.schabi.newpipelegacy.player.mediasession.PlayQueuePlaybackController;
+
+import java.util.Optional;
 
 public class MediaSessionManager {
     private static final String TAG = MediaSessionManager.class.getSimpleName();
@@ -30,14 +32,15 @@ public class MediaSessionManager {
     @NonNull
     private final MediaSessionConnector sessionConnector;
 
+    private int lastTitleHashCode;
+    private int lastArtistHashCode;
+    private long lastDuration;
     private int lastAlbumArtHashCode;
 
     public MediaSessionManager(@NonNull final Context context,
                                @NonNull final Player player,
                                @NonNull final MediaSessionCallback callback) {
         mediaSession = new MediaSessionCompat(context, TAG);
-        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
-                | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mediaSession.setActive(true);
 
         mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
@@ -52,9 +55,18 @@ public class MediaSessionManager {
                 .build());
 
         sessionConnector = new MediaSessionConnector(mediaSession);
-        sessionConnector.setControlDispatcher(new PlayQueuePlaybackController(callback));
         sessionConnector.setQueueNavigator(new PlayQueueNavigator(mediaSession, callback));
-        sessionConnector.setPlayer(player);
+        sessionConnector.setPlayer(new ForwardingPlayer(player) {
+            @Override
+            public void play() {
+                callback.play();
+            }
+
+            @Override
+            public void pause() {
+                callback.pause();
+            }
+        });
     }
 
     @Nullable
@@ -67,65 +79,139 @@ public class MediaSessionManager {
         return mediaSession.getSessionToken();
     }
 
-    public void setMetadata(final String title,
-                            final String artist,
-                            final Bitmap albumArt,
-                            final long duration) {
-        if (albumArt == null || !mediaSession.isActive()) {
+    /**
+     * sets the Metadata - if required.
+     *
+     * @param title       {@link MediaMetadataCompat#METADATA_KEY_TITLE}
+     * @param artist      {@link MediaMetadataCompat#METADATA_KEY_ARTIST}
+     * @param optAlbumArt {@link MediaMetadataCompat#METADATA_KEY_ALBUM_ART}
+     * @param duration    {@link MediaMetadataCompat#METADATA_KEY_DURATION}
+     *                    - should be a negative value for unknown durations, e.g. for livestreams
+     */
+    public void setMetadata(@NonNull final String title,
+                            @NonNull final String artist,
+                            @NonNull final Optional<Bitmap> optAlbumArt,
+                            final long duration
+    ) {
+        if (DEBUG) {
+            Log.d(TAG, "setMetadata called:"
+                    + " t: " + title
+                    + " a: " + artist
+                    + " thumb: " + (
+                    optAlbumArt.isPresent()
+                            ? optAlbumArt.get().hashCode()
+                            : "<none>")
+                    + " d: " + duration);
+        }
+
+        if (!mediaSession.isActive()) {
+            if (DEBUG) {
+                Log.d(TAG, "setMetadata: mediaSession not active - exiting");
+            }
+            return;
+        }
+
+        if (!checkIfMetadataShouldBeSet(title, artist, optAlbumArt, duration)) {
+            if (DEBUG) {
+                Log.d(TAG, "setMetadata: No update required - exiting");
+            }
             return;
         }
 
         if (DEBUG) {
-            if (getMetadataAlbumArt() == null) {
-                Log.d(TAG, "N_getMetadataAlbumArt: thumb == null");
-            }
-            if (getMetadataTitle() == null) {
-                Log.d(TAG, "N_getMetadataTitle: title == null");
-            }
-            if (getMetadataArtist() == null) {
-                Log.d(TAG, "N_getMetadataArtist: artist == null");
-            }
-            if (getMetadataDuration() <= 1) {
-                Log.d(TAG, "N_getMetadataDuration: duration <= 1; " + getMetadataDuration());
-            }
+            Log.d(TAG, "setMetadata: N_Metadata update:"
+                    + " t: " + title
+                    + " a: " + artist
+                    + " thumb: " + (
+                    optAlbumArt.isPresent()
+                            ? optAlbumArt.get().hashCode()
+                            : "<none>")
+                    + " d: " + duration);
         }
 
-        if (getMetadataAlbumArt() == null || getMetadataTitle() == null
-                || getMetadataArtist() == null || getMetadataDuration() <= 1
-                || albumArt.hashCode() != lastAlbumArtHashCode) {
-            if (DEBUG) {
-                Log.d(TAG, "setMetadata: N_Metadata update: t: " + title + " a: " + artist
-                        + " thumb: " + albumArt.hashCode() + " d: " + duration);
-            }
+        final MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration);
 
-            mediaSession.setMetadata(new MediaMetadataCompat.Builder()
-                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
-                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, albumArt)
-                    .putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, albumArt)
-                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration).build());
-            lastAlbumArtHashCode = albumArt.hashCode();
+        if (optAlbumArt.isPresent()) {
+            builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, optAlbumArt.get());
+            builder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, optAlbumArt.get());
         }
+
+        mediaSession.setMetadata(builder.build());
+
+        lastTitleHashCode = title.hashCode();
+        lastArtistHashCode = artist.hashCode();
+        lastDuration = duration;
+        optAlbumArt.ifPresent(bitmap -> lastAlbumArtHashCode = bitmap.hashCode());
     }
 
+    private boolean checkIfMetadataShouldBeSet(
+            @NonNull final String title,
+            @NonNull final String artist,
+            @NonNull final Optional<Bitmap> optAlbumArt,
+            final long duration
+    ) {
+        // Check if the values have changed since the last time
+        if (title.hashCode() != lastTitleHashCode
+                || artist.hashCode() != lastArtistHashCode
+                || duration != lastDuration
+                || (optAlbumArt.isPresent() && optAlbumArt.get().hashCode() != lastAlbumArtHashCode)
+        ) {
+            if (DEBUG) {
+                Log.d(TAG,
+                        "checkIfMetadataShouldBeSet: true - reason: changed values since last");
+            }
+            return true;
+        }
+
+        // Check if the currently set metadata is valid
+        if (getMetadataTitle() == null
+                || getMetadataArtist() == null
+                // Note that the duration can be <= 0 for live streams
+        ) {
+            if (DEBUG) {
+                if (getMetadataTitle() == null) {
+                    Log.d(TAG,
+                            "N_getMetadataTitle: title == null");
+                } else if (getMetadataArtist() == null) {
+                    Log.d(TAG,
+                            "N_getMetadataArtist: artist == null");
+                }
+            }
+            return true;
+        }
+
+        // If we got an album art check if the current set AlbumArt is null
+        if (optAlbumArt.isPresent() && getMetadataAlbumArt() == null) {
+            if (DEBUG) {
+                Log.d(TAG, "N_getMetadataAlbumArt: thumb == null");
+            }
+            return true;
+        }
+
+        // Default - no update required
+        return false;
+    }
+
+
+    @Nullable
     private Bitmap getMetadataAlbumArt() {
         return mediaSession.getController().getMetadata()
                 .getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART);
     }
 
+    @Nullable
     private String getMetadataTitle() {
         return mediaSession.getController().getMetadata()
                 .getString(MediaMetadataCompat.METADATA_KEY_TITLE);
     }
 
+    @Nullable
     private String getMetadataArtist() {
         return mediaSession.getController().getMetadata()
                 .getString(MediaMetadataCompat.METADATA_KEY_ARTIST);
-    }
-
-    private long getMetadataDuration() {
-        return mediaSession.getController().getMetadata()
-                .getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
     }
 
     /**

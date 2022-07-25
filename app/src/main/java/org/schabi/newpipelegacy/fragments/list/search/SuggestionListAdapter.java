@@ -1,14 +1,13 @@
 package org.schabi.newpipelegacy.fragments.list.search;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.AttrRes;
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.schabi.newpipelegacy.R;
@@ -21,7 +20,6 @@ public class SuggestionListAdapter
     private final ArrayList<SuggestionItem> items = new ArrayList<>();
     private final Context context;
     private OnSuggestionItemSelected listener;
-    private boolean showSuggestionHistory = true;
 
     public SuggestionListAdapter(final Context context) {
         this.context = context;
@@ -29,16 +27,7 @@ public class SuggestionListAdapter
 
     public void setItems(final List<SuggestionItem> items) {
         this.items.clear();
-        if (showSuggestionHistory) {
-            this.items.addAll(items);
-        } else {
-            // remove history items if history is disabled
-            for (final SuggestionItem item : items) {
-                if (!item.fromHistory) {
-                    this.items.add(item);
-                }
-            }
-        }
+        this.items.addAll(items);
         notifyDataSetChanged();
     }
 
@@ -46,12 +35,10 @@ public class SuggestionListAdapter
         this.listener = listener;
     }
 
-    public void setShowSuggestionHistory(final boolean v) {
-        showSuggestionHistory = v;
-    }
-
+    @NonNull
     @Override
-    public SuggestionItemHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
+    public SuggestionItemHolder onCreateViewHolder(@NonNull final ViewGroup parent,
+                                                   final int viewType) {
         return new SuggestionItemHolder(LayoutInflater.from(context)
                 .inflate(R.layout.item_search_suggestion, parent, false));
     }
@@ -117,16 +104,8 @@ public class SuggestionListAdapter
             queryView = rootView.findViewById(R.id.suggestion_search);
             insertView = rootView.findViewById(R.id.suggestion_insert);
 
-            historyResId = resolveResourceIdFromAttr(rootView.getContext(), R.attr.ic_history);
-            searchResId = resolveResourceIdFromAttr(rootView.getContext(), R.attr.ic_search);
-        }
-
-        private static int resolveResourceIdFromAttr(final Context context,
-                                                     @AttrRes final int attr) {
-            final TypedArray a = context.getTheme().obtainStyledAttributes(new int[]{attr});
-            final int attributeResourceId = a.getResourceId(0, 0);
-            a.recycle();
-            return attributeResourceId;
+            historyResId = R.drawable.ic_history;
+            searchResId = R.drawable.ic_search;
         }
 
         private void updateFrom(final SuggestionItem item) {

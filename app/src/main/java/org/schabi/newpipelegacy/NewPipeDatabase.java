@@ -1,5 +1,11 @@
 package org.schabi.newpipelegacy;
 
+import static org.schabi.newpipelegacy.database.AppDatabase.DATABASE_NAME;
+import static org.schabi.newpipelegacy.database.Migrations.MIGRATION_1_2;
+import static org.schabi.newpipelegacy.database.Migrations.MIGRATION_2_3;
+import static org.schabi.newpipelegacy.database.Migrations.MIGRATION_3_4;
+import static org.schabi.newpipelegacy.database.Migrations.MIGRATION_4_5;
+
 import android.content.Context;
 import android.database.Cursor;
 
@@ -7,10 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.room.Room;
 
 import org.schabi.newpipelegacy.database.AppDatabase;
-
-import static org.schabi.newpipelegacy.database.AppDatabase.DATABASE_NAME;
-import static org.schabi.newpipelegacy.database.Migrations.MIGRATION_1_2;
-import static org.schabi.newpipelegacy.database.Migrations.MIGRATION_2_3;
 
 public final class NewPipeDatabase {
     private static volatile AppDatabase databaseInstance;
@@ -22,7 +24,7 @@ public final class NewPipeDatabase {
     private static AppDatabase getDatabase(final Context context) {
         return Room
                 .databaseBuilder(context.getApplicationContext(), AppDatabase.class, DATABASE_NAME)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 .build();
     }
 
@@ -49,6 +51,17 @@ public final class NewPipeDatabase {
         final Cursor c = databaseInstance.query("pragma wal_checkpoint(full)", null);
         if (c.moveToFirst() && c.getInt(0) == 1) {
             throw new RuntimeException("Checkpoint was blocked from completing");
+        }
+    }
+
+    public static void close() {
+        if (databaseInstance != null) {
+            synchronized (NewPipeDatabase.class) {
+                if (databaseInstance != null) {
+                    databaseInstance.close();
+                    databaseInstance = null;
+                }
+            }
         }
     }
 }

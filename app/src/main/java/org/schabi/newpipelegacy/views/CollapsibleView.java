@@ -21,7 +21,6 @@ package org.schabi.newpipelegacy.views;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.os.Build;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -29,9 +28,8 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 
-import org.schabi.newpipelegacy.util.AnimationUtils;
+import org.schabi.newpipelegacy.ktx.ViewUtils;
 
 import java.lang.annotation.Retention;
 import java.util.ArrayList;
@@ -76,7 +74,6 @@ public class CollapsibleView extends LinearLayout {
         super(context, attrs, defStyleAttr);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public CollapsibleView(final Context context, final AttributeSet attrs, final int defStyleAttr,
                            final int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
@@ -128,7 +125,7 @@ public class CollapsibleView extends LinearLayout {
         if (currentAnimator != null && currentAnimator.isRunning()) {
             currentAnimator.cancel();
         }
-        currentAnimator = AnimationUtils.animateHeight(this, ANIMATION_DURATION, 0);
+        currentAnimator = ViewUtils.animateHeight(this, ANIMATION_DURATION, 0);
 
         setCurrentState(COLLAPSED);
     }
@@ -151,7 +148,7 @@ public class CollapsibleView extends LinearLayout {
         if (currentAnimator != null && currentAnimator.isRunning()) {
             currentAnimator.cancel();
         }
-        currentAnimator = AnimationUtils.animateHeight(this, ANIMATION_DURATION, this.targetHeight);
+        currentAnimator = ViewUtils.animateHeight(this, ANIMATION_DURATION, this.targetHeight);
         setCurrentState(EXPANDED);
     }
 

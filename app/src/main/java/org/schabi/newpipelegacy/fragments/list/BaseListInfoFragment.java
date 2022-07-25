@@ -7,12 +7,20 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
+import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.ListExtractor;
 import org.schabi.newpipe.extractor.ListInfo;
 import org.schabi.newpipe.extractor.Page;
+import org.schabi.newpipe.extractor.channel.ChannelInfo;
+import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipelegacy.util.Constants;
+import org.schabi.newpipelegacy.util.ExtractorHelper;
 import org.schabi.newpipelegacy.views.NewPipeRecyclerView;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 
 import icepick.State;
@@ -21,8 +29,8 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public abstract class BaseListInfoFragment<I extends ListInfo>
-        extends BaseListFragment<I, ListExtractor.InfoItemsPage> {
+public abstract class BaseListInfoFragment<I extends InfoItem, L extends ListInfo<I>>
+        extends BaseListFragment<L, ListExtractor.InfoItemsPage<I>> {
     @State
     protected int serviceId = Constants.NO_SERVICE_ID;
     @State
@@ -30,9 +38,14 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
     @State
     protected String url;
 
-    protected I currentInfo;
+    private final UserAction errorUserAction;
+    protected L currentInfo;
     protected Page currentNextPage;
     protected Disposable currentWorker;
+
+    protected BaseListInfoFragment(final UserAction errorUserAction) {
+        this.errorUserAction = errorUserAction;
+    }
 
     @Override
     protected void initViews(final View rootView, final Bundle savedInstanceState) {
@@ -54,7 +67,7 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
         super.onResume();
         // Check if it was loading when the fragment was stopped/paused,
         if (wasLoading.getAndSet(false)) {
-            if (hasMoreItems() && infoListAdapter.getItemsList().size() > 0) {
+            if (hasMoreItems() && !infoListAdapter.getItemsList().isEmpty()) {
                 loadMoreItems();
             } else {
                 doInitialLoadLogic();
@@ -86,7 +99,7 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
     @SuppressWarnings("unchecked")
     public void readFrom(@NonNull final Queue<Object> savedObjects) throws Exception {
         super.readFrom(savedObjects);
-        currentInfo = (I) savedObjects.poll();
+        currentInfo = (L) savedObjects.poll();
         currentNextPage = (Page) savedObjects.poll();
     }
 
@@ -94,6 +107,7 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
     // Load and handle
     //////////////////////////////////////////////////////////////////////////*/
 
+    @Override
     protected void doInitialLoadLogic() {
         if (DEBUG) {
             Log.d(TAG, "doInitialLoadLogic() called");
@@ -107,13 +121,12 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
 
     /**
      * Implement the logic to load the info from the network.<br/>
-     * You can use the default implementations from
-     * {@link org.schabi.newpipelegacy.util.ExtractorHelper}.
+     * You can use the default implementations from {@link ExtractorHelper}.
      *
      * @param forceLoad allow or disallow the result to come from the cache
      * @return Rx {@link Single} containing the {@link ListInfo}
      */
-    protected abstract Single<I> loadResult(boolean forceLoad);
+    protected abstract Single<L> loadResult(boolean forceLoad);
 
     @Override
     public void startLoading(final boolean forceLoad) {
@@ -129,12 +142,14 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
         currentWorker = loadResult(forceLoad)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe((@NonNull I result) -> {
+                .subscribe((@NonNull L result) -> {
                     isLoading.set(false);
                     currentInfo = result;
                     currentNextPage = result.getNextPage();
                     handleResult(result);
-                }, this::onError);
+                }, throwable ->
+                        showError(new ErrorInfo(throwable, errorUserAction,
+                                "Start loading: " + url, serviceId)));
     }
 
     /**
@@ -144,8 +159,9 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
      *
      * @return Rx {@link Single} containing the {@link ListExtractor.InfoItemsPage}
      */
-    protected abstract Single<ListExtractor.InfoItemsPage> loadMoreItemsLogic();
+    protected abstract Single<ListExtractor.InfoItemsPage<I>> loadMoreItemsLogic();
 
+    @Override
     protected void loadMoreItems() {
         isLoading.set(true);
 
@@ -159,13 +175,12 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doFinally(this::allowDownwardFocusScroll)
-                .subscribe((@NonNull ListExtractor.InfoItemsPage InfoItemsPage) -> {
+                .subscribe(infoItemsPage -> {
                     isLoading.set(false);
-                    handleNextItems(InfoItemsPage);
-                }, (@NonNull Throwable throwable) -> {
-                    isLoading.set(false);
-                    onError(throwable);
-                });
+                    handleNextItems(infoItemsPage);
+                }, (@NonNull Throwable throwable) ->
+                        dynamicallyShowErrorPanelOrSnackbar(new ErrorInfo(throwable,
+                                errorUserAction, "Loading more items: " + url, serviceId)));
     }
 
     private void forbidDownwardFocusScroll() {
@@ -181,12 +196,18 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
     }
 
     @Override
-    public void handleNextItems(final ListExtractor.InfoItemsPage result) {
+    public void handleNextItems(final ListExtractor.InfoItemsPage<I> result) {
         super.handleNextItems(result);
+
         currentNextPage = result.getNextPage();
         infoListAdapter.addInfoItemList(result.getItems());
 
         showListFooter(hasMoreItems());
+
+        if (!result.getErrors().isEmpty()) {
+            dynamicallyShowErrorPanelOrSnackbar(new ErrorInfo(result.getErrors(), errorUserAction,
+                    "Get next items of: " + url, serviceId));
+        }
     }
 
     @Override
@@ -199,19 +220,35 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
-    public void handleResult(@NonNull final I result) {
+    public void handleResult(@NonNull final L result) {
         super.handleResult(result);
 
         name = result.getName();
         setTitle(name);
 
         if (infoListAdapter.getItemsList().isEmpty()) {
-            if (result.getRelatedItems().size() > 0) {
+            if (!result.getRelatedItems().isEmpty()) {
                 infoListAdapter.addInfoItemList(result.getRelatedItems());
                 showListFooter(hasMoreItems());
             } else {
                 infoListAdapter.clearStreamItemList();
-                showEmptyState();
+                // showEmptyState should be called only if there is no item as
+                // well as no header in infoListAdapter
+                if (!(result instanceof ChannelInfo && infoListAdapter.getItemCount() == 1)) {
+                    showEmptyState();
+                }
+            }
+        }
+
+        if (!result.getErrors().isEmpty()) {
+            final List<Throwable> errors = new ArrayList<>(result.getErrors());
+            // handling ContentNotSupportedException not to show the error but an appropriate string
+            // so that crashes won't be sent uselessly and the user will understand what happened
+            errors.removeIf(ContentNotSupportedException.class::isInstance);
+
+            if (!errors.isEmpty()) {
+                dynamicallyShowErrorPanelOrSnackbar(new ErrorInfo(result.getErrors(),
+                        errorUserAction, "Start loading: " + url, serviceId));
             }
         }
     }
@@ -224,5 +261,15 @@ public abstract class BaseListInfoFragment<I extends ListInfo>
         this.serviceId = sid;
         this.url = u;
         this.name = !TextUtils.isEmpty(title) ? title : "";
+    }
+
+    private void dynamicallyShowErrorPanelOrSnackbar(final ErrorInfo errorInfo) {
+        if (infoListAdapter.getItemCount() == 0) {
+            // show error panel only if no items already visible
+            showError(errorInfo);
+        } else {
+            isLoading.set(false);
+            showSnackBarError(errorInfo);
+        }
     }
 }

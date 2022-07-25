@@ -19,7 +19,6 @@
 
 package org.schabi.newpipelegacy.local.subscription.services;
 
-import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Build;
@@ -36,15 +35,14 @@ import androidx.core.app.ServiceCompat;
 
 import org.reactivestreams.Publisher;
 import org.schabi.newpipelegacy.R;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipe.extractor.subscription.SubscriptionExtractor;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.ErrorUtil;
+import org.schabi.newpipelegacy.ktx.ExceptionUtils;
 import org.schabi.newpipelegacy.local.subscription.SubscriptionManager;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.ErrorInfo;
-import org.schabi.newpipelegacy.report.UserAction;
-import org.schabi.newpipelegacy.util.ExceptionUtils;
 
 import java.io.FileNotFoundException;
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -153,13 +151,10 @@ public abstract class BaseImportExportService extends Service {
         postErrorResult(null, null);
     }
 
-    protected void stopAndReportError(@Nullable final Throwable error, final String request) {
+    protected void stopAndReportError(final Throwable throwable, final String request) {
         stopService();
-
-        final ErrorInfo errorInfo = ErrorInfo
-                .make(UserAction.SUBSCRIPTION, "unknown", request, R.string.general_error);
-        ErrorActivity.reportError(this, error != null ? Collections.singletonList(error)
-                        : Collections.emptyList(), null, null, errorInfo);
+        ErrorUtil.createNotification(this, new ErrorInfo(
+                throwable, UserAction.SUBSCRIPTION_IMPORT_EXPORT, request));
     }
 
     protected void postErrorResult(final String title, final String text) {
@@ -212,7 +207,6 @@ public abstract class BaseImportExportService extends Service {
     // Error handling
     //////////////////////////////////////////////////////////////////////////*/
 
-    @SuppressLint("StringFormatInvalid")
     protected void handleError(@StringRes final int errorTitle, @NonNull final Throwable error) {
         String message = getErrorMessage(error);
 

@@ -1,6 +1,5 @@
 package org.schabi.newpipelegacy.settings.tabs;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.view.LayoutInflater;
@@ -11,10 +10,10 @@ import android.widget.TextView;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatImageView;
 
 import org.schabi.newpipelegacy.R;
-import org.schabi.newpipelegacy.util.ThemeHelper;
 
 public final class AddTabDialog {
     private final AlertDialog dialog;
@@ -60,7 +59,7 @@ public final class AddTabDialog {
         private DialogListAdapter(final Context context, final ChooseTabListItem[] items) {
             this.inflater = LayoutInflater.from(context);
             this.items = items;
-            this.fallbackIcon = ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_kiosk_hot);
+            this.fallbackIcon = R.drawable.ic_whatshot;
         }
 
         @Override

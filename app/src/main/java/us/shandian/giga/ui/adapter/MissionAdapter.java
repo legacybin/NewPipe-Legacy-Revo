@@ -1,5 +1,25 @@
 package us.shandian.giga.ui.adapter;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+import static android.content.Intent.FLAG_GRANT_PREFIX_URI_PERMISSION;
+import static android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION;
+import static us.shandian.giga.get.DownloadMission.ERROR_CONNECT_HOST;
+import static us.shandian.giga.get.DownloadMission.ERROR_FILE_CREATION;
+import static us.shandian.giga.get.DownloadMission.ERROR_HTTP_NO_CONTENT;
+import static us.shandian.giga.get.DownloadMission.ERROR_INSUFFICIENT_STORAGE;
+import static us.shandian.giga.get.DownloadMission.ERROR_NOTHING;
+import static us.shandian.giga.get.DownloadMission.ERROR_PATH_CREATION;
+import static us.shandian.giga.get.DownloadMission.ERROR_PERMISSION_DENIED;
+import static us.shandian.giga.get.DownloadMission.ERROR_POSTPROCESSING;
+import static us.shandian.giga.get.DownloadMission.ERROR_POSTPROCESSING_HOLD;
+import static us.shandian.giga.get.DownloadMission.ERROR_POSTPROCESSING_STOPPED;
+import static us.shandian.giga.get.DownloadMission.ERROR_PROGRESS_LOST;
+import static us.shandian.giga.get.DownloadMission.ERROR_RESOURCE_GONE;
+import static us.shandian.giga.get.DownloadMission.ERROR_SSL_EXCEPTION;
+import static us.shandian.giga.get.DownloadMission.ERROR_TIMEOUT;
+import static us.shandian.giga.get.DownloadMission.ERROR_UNKNOWN_EXCEPTION;
+import static us.shandian.giga.get.DownloadMission.ERROR_UNKNOWN_HOST;
+
 import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -29,7 +49,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerView.Adapter;
@@ -37,13 +56,16 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipelegacy.BuildConfig;
 import org.schabi.newpipelegacy.R;
-import org.schabi.newpipe.extractor.NewPipe;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.ErrorInfo;
-import org.schabi.newpipelegacy.report.UserAction;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.ErrorUtil;
+import org.schabi.newpipelegacy.error.UserAction;
+import org.schabi.newpipelegacy.streams.io.StoredFileHelper;
+import org.schabi.newpipelegacy.util.Localization;
 import org.schabi.newpipelegacy.util.NavigationHelper;
+import org.schabi.newpipelegacy.util.external_communication.ShareUtils;
 
 import java.io.File;
 import java.net.URI;
@@ -59,32 +81,11 @@ import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.get.FinishedMission;
 import us.shandian.giga.get.Mission;
 import us.shandian.giga.get.MissionRecoveryInfo;
-import us.shandian.giga.io.StoredFileHelper;
 import us.shandian.giga.service.DownloadManager;
 import us.shandian.giga.service.DownloadManagerService;
 import us.shandian.giga.ui.common.Deleter;
 import us.shandian.giga.ui.common.ProgressDrawable;
 import us.shandian.giga.util.Utility;
-
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
-import static android.content.Intent.FLAG_GRANT_PREFIX_URI_PERMISSION;
-import static android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION;
-import static us.shandian.giga.get.DownloadMission.ERROR_CONNECT_HOST;
-import static us.shandian.giga.get.DownloadMission.ERROR_FILE_CREATION;
-import static us.shandian.giga.get.DownloadMission.ERROR_HTTP_NO_CONTENT;
-import static us.shandian.giga.get.DownloadMission.ERROR_INSUFFICIENT_STORAGE;
-import static us.shandian.giga.get.DownloadMission.ERROR_NOTHING;
-import static us.shandian.giga.get.DownloadMission.ERROR_PATH_CREATION;
-import static us.shandian.giga.get.DownloadMission.ERROR_PERMISSION_DENIED;
-import static us.shandian.giga.get.DownloadMission.ERROR_POSTPROCESSING;
-import static us.shandian.giga.get.DownloadMission.ERROR_POSTPROCESSING_HOLD;
-import static us.shandian.giga.get.DownloadMission.ERROR_POSTPROCESSING_STOPPED;
-import static us.shandian.giga.get.DownloadMission.ERROR_PROGRESS_LOST;
-import static us.shandian.giga.get.DownloadMission.ERROR_RESOURCE_GONE;
-import static us.shandian.giga.get.DownloadMission.ERROR_SSL_EXCEPTION;
-import static us.shandian.giga.get.DownloadMission.ERROR_TIMEOUT;
-import static us.shandian.giga.get.DownloadMission.ERROR_UNKNOWN_EXCEPTION;
-import static us.shandian.giga.get.DownloadMission.ERROR_UNKNOWN_HOST;
 
 public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callback {
     private static final SparseArray<String> ALGORITHMS = new SparseArray<>();
@@ -346,24 +347,17 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         if (BuildConfig.DEBUG)
             Log.v(TAG, "Mime: " + mimeType + " package: " + BuildConfig.APPLICATION_ID + ".provider");
 
-        Uri uri = resolveShareableUri(mission);
-
-        Intent intent = new Intent();
-        intent.setAction(Intent.ACTION_VIEW);
-        intent.setDataAndType(uri, mimeType);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(resolveShareableUri(mission), mimeType);
         intent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+        intent.addFlags(FLAG_GRANT_PREFIX_URI_PERMISSION);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            intent.addFlags(FLAG_GRANT_PREFIX_URI_PERMISSION);
-        }
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
         }
 
-        //mContext.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
         if (intent.resolveActivity(mContext.getPackageManager()) != null) {
-            mContext.startActivity(intent);
+            ShareUtils.openIntentInApp(mContext, intent, false);
         } else {
             Toast.makeText(mContext, R.string.toast_no_player, Toast.LENGTH_LONG).show();
         }
@@ -372,12 +366,22 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
     private void shareFile(Mission mission) {
         if (checkInvalidFile(mission)) return;
 
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setType(resolveMimeType(mission));
-        intent.putExtra(Intent.EXTRA_STREAM, resolveShareableUri(mission));
+        final Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType(resolveMimeType(mission));
+        shareIntent.putExtra(Intent.EXTRA_STREAM, resolveShareableUri(mission));
+        shareIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+
+        final Intent intent = new Intent(Intent.ACTION_CHOOSER);
+        intent.putExtra(Intent.EXTRA_INTENT, shareIntent);
+        // unneeded to set a title to the chooser on Android P and higher because the system
+        // ignores this title on these versions
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+            intent.putExtra(Intent.EXTRA_TITLE, mContext.getString(R.string.share_dialog_title));
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
 
-        mContext.startActivity(Intent.createChooser(intent, null));
+        mContext.startActivity(intent);
     }
 
     /**
@@ -548,7 +552,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             );
         }
 
-        builder.setNegativeButton(R.string.finish, (dialog, which) -> dialog.cancel())
+        builder.setNegativeButton(R.string.ok, (dialog, which) -> dialog.cancel())
                 .setTitle(mission.storage.getName())
                 .create()
                 .show();
@@ -571,16 +575,12 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         try {
             service = NewPipe.getServiceByUrl(mission.source).getServiceInfo().getName();
         } catch (Exception e) {
-            service = "-";
+            service = ErrorInfo.SERVICE_NONE;
         }
 
-        ErrorActivity.reportError(
-                mContext,
-                mission.errObject,
-                null,
-                null,
-                ErrorInfo.make(action, service, request.toString(), reason)
-        );
+        ErrorUtil.createNotification(mContext,
+                new ErrorInfo(ErrorInfo.Companion.throwableToStringList(mission.errObject), action,
+                        service, request.toString(), reason));
     }
 
     public void clearFinishedDownloads(boolean delete) {
@@ -594,7 +594,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             }
             applyChanges();
 
-            String msg = String.format(mContext.getString(R.string.deleted_downloads), mHidden.size());
+            String msg = Localization.deletedDownloadCount(mContext, mHidden.size());
             mSnackbar = Snackbar.make(mView, msg, Snackbar.LENGTH_INDEFINITE);
             mSnackbar.setAction(R.string.undo, s -> {
                 Iterator<Mission> i = mHidden.iterator();
@@ -868,7 +868,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             super(view);
 
             progress = new ProgressDrawable();
-            ViewCompat.setBackground(itemView.findViewById(R.id.item_bkg), progress);
+            itemView.findViewById(R.id.item_bkg).setBackground(progress);
 
             status = itemView.findViewById(R.id.item_status);
             name = itemView.findViewById(R.id.item_name);

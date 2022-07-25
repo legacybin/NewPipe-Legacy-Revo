@@ -1,6 +1,8 @@
 package org.schabi.newpipelegacy.fragments.list;
 
-import android.app.Activity;
+import static org.schabi.newpipelegacy.ktx.ViewUtils.animate;
+import static org.schabi.newpipelegacy.ktx.ViewUtils.animateHideRecyclerViewAllowingScrolling;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -12,37 +14,31 @@ import android.view.MenuInflater;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.channel.ChannelInfoItem;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfoItem;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
-import org.schabi.newpipe.extractor.stream.StreamType;
+import org.schabi.newpipelegacy.R;
+import org.schabi.newpipelegacy.error.ErrorUtil;
 import org.schabi.newpipelegacy.fragments.BaseStateFragment;
 import org.schabi.newpipelegacy.fragments.OnScrollBelowItemsListener;
-import org.schabi.newpipelegacy.info_list.InfoItemDialog;
 import org.schabi.newpipelegacy.info_list.InfoListAdapter;
-import org.schabi.newpipelegacy.player.helper.PlayerHolder;
-import org.schabi.newpipelegacy.report.ErrorActivity;
+import org.schabi.newpipelegacy.info_list.dialog.InfoItemDialog;
 import org.schabi.newpipelegacy.util.NavigationHelper;
 import org.schabi.newpipelegacy.util.OnClickGesture;
 import org.schabi.newpipelegacy.util.StateSaver;
-import org.schabi.newpipelegacy.util.StreamDialogEntry;
 import org.schabi.newpipelegacy.views.SuperScrollLayoutManager;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
-
-import static org.schabi.newpipelegacy.util.AnimationUtils.animateView;
+import java.util.function.Supplier;
 
 public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
         implements ListViewContract<I, N>, StateSaver.WriteRead,
@@ -66,17 +62,12 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
-    public void onAttach(final Context context) {
+    public void onAttach(@NonNull final Context context) {
         super.onAttach(context);
 
         if (infoListAdapter == null) {
             infoListAdapter = new InfoListAdapter(activity);
         }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
     }
 
     @Override
@@ -120,8 +111,8 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     /**
      * If the default implementation of {@link StateSaver.WriteRead} should be used.
      *
-     * @see StateSaver
      * @param useDefaultStateSaving Whether the default implementation should be used
+     * @see StateSaver
      */
     public void setUseDefaultStateSaving(final boolean useDefaultStateSaving) {
         this.useDefaultStateSaving = useDefaultStateSaving;
@@ -138,7 +129,7 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
             final View focusedItem = itemsList.getFocusedChild();
             final RecyclerView.ViewHolder itemHolder =
                     itemsList.findContainingViewHolder(focusedItem);
-            return itemHolder.getAdapterPosition();
+            return itemHolder.getBindingAdapterPosition();
         } catch (final NullPointerException e) {
             return -1;
         }
@@ -182,7 +173,7 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     }
 
     @Override
-    public void onSaveInstanceState(final Bundle bundle) {
+    public void onSaveInstanceState(@NonNull final Bundle bundle) {
         super.onSaveInstanceState(bundle);
         if (useDefaultStateSaving) {
             savedState = StateSaver
@@ -214,12 +205,9 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     // Init
     //////////////////////////////////////////////////////////////////////////*/
 
-    protected View getListHeader() {
+    @Nullable
+    protected Supplier<View> getListHeaderSupplier() {
         return null;
-    }
-
-    protected View getListFooter() {
-        return activity.getLayoutInflater().inflate(R.layout.pignate_footer, itemsList, false);
     }
 
     protected RecyclerView.LayoutManager getListLayoutManager() {
@@ -246,8 +234,11 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
         itemsList.setLayoutManager(useGrid ? getGridLayoutManager() : getListLayoutManager());
 
         infoListAdapter.setUseGridVariant(useGrid);
-        infoListAdapter.setFooter(getListFooter());
-        infoListAdapter.setHeader(getListHeader());
+
+        final Supplier<View> listHeaderSupplier = getListHeaderSupplier();
+        if (listHeaderSupplier != null) {
+            infoListAdapter.setHeaderSupplier(listHeaderSupplier);
+        }
 
         itemsList.setAdapter(infoListAdapter);
     }
@@ -261,7 +252,7 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     @Override
     protected void initListeners() {
         super.initListeners();
-        infoListAdapter.setOnStreamSelectedListener(new OnClickGesture<StreamInfoItem>() {
+        infoListAdapter.setOnStreamSelectedListener(new OnClickGesture<>() {
             @Override
             public void selected(final StreamInfoItem selectedItem) {
                 onStreamSelected(selectedItem);
@@ -269,11 +260,11 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
 
             @Override
             public void held(final StreamInfoItem selectedItem) {
-                showStreamDialog(selectedItem);
+                showInfoItemDialog(selectedItem);
             }
         });
 
-        infoListAdapter.setOnChannelSelectedListener(new OnClickGesture<ChannelInfoItem>() {
+        infoListAdapter.setOnChannelSelectedListener(new OnClickGesture<>() {
             @Override
             public void selected(final ChannelInfoItem selectedItem) {
                 try {
@@ -283,12 +274,13 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
                             selectedItem.getUrl(),
                             selectedItem.getName());
                 } catch (final Exception e) {
-                    ErrorActivity.reportUiError((AppCompatActivity) getActivity(), e);
+                    ErrorUtil.showUiErrorSnackbar(
+                            BaseListFragment.this, "Opening channel fragment", e);
                 }
             }
         });
 
-        infoListAdapter.setOnPlaylistSelectedListener(new OnClickGesture<PlaylistInfoItem>() {
+        infoListAdapter.setOnPlaylistSelectedListener(new OnClickGesture<>() {
             @Override
             public void selected(final PlaylistInfoItem selectedItem) {
                 try {
@@ -298,25 +290,103 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
                             selectedItem.getUrl(),
                             selectedItem.getName());
                 } catch (final Exception e) {
-                    ErrorActivity.reportUiError((AppCompatActivity) getActivity(), e);
+                    ErrorUtil.showUiErrorSnackbar(BaseListFragment.this,
+                            "Opening playlist fragment", e);
                 }
             }
         });
 
-        infoListAdapter.setOnCommentsSelectedListener(new OnClickGesture<CommentsInfoItem>() {
+        infoListAdapter.setOnCommentsSelectedListener(new OnClickGesture<>() {
             @Override
             public void selected(final CommentsInfoItem selectedItem) {
                 onItemSelected(selectedItem);
             }
         });
 
+        // Ensure that there is always a scroll listener (e.g. when rotating the device)
+        useNormalItemListScrollListener();
+    }
+
+    /**
+     * Removes all listeners and adds the normal scroll listener to the {@link #itemsList}.
+     */
+    protected void useNormalItemListScrollListener() {
+        if (DEBUG) {
+            Log.d(TAG, "useNormalItemListScrollListener called");
+        }
         itemsList.clearOnScrollListeners();
-        itemsList.addOnScrollListener(new OnScrollBelowItemsListener() {
+        itemsList.addOnScrollListener(new DefaultItemListOnScrolledDownListener());
+    }
+
+    /**
+     * Removes all listeners and adds the initial scroll listener to the {@link #itemsList}.
+     * <br/>
+     * Which tries to load more items when not enough are in the view (not scrollable)
+     * and more are available.
+     * <br/>
+     * Note: This method only works because "This callback will also be called if visible
+     * item range changes after a layout calculation. In that case, dx and dy will be 0."
+     * - which might be unexpected because no actual scrolling occurs...
+     * <br/>
+     * This listener will be replaced by DefaultItemListOnScrolledDownListener when
+     * <ul>
+     *     <li>the view was actually scrolled</li>
+     *     <li>the view is scrollable</li>
+     *     <li>no more items can be loaded</li>
+     * </ul>
+     */
+    protected void useInitialItemListLoadScrollListener() {
+        if (DEBUG) {
+            Log.d(TAG, "useInitialItemListLoadScrollListener called");
+        }
+        itemsList.clearOnScrollListeners();
+        itemsList.addOnScrollListener(new DefaultItemListOnScrolledDownListener() {
             @Override
-            public void onScrolledDown(final RecyclerView recyclerView) {
-                onScrollToBottom();
+            public void onScrolled(@NonNull final RecyclerView recyclerView,
+                                   final int dx, final int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                if (dy != 0) {
+                    log("Vertical scroll occurred");
+
+                    useNormalItemListScrollListener();
+                    return;
+                }
+                if (isLoading.get()) {
+                    log("Still loading data -> Skipping");
+                    return;
+                }
+                if (!hasMoreItems()) {
+                    log("No more items to load");
+
+                    useNormalItemListScrollListener();
+                    return;
+                }
+                if (itemsList.canScrollVertically(1)
+                        || itemsList.canScrollVertically(-1)) {
+                    log("View is scrollable");
+
+                    useNormalItemListScrollListener();
+                    return;
+                }
+
+                log("Loading more data");
+                loadMoreItems();
+            }
+
+            private void log(final String msg) {
+                if (DEBUG) {
+                    Log.d(TAG, "initItemListLoadScrollListener - " + msg);
+                }
             }
         });
+    }
+
+    class DefaultItemListOnScrolledDownListener extends OnScrollBelowItemsListener {
+        @Override
+        public void onScrolledDown(final RecyclerView recyclerView) {
+            onScrollToBottom();
+        }
     }
 
     private void onStreamSelected(final StreamInfoItem selectedItem) {
@@ -332,37 +402,12 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
         }
     }
 
-
-    protected void showStreamDialog(final StreamInfoItem item) {
-        final Context context = getContext();
-        final Activity activity = getActivity();
-        if (context == null || context.getResources() == null || activity == null) {
-            return;
+    protected void showInfoItemDialog(final StreamInfoItem item) {
+        try {
+            new InfoItemDialog.Builder(getActivity(), getContext(), this, item).create().show();
+        } catch (final IllegalArgumentException e) {
+            InfoItemDialog.Builder.reportErrorDuringInitialization(e, item);
         }
-
-        final ArrayList<StreamDialogEntry> entries = new ArrayList<>();
-
-        if (PlayerHolder.getType() != null) {
-            entries.add(StreamDialogEntry.enqueue);
-        }
-        if (item.getStreamType() == StreamType.AUDIO_STREAM) {
-            entries.addAll(Arrays.asList(
-                    StreamDialogEntry.start_here_on_background,
-                    StreamDialogEntry.append_playlist,
-                    StreamDialogEntry.share
-            ));
-        } else  {
-            entries.addAll(Arrays.asList(
-                    StreamDialogEntry.start_here_on_background,
-                    StreamDialogEntry.start_here_on_popup,
-                    StreamDialogEntry.append_playlist,
-                    StreamDialogEntry.share
-            ));
-        }
-        StreamDialogEntry.setEnabledEntries(entries);
-
-        new InfoItemDialog(activity, item, StreamDialogEntry.getCommands(context),
-                (dialog, which) -> StreamDialogEntry.clickOn(which, this, item)).show();
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -370,7 +415,8 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
-    public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull final Menu menu,
+                                    @NonNull final MenuInflater inflater) {
         if (DEBUG) {
             Log.d(TAG, "onCreateOptionsMenu() called with: "
                     + "menu = [" + menu + "], inflater = [" + inflater + "]");
@@ -387,6 +433,12 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     // Load and handle
     //////////////////////////////////////////////////////////////////////////*/
 
+    @Override
+    protected void startLoading(final boolean forceLoad) {
+        useInitialItemListLoadScrollListener();
+        super.startLoading(forceLoad);
+    }
+
     protected abstract void loadMoreItems();
 
     protected abstract boolean hasMoreItems();
@@ -398,26 +450,20 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     @Override
     public void showLoading() {
         super.showLoading();
-        // animateView(itemsList, false, 400);
+        animateHideRecyclerViewAllowingScrolling(itemsList);
     }
 
     @Override
     public void hideLoading() {
         super.hideLoading();
-        animateView(itemsList, true, 300);
-    }
-
-    @Override
-    public void showError(final String message, final boolean showRetryButton) {
-        super.showError(message, showRetryButton);
-        showListFooter(false);
-        animateView(itemsList, false, 200);
+        animate(itemsList, true, 300);
     }
 
     @Override
     public void showEmptyState() {
         super.showEmptyState();
         showListFooter(false);
+        animateHideRecyclerViewAllowingScrolling(itemsList);
     }
 
     @Override
@@ -432,6 +478,13 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     @Override
     public void handleNextItems(final N result) {
         isLoading.set(false);
+    }
+
+    @Override
+    public void handleError() {
+        super.handleError();
+        showListFooter(false);
+        animateHideRecyclerViewAllowingScrolling(itemsList);
     }
 
     @Override
