@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.content.res.AppCompatResources;
 
 import com.squareup.picasso.Cache;
 import com.squareup.picasso.LruCache;
@@ -17,6 +18,7 @@ import com.squareup.picasso.RequestCreator;
 import com.squareup.picasso.Target;
 import com.squareup.picasso.Transformation;
 
+import org.schabi.newpipelegacy.App;
 import org.schabi.newpipelegacy.R;
 
 import java.io.File;
@@ -198,17 +200,18 @@ public final class PicassoHelper {
 
     private static RequestCreator loadImageDefault(final String url, final int placeholderResId,
                                                    final boolean showPlaceholderWhileLoading) {
+        final Drawable placeholder = AppCompatResources.getDrawable(App.getApp(), placeholderResId);
         if (!shouldLoadImages || isBlank(url)) {
             return picassoInstance
                     .load((String) null)
-                    .placeholder(placeholderResId) // show placeholder when no image should load
-                    .error(placeholderResId);
+                    .placeholder(placeholder) // show placeholder when no image should load
+                    .error(placeholder);
         } else {
             final RequestCreator requestCreator = picassoInstance
                     .load(url)
-                    .error(placeholderResId);
+                    .error(placeholder);
             if (showPlaceholderWhileLoading) {
-                requestCreator.placeholder(placeholderResId);
+                requestCreator.placeholder(placeholder);
             }
             return requestCreator;
         }

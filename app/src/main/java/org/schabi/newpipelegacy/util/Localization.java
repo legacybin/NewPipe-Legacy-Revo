@@ -328,7 +328,11 @@ public final class Localization {
     private static void changeAppLanguage(final Locale loc, final Resources res) {
         final DisplayMetrics dm = res.getDisplayMetrics();
         final Configuration conf = res.getConfiguration();
-        conf.setLocale(loc);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            conf.setLocale(loc);
+        } else {
+            conf.locale = loc;
+        }
         res.updateConfiguration(conf, dm);
     }
 

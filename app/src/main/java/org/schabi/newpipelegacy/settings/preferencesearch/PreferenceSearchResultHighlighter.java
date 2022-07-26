@@ -6,11 +6,13 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.RippleDrawable;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.util.TypedValue;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -63,7 +65,8 @@ public final class PreferenceSearchResultHighlighter {
                             recyclerView.findViewHolderForAdapterPosition(position);
                     if (holder != null) {
                         final Drawable background = holder.itemView.getBackground();
-                        if (background instanceof RippleDrawable) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                                && background instanceof RippleDrawable) {
                             showRippleAnimation((RippleDrawable) background);
                             return;
                         }
@@ -115,6 +118,7 @@ public final class PreferenceSearchResultHighlighter {
         }, 1000);
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private static void showRippleAnimation(final RippleDrawable rippleDrawable) {
         rippleDrawable.setState(
                 new int[]{android.R.attr.state_pressed, android.R.attr.state_enabled});

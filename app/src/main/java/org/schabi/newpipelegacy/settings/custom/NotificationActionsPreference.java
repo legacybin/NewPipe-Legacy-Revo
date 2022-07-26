@@ -22,6 +22,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.graphics.drawable.DrawableCompat;
+import androidx.core.widget.TextViewCompat;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceViewHolder;
 
@@ -35,6 +36,7 @@ import org.schabi.newpipelegacy.util.ThemeHelper;
 import org.schabi.newpipelegacy.views.FocusOverlayView;
 
 import java.util.List;
+import java.util.Objects;
 
 public class NotificationActionsPreference extends Preference {
 
@@ -215,17 +217,14 @@ public class NotificationActionsPreference extends Preference {
                         .getRoot();
 
                 // if present set action icon with correct color
-                if (NotificationConstants.ACTION_ICONS[action] != 0) {
-                    Drawable drawable = AppCompatResources.getDrawable(getContext(),
-                            NotificationConstants.ACTION_ICONS[action]);
-                    if (drawable != null) {
-                        final int color = ThemeHelper.resolveColorFromAttr(getContext(),
-                                android.R.attr.textColorPrimary);
-                        drawable = DrawableCompat.wrap(drawable).mutate();
-                        drawable.setTint(color);
-                        radioButton.setCompoundDrawablesRelativeWithIntrinsicBounds(null,
-                                null, drawable, null);
-                    }
+                final int iconId = NotificationConstants.ACTION_ICONS[action];
+                if (iconId != 0) {
+                    final Drawable drawable = Objects.requireNonNull(AppCompatResources
+                            .getDrawable(getContext(), iconId));
+                    DrawableCompat.setTint(drawable, ThemeHelper.resolveColorFromAttr(getContext(),
+                            android.R.attr.textColorPrimary));
+                    TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(radioButton,
+                            null, null, drawable, null);
                 }
 
                 radioButton.setText(NotificationConstants.getActionName(getContext(), action));

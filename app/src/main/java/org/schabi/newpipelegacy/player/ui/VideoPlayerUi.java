@@ -44,6 +44,7 @@ import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.graphics.Insets;
 import androidx.core.math.MathUtils;
+import androidx.core.view.MarginLayoutParamsCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
@@ -403,8 +404,9 @@ public abstract class VideoPlayerUi extends PlayerUi
                                      final int playerTopPad,
                                      final int controlsPad,
                                      final int buttonsPad) {
-        binding.topControls.setPaddingRelative(controlsPad, playerTopPad, controlsPad, 0);
-        binding.bottomControls.setPaddingRelative(controlsPad, 0, controlsPad, 0);
+        ViewCompat.setPaddingRelative(binding.topControls, controlsPad, playerTopPad, controlsPad,
+                0);
+        ViewCompat.setPaddingRelative(binding.bottomControls, controlsPad, 0, controlsPad, 0);
         binding.qualityTextView.setPadding(buttonsPad, buttonsPad, buttonsPad, buttonsPad);
         binding.playbackSpeed.setPadding(buttonsPad, buttonsPad, buttonsPad, buttonsPad);
         binding.playbackSpeed.setMinimumWidth(buttonsMinWidth);
@@ -589,7 +591,7 @@ public abstract class VideoPlayerUi extends PlayerUi
             final LinearLayout.LayoutParams params =
                     new LinearLayout.LayoutParams(
                             binding.seekbarPreviewContainer.getLayoutParams());
-            params.setMarginStart(checkedContainerLeft);
+            MarginLayoutParamsCompat.setMarginStart(params, checkedContainerLeft);
             binding.seekbarPreviewContainer.setLayoutParams(params);
         } catch (final Exception ex) {
             Log.e(TAG, "Failed to adjust seekbarPreviewContainer", ex);
