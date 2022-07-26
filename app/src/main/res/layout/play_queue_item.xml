@@ -15,6 +15,7 @@
         android:layout_width="@dimen/play_queue_thumbnail_width"
         android:layout_height="@dimen/play_queue_thumbnail_height"
         android:layout_marginStart="@dimen/video_item_search_image_right_margin"
+        android:layout_marginLeft="@dimen/video_item_search_image_right_margin"
         android:layout_marginTop="@dimen/video_item_search_image_right_margin"
         android:layout_marginBottom="@dimen/video_item_search_image_right_margin"
         android:scaleType="fitCenter"
@@ -89,10 +90,10 @@
         android:layout_gravity="center_vertical"
         android:paddingHorizontal="@dimen/video_item_search_image_right_margin"
         android:scaleType="center"
-        android:src="@drawable/ic_drag_handle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_drag_handle"
         tools:ignore="ContentDescription,RtlHardcoded" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

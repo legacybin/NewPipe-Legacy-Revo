@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -20,7 +21,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
+            android:layout_marginLeft="12dp"
             android:layout_toStartOf="@+id/refreshIcon"
+            android:layout_toLeftOf="@+id/refreshIcon"
             android:gravity="center_vertical"
             android:orientation="vertical">
 
@@ -54,9 +57,12 @@
             android:layout_alignTop="@+id/refresh_info_container"
             android:layout_alignBottom="@+id/refresh_info_container"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:layout_marginStart="6dp"
+            android:layout_marginLeft="6dp"
             android:layout_marginEnd="12dp"
-            android:src="@drawable/ic_refresh"
+            android:layout_marginRight="12dp"
+            app:srcCompat="@drawable/ic_refresh"
             tools:ignore="ContentDescription" />
 
         <View

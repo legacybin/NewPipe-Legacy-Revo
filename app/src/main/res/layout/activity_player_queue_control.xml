@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="org.schabi.newpipe.player.PlayQueueActivity">
+    tools:context="org.schabi.newpipelegacy.player.PlayQueueActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
@@ -174,8 +174,8 @@
             android:clickable="true"
             android:focusable="true"
             android:scaleType="fitXY"
-            android:src="@drawable/ic_repeat"
-            android:tint="?attr/colorAccent"
+            app:srcCompat="@drawable/ic_repeat"
+            app:tint="?attr/colorAccent"
             tools:ignore="ContentDescription" />
 
         <androidx.appcompat.widget.AppCompatImageButton
@@ -189,8 +189,8 @@
             android:clickable="true"
             android:focusable="true"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_previous"
             android:tint="?attr/colorAccent"
+            app:srcCompat="@drawable/ic_previous"
             tools:ignore="ContentDescription" />
 
         <ImageButton
@@ -219,8 +219,8 @@
             android:clickable="true"
             android:focusable="true"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_pause"
             android:tint="?attr/colorAccent"
+            app:srcCompat="@drawable/ic_pause"
             tools:ignore="ContentDescription" />
 
         <ProgressBar
@@ -268,8 +268,8 @@
             android:clickable="true"
             android:focusable="true"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_next"
             android:tint="?attr/colorAccent"
+            app:srcCompat="@drawable/ic_next"
             tools:ignore="ContentDescription" />
 
         <ImageButton
@@ -284,8 +284,8 @@
             android:clickable="true"
             android:focusable="true"
             android:scaleType="fitXY"
-            android:src="@drawable/ic_shuffle"
             android:tint="?attr/colorAccent"
+            app:srcCompat="@drawable/ic_shuffle"
             tools:ignore="ContentDescription" />
 
     </RelativeLayout>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -39,6 +40,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
@@ -56,7 +58,9 @@
                 android:layout_marginLeft="4dp"
                 android:layout_marginRight="4dp"
                 android:layout_toStartOf="@id/tempoStepUp"
+                android:layout_toLeftOf="@id/tempoStepUp"
                 android:layout_toEndOf="@id/tempoStepDown"
+                android:layout_toRightOf="@id/tempoStepDown"
                 android:orientation="horizontal">
 
                 <org.schabi.newpipelegacy.views.NewPipeTextView
@@ -64,7 +68,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentStart="true"
+                    android:layout_alignParentLeft="true"
                     android:layout_marginStart="4dp"
+                    android:layout_marginLeft="4dp"
                     android:gravity="center"
                     android:text="-.--x"
                     android:textColor="?attr/colorAccent"
@@ -88,7 +94,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
                     android:layout_marginEnd="4dp"
+                    android:layout_marginRight="4dp"
                     android:gravity="center"
                     android:text="---%"
                     android:textColor="?attr/colorAccent"
@@ -110,8 +118,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="4dp"
+                android:layout_marginRight="4dp"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"
@@ -151,9 +161,10 @@
             android:layout_height="22dp"
             android:layout_below="@id/separatorPitch"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:clickable="true"
             android:focusable="true"
-            android:src="@drawable/ic_expand_more"
+            app:srcCompat="@drawable/ic_expand_more"
             tools:ignore="ContentDescription" />
 
         <LinearLayout
@@ -348,8 +359,8 @@
                         android:gravity="center"
                         android:textColor="?attr/colorAccent"
                         android:textStyle="bold"
-                        tools:text="0"
-                        tools:ignore="RelativeOverlap" />
+                        tools:ignore="RelativeOverlap"
+                        tools:text="0" />
 
                     <org.schabi.newpipelegacy.views.NewPipeTextView
                         android:id="@+id/pitchSemitoneMaximumText"

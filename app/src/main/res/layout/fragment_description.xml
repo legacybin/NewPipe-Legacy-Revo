@@ -17,8 +17,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
             android:layout_marginTop="6dp"
             android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textSize="@dimen/video_item_detail_upload_date_text_size"
             android:textStyle="bold"
@@ -32,17 +34,18 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
             android:layout_marginBottom="2dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:contentDescription="@string/description_select_enable"
             android:focusable="true"
             android:padding="5dp"
-            android:src="@drawable/ic_select_all"
             app:layout_constraintBottom_toTopOf="@+id/barrier"
             app:layout_constraintDimensionRatio="1"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_select_all" />
 
         <androidx.constraintlayout.widget.Barrier
             android:id="@+id/barrier"
