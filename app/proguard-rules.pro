@@ -17,6 +17,10 @@
 #}
 
 -dontobfuscate
+-keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
+-keep class org.ocpsoft.prettytime.i18n.** { *; }
+-keep class org.videolan.libvlc.** { *; }
+
 -keep class org.mozilla.javascript.** { *; }
 
 -keep class org.mozilla.classfile.ClassFileWriter

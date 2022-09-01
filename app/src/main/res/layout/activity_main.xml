@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.DrawerLayout
+<org.schabi.newpipelegacy.views.FocusAwareDrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context="org.schabi.newpipe.MainActivity">
+        tools:context="org.schabi.newpipelegacy.MainActivity">
         <FrameLayout
             android:id="@+id/fragment_holder"
             android:layout_width="match_parent"
@@ -24,4 +24,4 @@
 
     <include layout="@layout/drawer_layout"/>
 
-</android.support.v4.widget.DrawerLayout>
+</org.schabi.newpipelegacy.views.FocusAwareDrawerLayout>

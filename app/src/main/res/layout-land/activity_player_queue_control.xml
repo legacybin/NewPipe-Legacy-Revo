@@ -6,16 +6,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="org.schabi.newpipe.player.BackgroundPlayerActivity">
+    tools:context="org.schabi.newpipelegacy.player.BackgroundPlayerActivity">
 
-    <android.support.design.widget.AppBarLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.ActionBar">
 
-        <android.support.v7.widget.Toolbar
+        <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -24,9 +24,9 @@
             app:layout_scrollFlags="scroll|enterAlways"
             app:title="@string/app_name"/>
 
-    </android.support.design.widget.AppBarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/play_queue"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -139,7 +139,7 @@
                 android:focusable="true"
                 android:scaleType="fitCenter"
                 android:tint="?attr/colorAccent"
-                android:src="@drawable/ic_pause_white"
+                app:srcCompat="@drawable/ic_pause_white_24dp"
                 tools:ignore="ContentDescription"/>
 
             <ProgressBar
@@ -213,7 +213,7 @@
                 android:focusable="true"
                 android:scaleType="fitXY"
                 android:tint="?attr/colorAccent"
-                android:src="@drawable/ic_repeat_white"
+                app:srcCompat="@drawable/ic_repeat_white_24dp"
                 tools:ignore="ContentDescription"/>
 
             <View android:layout_width="10dp"
@@ -233,7 +233,7 @@
                 android:focusable="true"
                 android:scaleType="fitXY"
                 android:tint="?attr/colorAccent"
-                android:src="@drawable/ic_shuffle_white_24dp"
+                app:srcCompat="@drawable/ic_shuffle_white_24dp"
                 tools:ignore="ContentDescription"/>
 
             <TextView
@@ -262,7 +262,7 @@
         android:gravity="center"
         android:orientation="horizontal"
         android:paddingLeft="16dp"
-        android:background="@drawable/player_controls_bg"
+        android:background="@drawable/player_controls_background"
         android:paddingRight="16dp">
 
         <TextView
@@ -276,7 +276,7 @@
             tools:ignore="HardcodedText"
             tools:text="1:06:29"/>
 
-        <android.support.v7.widget.AppCompatSeekBar
+        <androidx.appcompat.widget.AppCompatSeekBar
             android:id="@+id/seek_bar"
             style="@style/Widget.AppCompat.SeekBar"
             android:layout_width="0dp"
@@ -304,10 +304,9 @@
             android:paddingLeft="4dp"
             android:paddingRight="4dp"
             android:gravity="center"
-            android:text="@string/duration_live_button"
+            android:text="@string/duration_live"
             android:textAllCaps="true"
             android:textColor="?attr/colorAccent"
-            android:maxLength="4"
             android:background="?attr/selectableItemBackground"
             android:visibility="gone"/>
     </LinearLayout>
