@@ -190,7 +190,7 @@ dependencies {
     // This works thanks to JitPack: https://jitpack.io/
     implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
     //implementation 'com.github.TeamNewPipe:NewPipeExtractor:9ffdd0948b2ecd82655f5ff2a3e127b2b7695d5b'
-    implementation 'com.github.ShareASmile:NewPipeExtractor:28e7e0a70700b7cd0e251df151e309d4b4d486c1'
+    implementation 'com.github.ShareASmile:NewPipeExtractor:65f3b3bf544d8a99443e274ab3011d685347caa9'
 
 /** Checkstyle **/
     checkstyle "com.puppycrawl.tools:checkstyle:${checkstyleVersion}"
