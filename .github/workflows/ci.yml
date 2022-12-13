@@ -5,6 +5,7 @@ on:
   pull_request:
     branches:
       - dev
+      - develop
       - legacy-0.21.1
       - main
       - master
@@ -16,6 +17,7 @@ on:
   push:
     branches:
       - dev
+      - develop
       - legacy-0.21.1
       - main
       - master
