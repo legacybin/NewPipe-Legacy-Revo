@@ -19,7 +19,6 @@
 
 package org.schabi.newpipelegacy.util;
 
-
 import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -46,8 +45,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class StateSaver {
     public static final String KEY_SAVED_STATE = "key_saved_state";
-    private static final ConcurrentHashMap<String, Queue<Object>> STATE_OBJECTS_HOLDER
-            = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Queue<Object>> STATE_OBJECTS_HOLDER =
+            new ConcurrentHashMap<>();
     private static final String TAG = "StateSaver";
     private static final String CACHE_DIR_NAME = "state_cache";
     private static String cacheDirPath;
@@ -72,10 +71,10 @@ public final class StateSaver {
     }
 
     /**
-     * @see #tryToRestore(SavedState, WriteRead)
      * @param outState
      * @param writeRead
      * @return the saved state
+     * @see #tryToRestore(SavedState, WriteRead)
      */
     public static SavedState tryToRestore(final Bundle outState, final WriteRead writeRead) {
         if (outState == null || writeRead == null) {
@@ -93,6 +92,7 @@ public final class StateSaver {
     /**
      * Try to restore the state from memory and disk,
      * using the {@link StateSaver.WriteRead#readFrom(Queue)} from the writeRead.
+     *
      * @param savedState
      * @param writeRead
      * @return the saved state
@@ -106,8 +106,8 @@ public final class StateSaver {
         }
 
         try {
-            Queue<Object> savedObjects
-                    = STATE_OBJECTS_HOLDER.remove(savedState.getPrefixFileSaved());
+            Queue<Object> savedObjects =
+                    STATE_OBJECTS_HOLDER.remove(savedState.getPrefixFileSaved());
             if (savedObjects != null) {
                 writeRead.readFrom(savedObjects);
                 if (MainActivity.DEBUG) {
@@ -143,19 +143,18 @@ public final class StateSaver {
     }
 
     /**
-     * @see #tryToSave(boolean, String, String, WriteRead)
      * @param isChangingConfig
      * @param savedState
      * @param outState
      * @param writeRead
      * @return the saved state or {@code null}
+     * @see #tryToSave(boolean, String, String, WriteRead)
      */
     @Nullable
     public static SavedState tryToSave(final boolean isChangingConfig,
                                        @Nullable final SavedState savedState, final Bundle outState,
                                        final WriteRead writeRead) {
-        @NonNull
-        final String currentSavedPrefix;
+        @NonNull final String currentSavedPrefix;
         if (savedState == null || TextUtils.isEmpty(savedState.getPrefixFileSaved())) {
             // Generate unique prefix
             currentSavedPrefix = System.nanoTime() - writeRead.hashCode() + "";
@@ -299,8 +298,11 @@ public final class StateSaver {
 
         cacheDir = new File(cacheDir, CACHE_DIR_NAME);
         if (cacheDir.exists()) {
-            for (final File file : cacheDir.listFiles()) {
-                file.delete();
+            final File[] list = cacheDir.listFiles();
+            if (list != null) {
+                for (final File file : list) {
+                    file.delete();
+                }
             }
         }
     }

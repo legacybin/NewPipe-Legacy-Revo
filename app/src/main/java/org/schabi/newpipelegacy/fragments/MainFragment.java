@@ -1,7 +1,6 @@
 package org.schabi.newpipelegacy.fragments;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,35 +13,29 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapterMenuWorkaround;
 import androidx.preference.PreferenceManager;
-import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.tabs.TabLayout;
 
+import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipelegacy.BaseFragment;
 import org.schabi.newpipelegacy.R;
-import org.schabi.newpipe.extractor.exceptions.ExtractionException;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.ErrorInfo;
-import org.schabi.newpipelegacy.report.UserAction;
+import org.schabi.newpipelegacy.databinding.FragmentMainBinding;
+import org.schabi.newpipelegacy.error.ErrorUtil;
 import org.schabi.newpipelegacy.settings.tabs.Tab;
 import org.schabi.newpipelegacy.settings.tabs.TabsManager;
 import org.schabi.newpipelegacy.util.NavigationHelper;
 import org.schabi.newpipelegacy.util.ServiceHelper;
-import org.schabi.newpipelegacy.util.ThemeHelper;
-import org.schabi.newpipelegacy.views.ScrollableTabLayout;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainFragment extends BaseFragment implements TabLayout.OnTabSelectedListener {
-    private ViewPager viewPager;
+    private FragmentMainBinding binding;
     private SelectedTabsPagerAdapter pagerAdapter;
-    private ScrollableTabLayout tabLayout;
 
     private final List<Tab> tabsList = new ArrayList<>();
     private TabsManager tabsManager;
@@ -90,13 +83,12 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
     protected void initViews(final View rootView, final Bundle savedInstanceState) {
         super.initViews(rootView, savedInstanceState);
 
-        tabLayout = rootView.findViewById(R.id.main_tab_layout);
-        viewPager = rootView.findViewById(R.id.pager);
+        binding = FragmentMainBinding.bind(rootView);
 
-        tabLayout.setTabIconTint(ColorStateList.valueOf(
-                ThemeHelper.resolveColorFromAttr(requireContext(), R.attr.colorAccent)));
-        tabLayout.setupWithViewPager(viewPager);
-        tabLayout.addOnTabSelectedListener(this);
+        binding.mainTabLayout.setupWithViewPager(binding.pager);
+        binding.mainTabLayout.addOnTabSelectedListener(this);
+        binding.mainTabLayout.setTabRippleColor(binding.mainTabLayout.getTabRippleColor()
+                .withAlpha(32));
 
         setupTabs();
     }
@@ -120,8 +112,9 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
     public void onDestroy() {
         super.onDestroy();
         tabsManager.unsetSavedTabsListener();
-        if (viewPager != null) {
-            viewPager.setAdapter(null);
+        if (binding != null) {
+            binding.pager.setAdapter(null);
+            binding = null;
         }
     }
 
@@ -130,13 +123,14 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
-    public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull final Menu menu,
+                                    @NonNull final MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         if (DEBUG) {
             Log.d(TAG, "onCreateOptionsMenu() called with: "
                     + "menu = [" + menu + "], inflater = [" + inflater + "]");
         }
-        inflater.inflate(R.menu.main_fragment_menu, menu);
+        inflater.inflate(R.menu.menu_main_fragment, menu);
 
         final ActionBar supportActionBar = activity.getSupportActionBar();
         if (supportActionBar != null) {
@@ -146,15 +140,14 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
 
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_search:
-                try {
-                    NavigationHelper.openSearchFragment(getFM(),
-                            ServiceHelper.getSelectedServiceId(activity), "");
-                } catch (final Exception e) {
-                    ErrorActivity.reportUiError((AppCompatActivity) getActivity(), e);
-                }
-                return true;
+        if (item.getItemId() == R.id.action_search) {
+            try {
+                NavigationHelper.openSearchFragment(getFM(),
+                        ServiceHelper.getSelectedServiceId(activity), "");
+            } catch (final Exception e) {
+                ErrorUtil.showUiErrorSnackbar(this, "Opening search fragment", e);
+            }
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -172,19 +165,19 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
                     getChildFragmentManager(), tabsList);
         }
 
-        viewPager.setAdapter(null);
-        viewPager.setOffscreenPageLimit(tabsList.size());
-        viewPager.setAdapter(pagerAdapter);
+        binding.pager.setAdapter(null);
+        binding.pager.setOffscreenPageLimit(tabsList.size());
+        binding.pager.setAdapter(pagerAdapter);
 
         updateTabsIconAndDescription();
-        updateTitleForTab(viewPager.getCurrentItem());
+        updateTitleForTab(binding.pager.getCurrentItem());
 
         hasTabsChanged = false;
     }
 
     private void updateTabsIconAndDescription() {
         for (int i = 0; i < tabsList.size(); i++) {
-            final TabLayout.Tab tabToSet = tabLayout.getTabAt(i);
+            final TabLayout.Tab tabToSet = binding.mainTabLayout.getTabAt(i);
             if (tabToSet != null) {
                 final Tab tab = tabsList.get(i);
                 tabToSet.setIcon(tab.getTabIconRes(requireContext()));
@@ -234,17 +227,11 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
         public Fragment getItem(final int position) {
             final Tab tab = internalTabsList.get(position);
 
-            Throwable throwable = null;
-            Fragment fragment = null;
+            final Fragment fragment;
             try {
                 fragment = tab.getFragment(context);
             } catch (final ExtractionException e) {
-                throwable = e;
-            }
-
-            if (throwable != null) {
-                ErrorActivity.reportError(context, throwable, null, null, ErrorInfo
-                        .make(UserAction.UI_ERROR, "none", "", R.string.app_ui_crash));
+                ErrorUtil.showUiErrorSnackbar(context, "Getting fragment item", e);
                 return new BlankFragment();
             }
 
@@ -256,7 +243,7 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
         }
 
         @Override
-        public int getItemPosition(final Object object) {
+        public int getItemPosition(@NonNull final Object object) {
             // Causes adapter to reload all Fragments when
             // notifyDataSetChanged is called
             return POSITION_NONE;

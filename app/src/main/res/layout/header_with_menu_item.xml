@@ -8,7 +8,7 @@
     android:paddingRight="16dp"
     android:paddingBottom="12dp">
 
-    <TextView
+    <org.schabi.newpipelegacy.views.NewPipeTextView
         android:id="@+id/header_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -29,5 +29,5 @@
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        tools:src="?attr/ic_bookmark" />
+        tools:src="@drawable/ic_bookmark" />
 </LinearLayout>

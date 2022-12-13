@@ -7,9 +7,13 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.core.Maybe
 import org.schabi.newpipelegacy.database.feed.model.FeedEntity
+import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity
 import org.schabi.newpipelegacy.database.feed.model.FeedLastUpdatedEntity
-import org.schabi.newpipelegacy.database.stream.model.StreamEntity
+import org.schabi.newpipelegacy.database.stream.StreamWithState
+import org.schabi.newpipelegacy.database.stream.model.StreamStateEntity
+import org.schabi.newpipelegacy.database.subscription.NotificationMode
 import org.schabi.newpipelegacy.database.subscription.SubscriptionEntity
 import java.time.OffsetDateTime
 
@@ -18,40 +22,62 @@ abstract class FeedDAO {
     @Query("DELETE FROM feed")
     abstract fun deleteAll(): Int
 
+    /**
+     * @param groupId          the group id to get feed streams of; use
+     *                         [FeedGroupEntity.GROUP_ALL_ID] to not filter by group
+     * @param includePlayed    if false, only return all of the live, never-played or non-finished
+     *                         feed streams (see `@see` items); if true no filter is applied
+     * @param uploadDateBefore get only streams uploaded before this date (useful to filter out
+     *                         future streams); use null to not filter by upload date
+     * @return the feed streams filtered according to the conditions provided in the parameters
+     * @see StreamStateEntity.isFinished()
+     * @see StreamStateEntity.PLAYBACK_FINISHED_END_MILLISECONDS
+     */
     @Query(
         """
-        SELECT s.* FROM streams s
+        SELECT s.*, sst.progress_time
+        FROM streams s
 
+        LEFT JOIN stream_state sst
+        ON s.uid = sst.stream_id
+        
+        LEFT JOIN stream_history sh
+        ON s.uid = sh.stream_id
+        
         INNER JOIN feed f
         ON s.uid = f.stream_id
 
-        ORDER BY s.upload_date IS NULL DESC, s.upload_date DESC, s.uploader ASC
-
-        LIMIT 500
-        """
-    )
-    abstract fun getAllStreams(): Flowable<List<StreamEntity>>
-
-    @Query(
-        """
-        SELECT s.* FROM streams s
-
-        INNER JOIN feed f
-        ON s.uid = f.stream_id
-
-        INNER JOIN feed_group_subscription_join fgs
+        LEFT JOIN feed_group_subscription_join fgs
         ON fgs.subscription_id = f.subscription_id
 
-        INNER JOIN feed_group fg
-        ON fg.uid = fgs.group_id
-
-        WHERE fgs.group_id = :groupId
+        WHERE (
+            :groupId = ${FeedGroupEntity.GROUP_ALL_ID}
+            OR fgs.group_id = :groupId
+        )
+        AND (
+            :includePlayed
+            OR sh.stream_id IS NULL
+            OR sst.stream_id IS NULL
+            OR sst.progress_time < s.duration * 1000 - ${StreamStateEntity.PLAYBACK_FINISHED_END_MILLISECONDS}
+            OR sst.progress_time < s.duration * 1000 * 3 / 4
+            OR s.stream_type = 'LIVE_STREAM'
+            OR s.stream_type = 'AUDIO_LIVE_STREAM'
+        )
+        AND (
+            :uploadDateBefore IS NULL
+            OR s.upload_date IS NULL
+            OR s.upload_date < :uploadDateBefore
+        )
 
         ORDER BY s.upload_date IS NULL DESC, s.upload_date DESC, s.uploader ASC
         LIMIT 500
         """
     )
-    abstract fun getAllStreamsFromGroup(groupId: Long): Flowable<List<StreamEntity>>
+    abstract fun getStreams(
+        groupId: Long,
+        includePlayed: Boolean,
+        uploadDateBefore: OffsetDateTime?
+    ): Maybe<List<StreamWithState>>
 
     @Query(
         """
@@ -165,4 +191,21 @@ abstract class FeedDAO {
         """
     )
     abstract fun getAllOutdatedForGroup(groupId: Long, outdatedThreshold: OffsetDateTime): Flowable<List<SubscriptionEntity>>
+
+    @Query(
+        """
+        SELECT s.* FROM subscriptions s
+
+        LEFT JOIN feed_last_updated lu
+        ON s.uid = lu.subscription_id
+
+        WHERE 
+            (lu.last_updated IS NULL OR lu.last_updated < :outdatedThreshold)
+            AND s.notification_mode = :notificationMode
+        """
+    )
+    abstract fun getOutdatedWithNotificationMode(
+        outdatedThreshold: OffsetDateTime,
+        @NotificationMode notificationMode: Int
+    ): Flowable<List<SubscriptionEntity>>
 }

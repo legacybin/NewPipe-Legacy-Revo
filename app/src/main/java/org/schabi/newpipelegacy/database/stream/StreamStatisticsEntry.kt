@@ -6,15 +6,15 @@ import org.schabi.newpipe.extractor.stream.StreamInfoItem
 import org.schabi.newpipelegacy.database.LocalItem
 import org.schabi.newpipelegacy.database.history.model.StreamHistoryEntity
 import org.schabi.newpipelegacy.database.stream.model.StreamEntity
-import org.schabi.newpipelegacy.database.stream.model.StreamStateEntity.STREAM_PROGRESS_TIME
+import org.schabi.newpipelegacy.database.stream.model.StreamStateEntity.STREAM_PROGRESS_MILLIS
 import java.time.OffsetDateTime
 
 class StreamStatisticsEntry(
     @Embedded
     val streamEntity: StreamEntity,
 
-    @ColumnInfo(name = STREAM_PROGRESS_TIME, defaultValue = "0")
-    val progressTime: Long,
+    @ColumnInfo(name = STREAM_PROGRESS_MILLIS, defaultValue = "0")
+    val progressMillis: Long,
 
     @ColumnInfo(name = StreamHistoryEntity.JOIN_STREAM_ID)
     val streamId: Long,
@@ -29,6 +29,7 @@ class StreamStatisticsEntry(
         val item = StreamInfoItem(streamEntity.serviceId, streamEntity.url, streamEntity.title, streamEntity.streamType)
         item.duration = streamEntity.duration
         item.uploaderName = streamEntity.uploader
+        item.uploaderUrl = streamEntity.uploaderUrl
         item.thumbnailUrl = streamEntity.thumbnailUrl
 
         return item

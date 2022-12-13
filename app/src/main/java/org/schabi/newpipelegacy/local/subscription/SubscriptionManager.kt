@@ -11,9 +11,12 @@ import org.schabi.newpipe.extractor.feed.FeedInfo
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 import org.schabi.newpipelegacy.NewPipeDatabase
 import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity
+import org.schabi.newpipelegacy.database.stream.model.StreamEntity
+import org.schabi.newpipelegacy.database.subscription.NotificationMode
 import org.schabi.newpipelegacy.database.subscription.SubscriptionDAO
 import org.schabi.newpipelegacy.database.subscription.SubscriptionEntity
 import org.schabi.newpipelegacy.local.feed.FeedDatabaseManager
+import org.schabi.newpipelegacy.util.ExtractorHelper
 
 class SubscriptionManager(context: Context) {
     private val database = NewPipeDatabase.getInstance(context)
@@ -66,13 +69,33 @@ class SubscriptionManager(context: Context) {
             }
         }
 
+    fun updateNotificationMode(serviceId: Int, url: String, @NotificationMode mode: Int): Completable {
+        return subscriptionTable().getSubscription(serviceId, url)
+            .flatMapCompletable { entity: SubscriptionEntity ->
+                Completable.fromAction {
+                    entity.notificationMode = mode
+                    subscriptionTable().update(entity)
+                }.apply {
+                    if (mode != NotificationMode.DISABLED) {
+                        // notifications have just been enabled, mark all streams as "old"
+                        andThen(rememberAllStreams(entity))
+                    }
+                }
+            }
+    }
+
     fun updateFromInfo(subscriptionId: Long, info: ListInfo<StreamInfoItem>) {
         val subscriptionEntity = subscriptionTable.getSubscription(subscriptionId)
 
         if (info is FeedInfo) {
             subscriptionEntity.name = info.name
         } else if (info is ChannelInfo) {
-            subscriptionEntity.setData(info.name, info.avatarUrl, info.description, info.subscriberCount)
+            subscriptionEntity.setData(
+                info.name,
+                info.avatarUrl,
+                info.description,
+                info.subscriberCount
+            )
         }
 
         subscriptionTable.update(subscriptionEntity)
@@ -93,5 +116,20 @@ class SubscriptionManager(context: Context) {
 
     fun deleteSubscription(subscriptionEntity: SubscriptionEntity) {
         subscriptionTable.delete(subscriptionEntity)
+    }
+
+    /**
+     * Fetches the list of videos for the provided channel and saves them in the database, so that
+     * they will be considered as "old"/"already seen" streams and the user will never be notified
+     * about any one of them.
+     */
+    private fun rememberAllStreams(subscription: SubscriptionEntity): Completable {
+        return ExtractorHelper.getChannelInfo(subscription.serviceId, subscription.url, false)
+            .map { channel -> channel.relatedItems.map { stream -> StreamEntity(stream) } }
+            .flatMapCompletable { entities ->
+                Completable.fromAction {
+                    database.streamDAO().upsertAll(entities)
+                }
+            }.onErrorComplete()
     }
 }

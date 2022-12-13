@@ -1,11 +1,11 @@
 package org.schabi.newpipelegacy.settings;
 
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -15,23 +15,18 @@ import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.database.subscription.SubscriptionEntity;
+import org.schabi.newpipelegacy.error.ErrorUtil;
 import org.schabi.newpipelegacy.local.subscription.SubscriptionManager;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.ErrorInfo;
-import org.schabi.newpipelegacy.report.UserAction;
+import org.schabi.newpipelegacy.util.PicassoHelper;
 import org.schabi.newpipelegacy.util.ThemeHelper;
 
 import java.util.List;
 import java.util.Vector;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
@@ -57,13 +52,6 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
  */
 
 public class SelectChannelFragment extends DialogFragment {
-    /**
-     * This contains the base display options for images.
-     */
-    private static final DisplayImageOptions DISPLAY_IMAGE_OPTIONS
-            = new DisplayImageOptions.Builder().cacheInMemory(true).build();
-
-    private final ImageLoader imageLoader = ImageLoader.getInstance();
 
     private OnSelectedListener onSelectedListener = null;
     private OnCancelListener onCancelListener = null;
@@ -108,7 +96,7 @@ public class SelectChannelFragment extends DialogFragment {
         emptyView.setVisibility(View.GONE);
 
 
-        final SubscriptionManager subscriptionManager = new SubscriptionManager(getContext());
+        final SubscriptionManager subscriptionManager = new SubscriptionManager(requireContext());
         subscriptionManager.subscriptions().toObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -122,7 +110,7 @@ public class SelectChannelFragment extends DialogFragment {
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
-    public void onCancel(final DialogInterface dialogInterface) {
+    public void onCancel(@NonNull final DialogInterface dialogInterface) {
         super.onCancel(dialogInterface);
         if (onCancelListener != null) {
             onCancelListener.onCancel();
@@ -156,31 +144,22 @@ public class SelectChannelFragment extends DialogFragment {
     private Observer<List<SubscriptionEntity>> getSubscriptionObserver() {
         return new Observer<List<SubscriptionEntity>>() {
             @Override
-            public void onSubscribe(final Disposable d) { }
+            public void onSubscribe(@NonNull final Disposable disposable) { }
 
             @Override
-            public void onNext(final List<SubscriptionEntity> newSubscriptions) {
+            public void onNext(@NonNull final List<SubscriptionEntity> newSubscriptions) {
                 displayChannels(newSubscriptions);
             }
 
             @Override
-            public void onError(final Throwable exception) {
-                SelectChannelFragment.this.onError(exception);
+            public void onError(@NonNull final Throwable exception) {
+                ErrorUtil.showUiErrorSnackbar(SelectChannelFragment.this,
+                        "Loading subscription", exception);
             }
 
             @Override
             public void onComplete() { }
         };
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
-    // Error
-    //////////////////////////////////////////////////////////////////////////*/
-
-    protected void onError(final Throwable e) {
-        final Activity activity = getActivity();
-        ErrorActivity.reportError(activity, e, activity.getClass(), null, ErrorInfo
-                .make(UserAction.UI_ERROR, "none", "", R.string.app_ui_crash));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -197,6 +176,7 @@ public class SelectChannelFragment extends DialogFragment {
 
     private class SelectChannelAdapter
             extends RecyclerView.Adapter<SelectChannelAdapter.SelectChannelItemHolder> {
+        @NonNull
         @Override
         public SelectChannelItemHolder onCreateViewHolder(final ViewGroup parent,
                                                           final int viewType) {
@@ -210,8 +190,7 @@ public class SelectChannelFragment extends DialogFragment {
             final SubscriptionEntity entry = subscriptions.get(position);
             holder.titleView.setText(entry.getName());
             holder.view.setOnClickListener(view -> clickedItem(position));
-            imageLoader.displayImage(entry.getAvatarUrl(), holder.thumbnailView,
-                    DISPLAY_IMAGE_OPTIONS);
+            PicassoHelper.loadAvatar(entry.getAvatarUrl()).into(holder.thumbnailView);
         }
 
         @Override
@@ -221,7 +200,7 @@ public class SelectChannelFragment extends DialogFragment {
 
         public class SelectChannelItemHolder extends RecyclerView.ViewHolder {
             public final View view;
-            final CircleImageView thumbnailView;
+            final ImageView thumbnailView;
             final TextView titleView;
             SelectChannelItemHolder(final View v) {
                 super(v);

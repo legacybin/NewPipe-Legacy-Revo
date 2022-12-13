@@ -11,7 +11,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 
-import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.ListExtractor;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.StreamingService;
@@ -19,16 +18,17 @@ import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.kiosk.KioskInfo;
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandlerFactory;
 import org.schabi.newpipe.extractor.localization.ContentCountry;
+import org.schabi.newpipe.extractor.stream.StreamInfoItem;
+import org.schabi.newpipelegacy.R;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipelegacy.fragments.list.BaseListInfoFragment;
-import org.schabi.newpipelegacy.report.UserAction;
 import org.schabi.newpipelegacy.util.ExtractorHelper;
 import org.schabi.newpipelegacy.util.KioskTranslator;
 import org.schabi.newpipelegacy.util.Localization;
 
 import icepick.State;
 import io.reactivex.rxjava3.core.Single;
-
-import static org.schabi.newpipelegacy.util.AnimationUtils.animateView;
 
 /**
  * Created by Christian Schabesberger on 23.09.17.
@@ -54,7 +54,7 @@ import static org.schabi.newpipelegacy.util.AnimationUtils.animateView;
  * </p>
  */
 
-public class KioskFragment extends BaseListInfoFragment<KioskInfo> {
+public class KioskFragment extends BaseListInfoFragment<StreamInfoItem, KioskInfo> {
     @State
     String kioskId = "";
     String kioskTranslatedName;
@@ -82,6 +82,10 @@ public class KioskFragment extends BaseListInfoFragment<KioskInfo> {
         return instance;
     }
 
+    public KioskFragment() {
+        super(UserAction.REQUESTED_KIOSK);
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
     // LifeCycle
     //////////////////////////////////////////////////////////////////////////*/
@@ -96,15 +100,16 @@ public class KioskFragment extends BaseListInfoFragment<KioskInfo> {
     }
 
     @Override
-    public void setUserVisibleHint(final boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        if (useAsFrontPage && isVisibleToUser && activity != null) {
+    public void onResume() {
+        super.onResume();
+        if (!Localization.getPreferredContentCountry(requireContext()).equals(contentCountry)) {
+            reloadContent();
+        }
+        if (useAsFrontPage && activity != null) {
             try {
                 setTitle(kioskTranslatedName);
             } catch (final Exception e) {
-                onUnrecoverableError(e, UserAction.UI_ERROR,
-                        "none",
-                        "none", R.string.app_ui_crash);
+                showSnackBarError(new ErrorInfo(e, UserAction.UI_ERROR, "Setting kiosk title"));
             }
         }
     }
@@ -116,21 +121,13 @@ public class KioskFragment extends BaseListInfoFragment<KioskInfo> {
         return inflater.inflate(R.layout.fragment_kiosk, container, false);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if (!Localization.getPreferredContentCountry(requireContext()).equals(contentCountry)) {
-            reloadContent();
-        }
-    }
-
     /*//////////////////////////////////////////////////////////////////////////
     // Menu
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
-    public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull final Menu menu,
+                                    @NonNull final MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         final ActionBar supportActionBar = activity.getSupportActionBar();
         if (supportActionBar != null && useAsFrontPage) {
@@ -149,7 +146,7 @@ public class KioskFragment extends BaseListInfoFragment<KioskInfo> {
     }
 
     @Override
-    public Single<ListExtractor.InfoItemsPage> loadMoreItemsLogic() {
+    public Single<ListExtractor.InfoItemsPage<StreamInfoItem>> loadMoreItemsLogic() {
         return ExtractorHelper.getMoreKioskItems(serviceId, url, currentNextPage);
     }
 
@@ -158,33 +155,10 @@ public class KioskFragment extends BaseListInfoFragment<KioskInfo> {
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
-    public void showLoading() {
-        super.showLoading();
-        animateView(itemsList, false, 100);
-    }
-
-    @Override
     public void handleResult(@NonNull final KioskInfo result) {
         super.handleResult(result);
 
         name = kioskTranslatedName;
         setTitle(kioskTranslatedName);
-
-        if (!result.getErrors().isEmpty()) {
-            showSnackBarError(result.getErrors(),
-                    UserAction.REQUESTED_KIOSK,
-                    NewPipe.getNameOfService(result.getServiceId()), result.getUrl(), 0);
-        }
-    }
-
-    @Override
-    public void handleNextItems(final ListExtractor.InfoItemsPage result) {
-        super.handleNextItems(result);
-
-        if (!result.getErrors().isEmpty()) {
-            showSnackBarError(result.getErrors(),
-                    UserAction.REQUESTED_PLAYLIST, NewPipe.getNameOfService(serviceId),
-                    "Get next page of: " + url, 0);
-        }
     }
 }

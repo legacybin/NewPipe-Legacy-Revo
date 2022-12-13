@@ -1,8 +1,10 @@
 package org.schabi.newpipelegacy.util;
 
+import static org.schabi.newpipelegacy.util.ListHelper.getUrlAndNonTorrentStreams;
+import static org.schabi.newpipelegacy.util.external_communication.ShareUtils.installApp;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -19,21 +21,24 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.nostra13.universalimageloader.core.ImageLoader;
+import com.jakewharton.processphoenix.ProcessPhoenix;
 
+import org.schabi.newpipe.extractor.NewPipe;
+import org.schabi.newpipe.extractor.StreamingService;
+import org.schabi.newpipe.extractor.exceptions.ExtractionException;
+import org.schabi.newpipe.extractor.stream.AudioStream;
+import org.schabi.newpipe.extractor.stream.DeliveryMethod;
+import org.schabi.newpipe.extractor.stream.Stream;
+import org.schabi.newpipe.extractor.stream.StreamInfo;
+import org.schabi.newpipe.extractor.stream.StreamInfoItem;
+import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipelegacy.MainActivity;
+import org.schabi.newpipelegacy.NewPipeDatabase;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.RouterActivity;
 import org.schabi.newpipelegacy.about.AboutActivity;
 import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity;
 import org.schabi.newpipelegacy.download.DownloadActivity;
-import org.schabi.newpipe.extractor.NewPipe;
-import org.schabi.newpipe.extractor.StreamingService;
-import org.schabi.newpipe.extractor.exceptions.ExtractionException;
-import org.schabi.newpipe.extractor.stream.AudioStream;
-import org.schabi.newpipe.extractor.stream.Stream;
-import org.schabi.newpipe.extractor.stream.StreamInfo;
-import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipelegacy.fragments.MainFragment;
 import org.schabi.newpipelegacy.fragments.detail.VideoDetailFragment;
 import org.schabi.newpipelegacy.fragments.list.channel.ChannelFragment;
@@ -46,28 +51,32 @@ import org.schabi.newpipelegacy.local.history.StatisticsPlaylistFragment;
 import org.schabi.newpipelegacy.local.playlist.LocalPlaylistFragment;
 import org.schabi.newpipelegacy.local.subscription.SubscriptionFragment;
 import org.schabi.newpipelegacy.local.subscription.SubscriptionsImportFragment;
-import org.schabi.newpipelegacy.player.BackgroundPlayerActivity;
-import org.schabi.newpipelegacy.player.BasePlayer;
-import org.schabi.newpipelegacy.player.MainPlayer;
-import org.schabi.newpipelegacy.player.VideoPlayer;
+import org.schabi.newpipelegacy.player.PlayQueueActivity;
+import org.schabi.newpipelegacy.player.Player;
+import org.schabi.newpipelegacy.player.PlayerService;
+import org.schabi.newpipelegacy.player.PlayerType;
 import org.schabi.newpipelegacy.player.helper.PlayerHelper;
 import org.schabi.newpipelegacy.player.helper.PlayerHolder;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueue;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueueItem;
 import org.schabi.newpipelegacy.settings.SettingsActivity;
+import org.schabi.newpipelegacy.util.external_communication.ShareUtils;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public final class NavigationHelper {
     public static final String MAIN_FRAGMENT_TAG = "main_fragment_tag";
     public static final String SEARCH_FRAGMENT_TAG = "search_fragment_tag";
 
-    private NavigationHelper() { }
+    private static final String TAG = NavigationHelper.class.getSimpleName();
+
+    private NavigationHelper() {
+    }
 
     /*//////////////////////////////////////////////////////////////////////////
     // Players
     //////////////////////////////////////////////////////////////////////////*/
-
+    /* INTENT */
     @NonNull
     public static <T> Intent getPlayerIntent(@NonNull final Context context,
                                              @NonNull final Class<T> targetClazz,
@@ -78,11 +87,11 @@ public final class NavigationHelper {
         if (playQueue != null) {
             final String cacheKey = SerializedCache.getInstance().put(playQueue, PlayQueue.class);
             if (cacheKey != null) {
-                intent.putExtra(VideoPlayer.PLAY_QUEUE_KEY, cacheKey);
+                intent.putExtra(Player.PLAY_QUEUE_KEY, cacheKey);
             }
         }
-        intent.putExtra(VideoPlayer.RESUME_PLAYBACK, resumePlayback);
-        intent.putExtra(VideoPlayer.PLAYER_TYPE, VideoPlayer.PLAYER_TYPE_VIDEO);
+        intent.putExtra(Player.PLAYER_TYPE, PlayerType.MAIN.valueForIntent());
+        intent.putExtra(Player.RESUME_PLAYBACK, resumePlayback);
 
         return intent;
     }
@@ -94,35 +103,53 @@ public final class NavigationHelper {
                                              final boolean resumePlayback,
                                              final boolean playWhenReady) {
         return getPlayerIntent(context, targetClazz, playQueue, resumePlayback)
-                .putExtra(BasePlayer.PLAY_WHEN_READY, playWhenReady);
+                .putExtra(Player.PLAY_WHEN_READY, playWhenReady);
     }
 
     @NonNull
     public static <T> Intent getPlayerEnqueueIntent(@NonNull final Context context,
                                                     @NonNull final Class<T> targetClazz,
-                                                    @Nullable final PlayQueue playQueue,
-                                                    final boolean selectOnAppend,
-                                                    final boolean resumePlayback) {
-        return getPlayerIntent(context, targetClazz, playQueue, resumePlayback)
-                .putExtra(BasePlayer.APPEND_ONLY, true)
-                .putExtra(BasePlayer.SELECT_ON_APPEND, selectOnAppend);
+                                                    @Nullable final PlayQueue playQueue) {
+        // when enqueueing `resumePlayback` is always `false` since:
+        // - if there is a video already playing, the value of `resumePlayback` just doesn't make
+        //   any difference.
+        // - if there is nothing already playing, it is useful for the enqueue action to have a
+        //   slightly different behaviour than the normal play action: the latter resumes playback,
+        //   the former doesn't. (note that enqueue can be triggered when nothing is playing only
+        //   by long pressing the video detail fragment, playlist or channel controls
+        return getPlayerIntent(context, targetClazz, playQueue, false)
+                .putExtra(Player.ENQUEUE, true);
     }
 
+    @NonNull
+    public static <T> Intent getPlayerEnqueueNextIntent(@NonNull final Context context,
+                                                        @NonNull final Class<T> targetClazz,
+                                                        @Nullable final PlayQueue playQueue) {
+        // see comment in `getPlayerEnqueueIntent` as to why `resumePlayback` is false
+        return getPlayerIntent(context, targetClazz, playQueue, false)
+                .putExtra(Player.ENQUEUE_NEXT, true);
+    }
+
+    /* PLAY */
     public static void playOnMainPlayer(final AppCompatActivity activity,
                                         @NonNull final PlayQueue playQueue) {
         final PlayQueueItem item = playQueue.getItem();
-        assert item != null;
-        openVideoDetailFragment(activity, activity.getSupportFragmentManager(),
-                item.getServiceId(), item.getUrl(), item.getTitle(), playQueue, false);
+        if (item != null) {
+            openVideoDetailFragment(activity, activity.getSupportFragmentManager(),
+                    item.getServiceId(), item.getUrl(), item.getTitle(), playQueue,
+                    false);
+        }
     }
 
     public static void playOnMainPlayer(final Context context,
                                         @NonNull final PlayQueue playQueue,
                                         final boolean switchingPlayers) {
         final PlayQueueItem item = playQueue.getItem();
-        assert item != null;
-        openVideoDetail(context,
-                item.getServiceId(), item.getUrl(), item.getTitle(), playQueue, switchingPlayers);
+        if (item != null) {
+            openVideoDetail(context,
+                    item.getServiceId(), item.getUrl(), item.getTitle(), playQueue,
+                    switchingPlayers);
+        }
     }
 
     public static void playOnPopupPlayer(final Context context,
@@ -134,8 +161,9 @@ public final class NavigationHelper {
         }
 
         Toast.makeText(context, R.string.popup_playing_toast, Toast.LENGTH_SHORT).show();
-        final Intent intent = getPlayerIntent(context, MainPlayer.class, queue, resumePlayback);
-        intent.putExtra(VideoPlayer.PLAYER_TYPE, VideoPlayer.PLAYER_TYPE_POPUP);
+
+        final Intent intent = getPlayerIntent(context, PlayerService.class, queue, resumePlayback);
+        intent.putExtra(Player.PLAYER_TYPE, PlayerType.POPUP.valueForIntent());
         ContextCompat.startForegroundService(context, intent);
     }
 
@@ -144,61 +172,44 @@ public final class NavigationHelper {
                                               final boolean resumePlayback) {
         Toast.makeText(context, R.string.background_player_playing_toast, Toast.LENGTH_SHORT)
                 .show();
-        final Intent intent = getPlayerIntent(context, MainPlayer.class, queue, resumePlayback);
-        intent.putExtra(VideoPlayer.PLAYER_TYPE, VideoPlayer.PLAYER_TYPE_AUDIO);
+
+        final Intent intent = getPlayerIntent(context, PlayerService.class, queue, resumePlayback);
+        intent.putExtra(Player.PLAYER_TYPE, PlayerType.AUDIO.valueForIntent());
         ContextCompat.startForegroundService(context, intent);
     }
 
-    public static void enqueueOnVideoPlayer(final Context context, final PlayQueue queue,
-                                            final boolean resumePlayback) {
-        enqueueOnVideoPlayer(context, queue, false, resumePlayback);
-    }
-
-    public static void enqueueOnVideoPlayer(final Context context, final PlayQueue queue,
-                                            final boolean selectOnAppend,
-                                            final boolean resumePlayback) {
-
+    /* ENQUEUE */
+    public static void enqueueOnPlayer(final Context context,
+                                       final PlayQueue queue,
+                                       final PlayerType playerType) {
         Toast.makeText(context, R.string.enqueued, Toast.LENGTH_SHORT).show();
-        final Intent intent = getPlayerEnqueueIntent(
-                context, MainPlayer.class, queue, selectOnAppend, resumePlayback);
+        final Intent intent = getPlayerEnqueueIntent(context, PlayerService.class, queue);
 
-        intent.putExtra(VideoPlayer.PLAYER_TYPE, VideoPlayer.PLAYER_TYPE_VIDEO);
+        intent.putExtra(Player.PLAYER_TYPE, playerType.valueForIntent());
         ContextCompat.startForegroundService(context, intent);
     }
 
-    public static void enqueueOnPopupPlayer(final Context context, final PlayQueue queue,
-                                            final boolean resumePlayback) {
-        enqueueOnPopupPlayer(context, queue, false, resumePlayback);
-    }
-
-    public static void enqueueOnPopupPlayer(final Context context, final PlayQueue queue,
-                                            final boolean selectOnAppend,
-                                            final boolean resumePlayback) {
-        if (!PermissionHelper.isPopupEnabled(context)) {
-            PermissionHelper.showPopupEnablementToast(context);
-            return;
+    public static void enqueueOnPlayer(final Context context, final PlayQueue queue) {
+        PlayerType playerType = PlayerHolder.getInstance().getType();
+        if (playerType == null) {
+            Log.e(TAG, "Enqueueing but no player is open; defaulting to background player");
+            playerType = PlayerType.AUDIO;
         }
 
-        Toast.makeText(context, R.string.enqueued, Toast.LENGTH_SHORT).show();
-        final Intent intent = getPlayerEnqueueIntent(
-                context, MainPlayer.class, queue, selectOnAppend, resumePlayback);
-        intent.putExtra(VideoPlayer.PLAYER_TYPE, VideoPlayer.PLAYER_TYPE_POPUP);
-        ContextCompat.startForegroundService(context, intent);
+        enqueueOnPlayer(context, queue, playerType);
     }
 
-    public static void enqueueOnBackgroundPlayer(final Context context, final PlayQueue queue,
-                                                 final boolean resumePlayback) {
-        enqueueOnBackgroundPlayer(context, queue, false, resumePlayback);
-    }
+    /* ENQUEUE NEXT */
+    public static void enqueueNextOnPlayer(final Context context, final PlayQueue queue) {
+        PlayerType playerType = PlayerHolder.getInstance().getType();
+        if (playerType == null) {
+            Log.e(TAG, "Enqueueing next but no player is open; defaulting to background player");
+            playerType = PlayerType.AUDIO;
+        }
+        Toast.makeText(context, R.string.enqueued_next, Toast.LENGTH_SHORT).show();
+        final Intent intent = getPlayerEnqueueNextIntent(context, PlayerService.class, queue);
 
-    public static void enqueueOnBackgroundPlayer(final Context context,
-                                                 final PlayQueue queue,
-                                                 final boolean selectOnAppend,
-                                                 final boolean resumePlayback) {
-        Toast.makeText(context, R.string.enqueued, Toast.LENGTH_SHORT).show();
-        final Intent intent = getPlayerEnqueueIntent(
-                context, MainPlayer.class, queue, selectOnAppend, resumePlayback);
-        intent.putExtra(VideoPlayer.PLAYER_TYPE, VideoPlayer.PLAYER_TYPE_AUDIO);
+        intent.putExtra(Player.PLAYER_TYPE, playerType.valueForIntent());
         ContextCompat.startForegroundService(context, intent);
     }
 
@@ -206,37 +217,98 @@ public final class NavigationHelper {
     // External Players
     //////////////////////////////////////////////////////////////////////////*/
 
-    public static void playOnExternalAudioPlayer(final Context context, final StreamInfo info) {
-        final int index = ListHelper.getDefaultAudioFormat(context, info.getAudioStreams());
-
-        if (index == -1) {
+    public static void playOnExternalAudioPlayer(@NonNull final Context context,
+                                                 @NonNull final StreamInfo info) {
+        final List<AudioStream> audioStreams = info.getAudioStreams();
+        if (audioStreams == null || audioStreams.isEmpty()) {
             Toast.makeText(context, R.string.audio_streams_empty, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        final AudioStream audioStream = info.getAudioStreams().get(index);
+        final List<AudioStream> audioStreamsForExternalPlayers =
+                getUrlAndNonTorrentStreams(audioStreams);
+        if (audioStreamsForExternalPlayers.isEmpty()) {
+            Toast.makeText(context, R.string.no_audio_streams_available_for_external_players,
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final int index = ListHelper.getDefaultAudioFormat(context, audioStreamsForExternalPlayers);
+        final AudioStream audioStream = audioStreamsForExternalPlayers.get(index);
+
         playOnExternalPlayer(context, info.getName(), info.getUploaderName(), audioStream);
     }
 
-    public static void playOnExternalVideoPlayer(final Context context, final StreamInfo info) {
-        final ArrayList<VideoStream> videoStreamsList = new ArrayList<>(
-                ListHelper.getSortedStreamVideosList(context, info.getVideoStreams(), null, false));
-        final int index = ListHelper.getDefaultResolutionIndex(context, videoStreamsList);
-
-        if (index == -1) {
+    public static void playOnExternalVideoPlayer(final Context context,
+                                                 @NonNull final StreamInfo info) {
+        final List<VideoStream> videoStreams = info.getVideoStreams();
+        if (videoStreams == null || videoStreams.isEmpty()) {
             Toast.makeText(context, R.string.video_streams_empty, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        final VideoStream videoStream = videoStreamsList.get(index);
+        final List<VideoStream> videoStreamsForExternalPlayers =
+                ListHelper.getSortedStreamVideosList(context,
+                        getUrlAndNonTorrentStreams(videoStreams), null, false, false);
+        if (videoStreamsForExternalPlayers.isEmpty()) {
+            Toast.makeText(context, R.string.no_video_streams_available_for_external_players,
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final int index = ListHelper.getDefaultResolutionIndex(context,
+                videoStreamsForExternalPlayers);
+
+        final VideoStream videoStream = videoStreamsForExternalPlayers.get(index);
         playOnExternalPlayer(context, info.getName(), info.getUploaderName(), videoStream);
     }
 
-    public static void playOnExternalPlayer(final Context context, final String name,
-                                            final String artist, final Stream stream) {
+    public static void playOnExternalPlayer(@NonNull final Context context,
+                                            @Nullable final String name,
+                                            @Nullable final String artist,
+                                            @NonNull final Stream stream) {
+        final DeliveryMethod deliveryMethod = stream.getDeliveryMethod();
+        final String mimeType;
+
+        if (!stream.isUrl() || deliveryMethod == DeliveryMethod.TORRENT) {
+            Toast.makeText(context, R.string.selected_stream_external_player_not_supported,
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        switch (deliveryMethod) {
+            case PROGRESSIVE_HTTP:
+                if (stream.getFormat() == null) {
+                    if (stream instanceof AudioStream) {
+                        mimeType = "audio/*";
+                    } else if (stream instanceof VideoStream) {
+                        mimeType = "video/*";
+                    } else {
+                        // This should never be reached, because subtitles are not opened in
+                        // external players
+                        return;
+                    }
+                } else {
+                    mimeType = stream.getFormat().getMimeType();
+                }
+                break;
+            case HLS:
+                mimeType = "application/x-mpegURL";
+                break;
+            case DASH:
+                mimeType = "application/dash+xml";
+                break;
+            case SS:
+                mimeType = "application/vnd.ms-sstr+xml";
+                break;
+            default:
+                // Torrent streams are not exposed to external players
+                mimeType = "";
+        }
+
         final Intent intent = new Intent();
         intent.setAction(Intent.ACTION_VIEW);
-        intent.setDataAndType(Uri.parse(stream.getUrl()), stream.getFormat().getMimeType());
+        intent.setDataAndType(Uri.parse(stream.getContent()), mimeType);
         intent.putExtra(Intent.EXTRA_TITLE, name);
         intent.putExtra("title", name);
         intent.putExtra("artist", artist);
@@ -245,19 +317,17 @@ public final class NavigationHelper {
         resolveActivityOrAskToInstall(context, intent);
     }
 
-    public static void resolveActivityOrAskToInstall(final Context context, final Intent intent) {
+    public static void resolveActivityOrAskToInstall(@NonNull final Context context,
+                                                     @NonNull final Intent intent) {
         if (intent.resolveActivity(context.getPackageManager()) != null) {
-            context.startActivity(intent);
+            ShareUtils.openIntentInApp(context, intent, false);
         } else {
             if (context instanceof Activity) {
                 new AlertDialog.Builder(context)
                         .setMessage(R.string.no_player_found)
-                        .setPositiveButton(R.string.install, (dialog, which) -> {
-                            final Intent i = new Intent();
-                            i.setAction(Intent.ACTION_VIEW);
-                            i.setData(Uri.parse(context.getString(R.string.fdroid_vlc_url)));
-                            context.startActivity(i);
-                        })
+                        .setPositiveButton(R.string.install,
+                                (dialog, which) -> ShareUtils.openUrlInBrowser(context,
+                                        context.getString(R.string.fdroid_vlc_url), false))
                         .setNegativeButton(R.string.cancel, (dialog, which)
                                 -> Log.i("NavigationHelper", "You unlocked a secret unicorn."))
                         .show();
@@ -279,8 +349,6 @@ public final class NavigationHelper {
     }
 
     public static void gotoMainFragment(final FragmentManager fragmentManager) {
-        ImageLoader.getInstance().clearMemoryCache();
-
         final boolean popped = fragmentManager.popBackStackImmediate(MAIN_FRAGMENT_TAG, 0);
         if (!popped) {
             openMainFragment(fragmentManager);
@@ -345,14 +413,14 @@ public final class NavigationHelper {
                                                final boolean switchingPlayers) {
 
         final boolean autoPlay;
-        @Nullable final MainPlayer.PlayerType playerType = PlayerHolder.getType();
+        @Nullable final PlayerType playerType = PlayerHolder.getInstance().getType();
         if (playerType == null) {
             // no player open
             autoPlay = PlayerHelper.isAutoplayAllowedByUser(context);
         } else if (switchingPlayers) {
             // switching player to main player
-            autoPlay = PlayerHolder.isPlaying(); // keep play/pause state
-        } else if (playerType == MainPlayer.PlayerType.VIDEO) {
+            autoPlay = PlayerHolder.getInstance().isPlaying(); // keep play/pause state
+        } else if (playerType == PlayerType.MAIN) {
             // opening new stream while already playing in main player
             autoPlay = PlayerHelper.isAutoplayAllowedByUser(context);
         } else {
@@ -360,13 +428,15 @@ public final class NavigationHelper {
             autoPlay = false;
         }
 
-        final RunnableWithVideoDetailFragment onVideoDetailFragmentReady = (detailFragment) -> {
+        final RunnableWithVideoDetailFragment onVideoDetailFragmentReady = detailFragment -> {
             expandMainPlayer(detailFragment.requireActivity());
             detailFragment.setAutoPlay(autoPlay);
             if (switchingPlayers) {
                 // Situation when user switches from players to main player. All needed data is
                 // here, we can start watching (assuming newQueue equals playQueue).
-                detailFragment.openVideoPlayer();
+                // Starting directly in fullscreen if the previous player type was popup.
+                detailFragment.openVideoPlayer(playerType == PlayerType.POPUP
+                        || PlayerHelper.isStartMainPlayerFullscreenEnabled(context));
             } else {
                 detailFragment.selectAndLoadVideo(serviceId, url, title, playQueue);
             }
@@ -395,6 +465,15 @@ public final class NavigationHelper {
                 .replace(R.id.fragment_holder, ChannelFragment.getInstance(serviceId, url, name))
                 .addToBackStack(null)
                 .commit();
+    }
+
+    public static void openChannelFragment(@NonNull final Fragment fragment,
+                                           @NonNull final StreamInfoItem item,
+                                           final String uploaderUrl) {
+        // For some reason `getParentFragmentManager()` doesn't work, but this does.
+        openChannelFragment(
+                fragment.requireActivity().getSupportFragmentManager(),
+                item.getServiceId(), uploaderUrl, item.getUploaderName());
     }
 
     public static void openPlaylistFragment(final FragmentManager fragmentManager,
@@ -493,9 +572,30 @@ public final class NavigationHelper {
         if (playQueue != null) {
             final String cacheKey = SerializedCache.getInstance().put(playQueue, PlayQueue.class);
             if (cacheKey != null) {
-                intent.putExtra(VideoPlayer.PLAY_QUEUE_KEY, cacheKey);
+                intent.putExtra(Player.PLAY_QUEUE_KEY, cacheKey);
             }
         }
+        context.startActivity(intent);
+    }
+
+    /**
+     * Opens {@link ChannelFragment}.
+     * Use this instead of {@link #openChannelFragment(FragmentManager, int, String, String)}
+     * when no fragments are used / no FragmentManager is available.
+     * @param context
+     * @param serviceId
+     * @param url
+     * @param title
+     */
+    public static void openChannelFragmentUsingIntent(final Context context,
+                                                      final int serviceId,
+                                                      final String url,
+                                                      @NonNull final String title) {
+        final Intent intent = getOpenIntent(context, url, serviceId,
+                StreamingService.LinkType.CHANNEL);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(Constants.KEY_TITLE, title);
+
         context.startActivity(intent);
     }
 
@@ -531,7 +631,7 @@ public final class NavigationHelper {
     }
 
     public static Intent getPlayQueueActivityIntent(final Context context) {
-        final Intent intent = new Intent(context, BackgroundPlayerActivity.class);
+        final Intent intent = new Intent(context, PlayQueueActivity.class);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
@@ -569,28 +669,10 @@ public final class NavigationHelper {
         return getOpenIntent(context, url, service.getServiceId(), linkType);
     }
 
-    private static Uri openMarketUrl(final String packageName) {
-        return Uri.parse("market://details")
-                .buildUpon()
-                .appendQueryParameter("id", packageName)
-                .build();
-    }
-
-    private static Uri getGooglePlayUrl(final String packageName) {
-        return Uri.parse("https://play.google.com/store/apps/details")
-                .buildUpon()
-                .appendQueryParameter("id", packageName)
-                .build();
-    }
-
-    private static void installApp(final Context context, final String packageName) {
-        try {
-            // Try market:// scheme
-            context.startActivity(new Intent(Intent.ACTION_VIEW, openMarketUrl(packageName)));
-        } catch (final ActivityNotFoundException e) {
-            // Fall back to google play URL (don't worry F-Droid can handle it :)
-            context.startActivity(new Intent(Intent.ACTION_VIEW, getGooglePlayUrl(packageName)));
-        }
+    public static Intent getChannelIntent(final Context context,
+                                          final int serviceId,
+                                          final String url) {
+        return getOpenIntent(context, url, serviceId, StreamingService.LinkType.CHANNEL);
     }
 
     /**
@@ -617,6 +699,19 @@ public final class NavigationHelper {
         final Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setPackage(context.getString(R.string.kore_package));
         intent.setData(videoURL);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
+    }
+
+    /**
+     * Finish this <code>Activity</code> as well as all <code>Activities</code> running below it
+     * and then start <code>MainActivity</code>.
+     *
+     * @param activity the activity to finish
+     */
+    public static void restartApp(final Activity activity) {
+        NewPipeDatabase.close();
+
+        ProcessPhoenix.triggerRebirth(activity.getApplicationContext());
     }
 }

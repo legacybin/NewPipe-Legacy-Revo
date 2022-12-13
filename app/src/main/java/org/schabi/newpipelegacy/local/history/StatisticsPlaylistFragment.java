@@ -1,6 +1,5 @@
 package org.schabi.newpipelegacy.local.history;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -10,43 +9,39 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
+import androidx.viewbinding.ViewBinding;
 
 import com.google.android.material.snackbar.Snackbar;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.database.LocalItem;
 import org.schabi.newpipelegacy.database.stream.StreamStatisticsEntry;
 import org.schabi.newpipelegacy.database.stream.model.StreamEntity;
-import org.schabi.newpipe.extractor.stream.StreamInfoItem;
-import org.schabi.newpipe.extractor.stream.StreamType;
-import org.schabi.newpipelegacy.info_list.InfoItemDialog;
+import org.schabi.newpipelegacy.databinding.PlaylistControlBinding;
+import org.schabi.newpipelegacy.databinding.StatisticPlaylistControlBinding;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
+import org.schabi.newpipelegacy.info_list.dialog.InfoItemDialog;
+import org.schabi.newpipelegacy.info_list.dialog.StreamDialogDefaultEntry;
 import org.schabi.newpipelegacy.local.BaseLocalListFragment;
-import org.schabi.newpipelegacy.player.helper.PlayerHolder;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueue;
 import org.schabi.newpipelegacy.player.playqueue.SinglePlayQueue;
-import org.schabi.newpipelegacy.report.ErrorActivity;
-import org.schabi.newpipelegacy.report.ErrorInfo;
-import org.schabi.newpipelegacy.report.UserAction;
-import org.schabi.newpipelegacy.settings.SettingsActivity;
+import org.schabi.newpipelegacy.settings.HistorySettingsFragment;
 import org.schabi.newpipelegacy.util.NavigationHelper;
 import org.schabi.newpipelegacy.util.OnClickGesture;
-import org.schabi.newpipelegacy.util.StreamDialogEntry;
-import org.schabi.newpipelegacy.util.ThemeHelper;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import icepick.State;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -59,13 +54,10 @@ public class StatisticsPlaylistFragment
     @State
     Parcelable itemsListState;
     private StatisticSortMode sortMode = StatisticSortMode.LAST_PLAYED;
-    private View headerPlayAllButton;
-    private View headerPopupButton;
-    private View headerBackgroundButton;
-    private View playlistCtrl;
-    private View sortButton;
-    private ImageView sortButtonIcon;
-    private TextView sortButtonText;
+
+    private StatisticPlaylistControlBinding headerBinding;
+    private PlaylistControlBinding playlistControlBinding;
+
     /* Used for independent events */
     private Subscription databaseSubscription;
     private HistoryRecordManager recordManager;
@@ -104,15 +96,16 @@ public class StatisticsPlaylistFragment
     }
 
     @Override
-    public void setUserVisibleHint(final boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        if (activity != null && isVisibleToUser) {
+    public void onResume() {
+        super.onResume();
+        if (activity != null) {
             setTitle(activity.getString(R.string.title_activity_history));
         }
     }
 
     @Override
-    public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull final Menu menu,
+                                    @NonNull final MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_history, menu);
     }
@@ -130,17 +123,12 @@ public class StatisticsPlaylistFragment
     }
 
     @Override
-    protected View getListHeader() {
-        final View headerRootLayout = activity.getLayoutInflater()
-                .inflate(R.layout.statistic_playlist_control, itemsList, false);
-        playlistCtrl = headerRootLayout.findViewById(R.id.playlist_control);
-        headerPlayAllButton = headerRootLayout.findViewById(R.id.playlist_ctrl_play_all_button);
-        headerPopupButton = headerRootLayout.findViewById(R.id.playlist_ctrl_play_popup_button);
-        headerBackgroundButton = headerRootLayout.findViewById(R.id.playlist_ctrl_play_bg_button);
-        sortButton = headerRootLayout.findViewById(R.id.sortButton);
-        sortButtonIcon = headerRootLayout.findViewById(R.id.sortButtonIcon);
-        sortButtonText = headerRootLayout.findViewById(R.id.sortButtonText);
-        return headerRootLayout;
+    protected ViewBinding getListHeader() {
+        headerBinding = StatisticPlaylistControlBinding.inflate(activity.getLayoutInflater(),
+                itemsList, false);
+        playlistControlBinding = headerBinding.playlistControl;
+
+        return headerBinding;
     }
 
     @Override
@@ -161,7 +149,7 @@ public class StatisticsPlaylistFragment
             @Override
             public void held(final LocalItem selectedItem) {
                 if (selectedItem instanceof StreamStatisticsEntry) {
-                    showStreamDialog((StreamStatisticsEntry) selectedItem);
+                    showInfoItemDialog((StreamStatisticsEntry) selectedItem);
                 }
             }
         });
@@ -169,48 +157,11 @@ public class StatisticsPlaylistFragment
 
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_history_clear:
-                new AlertDialog.Builder(activity)
-                        .setTitle(R.string.delete_view_history_alert)
-                        .setNegativeButton(R.string.cancel, ((dialog, which) -> dialog.dismiss()))
-                        .setPositiveButton(R.string.delete, ((dialog, which) -> {
-                            final Disposable onDelete = recordManager.deleteWholeStreamHistory()
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe(
-                                            howManyDeleted -> Toast.makeText(getContext(),
-                                                    R.string.watch_history_deleted,
-                                                    Toast.LENGTH_SHORT).show(),
-                                            throwable -> ErrorActivity.reportError(getContext(),
-                                                    throwable,
-                                                    SettingsActivity.class, null,
-                                                    ErrorInfo.make(
-                                                            UserAction.DELETE_FROM_HISTORY,
-                                                            "none",
-                                                            "Delete view history",
-                                                            R.string.general_error)));
-
-                            final Disposable onClearOrphans = recordManager.removeOrphanedRecords()
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe(
-                                            howManyDeleted -> {
-                                            },
-                                            throwable -> ErrorActivity.reportError(getContext(),
-                                                    throwable,
-                                                    SettingsActivity.class, null,
-                                                    ErrorInfo.make(
-                                                            UserAction.DELETE_FROM_HISTORY,
-                                                            "none",
-                                                            "Delete search history",
-                                                            R.string.general_error)));
-                            disposables.add(onClearOrphans);
-                            disposables.add(onDelete);
-                        }))
-                        .create()
-                        .show();
-                break;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.action_history_clear) {
+            HistorySettingsFragment
+                    .openDeleteWatchHistoryDialog(requireContext(), recordManager, disposables);
+        } else {
+            return super.onOptionsItemSelected(item);
         }
         return true;
     }
@@ -234,7 +185,7 @@ public class StatisticsPlaylistFragment
     @Override
     public void onPause() {
         super.onPause();
-        itemsListState = itemsList.getLayoutManager().onSaveInstanceState();
+        itemsListState = Objects.requireNonNull(itemsList.getLayoutManager()).onSaveInstanceState();
     }
 
     @Override
@@ -244,14 +195,13 @@ public class StatisticsPlaylistFragment
         if (itemListAdapter != null) {
             itemListAdapter.unsetSelectedListener();
         }
-        if (headerBackgroundButton != null) {
-            headerBackgroundButton.setOnClickListener(null);
-        }
-        if (headerPlayAllButton != null) {
-            headerPlayAllButton.setOnClickListener(null);
-        }
-        if (headerPopupButton != null) {
-            headerPopupButton.setOnClickListener(null);
+        if (playlistControlBinding != null) {
+            playlistControlBinding.playlistCtrlPlayBgButton.setOnClickListener(null);
+            playlistControlBinding.playlistCtrlPlayAllButton.setOnClickListener(null);
+            playlistControlBinding.playlistCtrlPlayPopupButton.setOnClickListener(null);
+
+            headerBinding = null;
+            playlistControlBinding = null;
         }
 
         if (databaseSubscription != null) {
@@ -294,7 +244,8 @@ public class StatisticsPlaylistFragment
 
             @Override
             public void onError(final Throwable exception) {
-                StatisticsPlaylistFragment.this.onError(exception);
+                showError(
+                        new ErrorInfo(exception, UserAction.SOMETHING_ELSE, "History Statistics"));
             }
 
             @Override
@@ -310,7 +261,7 @@ public class StatisticsPlaylistFragment
             return;
         }
 
-        playlistCtrl.setVisibility(View.VISIBLE);
+        playlistControlBinding.getRoot().setVisibility(View.VISIBLE);
 
         itemListAdapter.clearStreamItemList();
 
@@ -320,18 +271,18 @@ public class StatisticsPlaylistFragment
         }
 
         itemListAdapter.addItems(processResult(result));
-        if (itemsListState != null) {
+        if (itemsListState != null && itemsList.getLayoutManager() != null) {
             itemsList.getLayoutManager().onRestoreInstanceState(itemsListState);
             itemsListState = null;
         }
 
-        headerPlayAllButton.setOnClickListener(view ->
+        playlistControlBinding.playlistCtrlPlayAllButton.setOnClickListener(view ->
                 NavigationHelper.playOnMainPlayer(activity, getPlayQueue()));
-        headerPopupButton.setOnClickListener(view ->
+        playlistControlBinding.playlistCtrlPlayPopupButton.setOnClickListener(view ->
                 NavigationHelper.playOnPopupPlayer(activity, getPlayQueue(), false));
-        headerBackgroundButton.setOnClickListener(view ->
+        playlistControlBinding.playlistCtrlPlayBgButton.setOnClickListener(view ->
                 NavigationHelper.playOnBackgroundPlayer(activity, getPlayQueue(), false));
-        sortButton.setOnClickListener(view -> toggleSortMode());
+        headerBinding.sortButton.setOnClickListener(view -> toggleSortMode());
 
         hideLoading();
     }
@@ -348,17 +299,6 @@ public class StatisticsPlaylistFragment
         }
     }
 
-    @Override
-    protected boolean onError(final Throwable exception) {
-        if (super.onError(exception)) {
-            return true;
-        }
-
-        onUnrecoverableError(exception, UserAction.SOMETHING_ELSE,
-                "none", "History Statistics", R.string.general_error);
-        return true;
-    }
-
     /*//////////////////////////////////////////////////////////////////////////
     // Utils
     //////////////////////////////////////////////////////////////////////////*/
@@ -367,15 +307,14 @@ public class StatisticsPlaylistFragment
         if (sortMode == StatisticSortMode.LAST_PLAYED) {
             sortMode = StatisticSortMode.MOST_PLAYED;
             setTitle(getString(R.string.title_most_played));
-            sortButtonIcon.setImageResource(
-                ThemeHelper.resolveResourceIdFromAttr(requireContext(), R.attr.ic_history));
-            sortButtonText.setText(R.string.title_last_played);
+            headerBinding.sortButtonIcon.setImageResource(R.drawable.ic_history);
+            headerBinding.sortButtonText.setText(R.string.title_last_played);
         } else {
             sortMode = StatisticSortMode.LAST_PLAYED;
             setTitle(getString(R.string.title_last_played));
-            sortButtonIcon.setImageResource(
-                ThemeHelper.resolveResourceIdFromAttr(requireContext(), R.attr.ic_filter_list));
-            sortButtonText.setText(R.string.title_most_played);
+            headerBinding.sortButtonIcon.setImageResource(
+                R.drawable.ic_filter_list);
+            headerBinding.sortButtonText.setText(R.string.title_most_played);
         }
         startLoading(true);
     }
@@ -384,45 +323,30 @@ public class StatisticsPlaylistFragment
         return getPlayQueue(Math.max(itemListAdapter.getItemsList().indexOf(infoItem), 0));
     }
 
-    private void showStreamDialog(final StreamStatisticsEntry item) {
+    private void showInfoItemDialog(final StreamStatisticsEntry item) {
         final Context context = getContext();
-        final Activity activity = getActivity();
-        if (context == null || context.getResources() == null || activity == null) {
-            return;
-        }
         final StreamInfoItem infoItem = item.toStreamInfoItem();
 
-        final ArrayList<StreamDialogEntry> entries = new ArrayList<>();
+        try {
+            final InfoItemDialog.Builder dialogBuilder =
+                    new InfoItemDialog.Builder(getActivity(), context, this, infoItem);
 
-        if (PlayerHolder.getType() != null) {
-            entries.add(StreamDialogEntry.enqueue);
+            // set entries in the middle; the others are added automatically
+            dialogBuilder
+                    .addEntry(StreamDialogDefaultEntry.DELETE)
+                    .setAction(
+                            StreamDialogDefaultEntry.DELETE,
+                            (f, i) -> deleteEntry(
+                                    Math.max(itemListAdapter.getItemsList().indexOf(item), 0)))
+                    .setAction(
+                            StreamDialogDefaultEntry.START_HERE_ON_BACKGROUND,
+                            (f, i) -> NavigationHelper.playOnBackgroundPlayer(
+                                    context, getPlayQueueStartingAt(item), true))
+                    .create()
+                    .show();
+        } catch (final IllegalArgumentException e) {
+            InfoItemDialog.Builder.reportErrorDuringInitialization(e, infoItem);
         }
-        if (infoItem.getStreamType() == StreamType.AUDIO_STREAM) {
-            entries.addAll(Arrays.asList(
-                    StreamDialogEntry.start_here_on_background,
-                    StreamDialogEntry.delete,
-                    StreamDialogEntry.append_playlist,
-                    StreamDialogEntry.share
-            ));
-        } else  {
-            entries.addAll(Arrays.asList(
-                    StreamDialogEntry.start_here_on_background,
-                    StreamDialogEntry.start_here_on_popup,
-                    StreamDialogEntry.delete,
-                    StreamDialogEntry.append_playlist,
-                    StreamDialogEntry.share
-            ));
-        }
-        StreamDialogEntry.setEnabledEntries(entries);
-
-        StreamDialogEntry.start_here_on_background.setCustomAction((fragment, infoItemDuplicate) ->
-                NavigationHelper
-                        .playOnBackgroundPlayer(context, getPlayQueueStartingAt(item), true));
-        StreamDialogEntry.delete.setCustomAction((fragment, infoItemDuplicate) ->
-                deleteEntry(Math.max(itemListAdapter.getItemsList().indexOf(item), 0)));
-
-        new InfoItemDialog(activity, infoItem, StreamDialogEntry.getCommands(context),
-                (dialog, which) -> StreamDialogEntry.clickOn(which, this, infoItem)).show();
     }
 
     private void deleteEntry(final int index) {
@@ -443,9 +367,8 @@ public class StatisticsPlaylistFragment
                                             Toast.LENGTH_SHORT).show();
                                 }
                             },
-                            throwable -> showSnackBarError(throwable,
-                                    UserAction.DELETE_FROM_HISTORY, "none",
-                                    "Deleting item failed", R.string.general_error));
+                            throwable -> showSnackBarError(new ErrorInfo(throwable,
+                                    UserAction.DELETE_FROM_HISTORY, "Deleting item")));
 
             disposables.add(onDelete);
         }

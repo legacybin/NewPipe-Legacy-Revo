@@ -28,6 +28,7 @@ import org.schabi.newpipelegacy.NewPipeDatabase;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.database.AppDatabase;
 import org.schabi.newpipelegacy.database.LocalItem;
+import org.schabi.newpipelegacy.database.feed.dao.FeedDAO;
 import org.schabi.newpipelegacy.database.history.dao.SearchHistoryDAO;
 import org.schabi.newpipelegacy.database.history.dao.StreamHistoryDAO;
 import org.schabi.newpipelegacy.database.history.model.SearchHistoryEntry;
@@ -42,7 +43,10 @@ import org.schabi.newpipelegacy.database.stream.model.StreamEntity;
 import org.schabi.newpipelegacy.database.stream.model.StreamStateEntity;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
+import org.schabi.newpipe.extractor.stream.StreamInfoItem;
+import org.schabi.newpipelegacy.local.feed.FeedViewModel;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueueItem;
+import org.schabi.newpipelegacy.util.ExtractorHelper;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -81,6 +85,58 @@ public class HistoryRecordManager {
     // Watch History
     ///////////////////////////////////////////////////////
 
+    /**
+     * Marks a stream item as watched such that it is hidden from the feed if watched videos are
+     * hidden. Adds a history entry and updates the stream progress to 100%.
+     *
+     * @see FeedDAO#getLiveOrNotPlayedStreams
+     * @see FeedViewModel#togglePlayedItems
+     * @param info the item to mark as watched
+     * @return a Maybe containing the ID of the item if successful
+     */
+    public Maybe<Long> markAsWatched(final StreamInfoItem info) {
+        if (!isStreamHistoryEnabled()) {
+            return Maybe.empty();
+        }
+
+        final OffsetDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC);
+        return Maybe.fromCallable(() -> database.runInTransaction(() -> {
+            final long streamId;
+            final long duration;
+            // Duration will not exist if the item was loaded with fast mode, so fetch it if empty
+            if (info.getDuration() < 0) {
+                final StreamInfo completeInfo = ExtractorHelper.getStreamInfo(
+                        info.getServiceId(),
+                        info.getUrl(),
+                        false
+                )
+                        .subscribeOn(Schedulers.io())
+                        .blockingGet();
+                duration = completeInfo.getDuration();
+                streamId = streamTable.upsert(new StreamEntity(completeInfo));
+            } else {
+                duration = info.getDuration();
+                streamId = streamTable.upsert(new StreamEntity(info));
+            }
+
+            // Update the stream progress to the full duration of the video
+            final StreamStateEntity entity = new StreamStateEntity(
+                    streamId,
+                    duration * 1000
+            );
+            streamStateTable.upsert(entity);
+
+            // Add a history entry
+            final StreamHistoryEntity latestEntry = streamHistoryTable.getLatestEntry(streamId);
+            if (latestEntry == null) {
+                // never actually viewed: add history entry but with 0 views
+                return streamHistoryTable.insert(new StreamHistoryEntity(streamId, currentTime, 0));
+            } else {
+                return 0L;
+            }
+        })).subscribeOn(Schedulers.io());
+    }
+
     public Maybe<Long> onViewed(final StreamInfo info) {
         if (!isStreamHistoryEnabled()) {
             return Maybe.empty();
@@ -97,7 +153,8 @@ public class HistoryRecordManager {
                 latestEntry.setRepeatCount(latestEntry.getRepeatCount() + 1);
                 return streamHistoryTable.insert(latestEntry);
             } else {
-                return streamHistoryTable.insert(new StreamHistoryEntity(streamId, currentTime));
+                // just viewed for the first time: set 1 view
+                return streamHistoryTable.insert(new StreamHistoryEntity(streamId, currentTime, 1));
             }
         })).subscribeOn(Schedulers.io());
     }
@@ -186,9 +243,9 @@ public class HistoryRecordManager {
                 .subscribeOn(Schedulers.io());
     }
 
-    public Flowable<List<SearchHistoryEntry>> getRelatedSearches(final String query,
-                                                                 final int similarQueryLimit,
-                                                                 final int uniqueQueryLimit) {
+    public Flowable<List<String>> getRelatedSearches(final String query,
+                                                     final int similarQueryLimit,
+                                                     final int uniqueQueryLimit) {
         return query.length() > 0
                 ? searchHistoryTable.getSimilarEntries(query, similarQueryLimit)
                 : searchHistoryTable.getUniqueEntries(uniqueQueryLimit);
@@ -211,11 +268,11 @@ public class HistoryRecordManager {
 
     public Maybe<StreamStateEntity> loadStreamState(final PlayQueueItem queueItem) {
         return queueItem.getStream()
-                .map((info) -> streamTable.upsert(new StreamEntity(info)))
+                .map(info -> streamTable.upsert(new StreamEntity(info)))
                 .flatMapPublisher(streamStateTable::getState)
                 .firstElement()
                 .flatMap(list -> list.isEmpty() ? Maybe.empty() : Maybe.just(list.get(0)))
-                .filter(state -> state.isValid((int) queueItem.getDuration()))
+                .filter(state -> state.isValid(queueItem.getDuration()))
                 .subscribeOn(Schedulers.io());
     }
 
@@ -224,18 +281,16 @@ public class HistoryRecordManager {
                 .flatMapPublisher(streamStateTable::getState)
                 .firstElement()
                 .flatMap(list -> list.isEmpty() ? Maybe.empty() : Maybe.just(list.get(0)))
-                .filter(state -> state.isValid((int) info.getDuration()))
+                .filter(state -> state.isValid(info.getDuration()))
                 .subscribeOn(Schedulers.io());
     }
 
-    public Completable saveStreamState(@NonNull final StreamInfo info, final long progressTime) {
+    public Completable saveStreamState(@NonNull final StreamInfo info, final long progressMillis) {
         return Completable.fromAction(() -> database.runInTransaction(() -> {
             final long streamId = streamTable.upsert(new StreamEntity(info));
-            final StreamStateEntity state = new StreamStateEntity(streamId, progressTime);
-            if (state.isValid((int) info.getDuration())) {
+            final StreamStateEntity state = new StreamStateEntity(streamId, progressMillis);
+            if (state.isValid(info.getDuration())) {
                 streamStateTable.upsert(state);
-            } else {
-                streamStateTable.deleteState(streamId);
             }
         })).subscribeOn(Schedulers.io());
     }
@@ -270,9 +325,9 @@ public class HistoryRecordManager {
                         .getState(entities.get(0).getUid()).blockingFirst();
                 if (states.isEmpty()) {
                     result.add(null);
-                    continue;
+                } else {
+                    result.add(states.get(0));
                 }
-                result.add(states.get(0));
             }
             return result;
         }).subscribeOn(Schedulers.io());
@@ -298,9 +353,9 @@ public class HistoryRecordManager {
                         .blockingFirst();
                 if (states.isEmpty()) {
                     result.add(null);
-                    continue;
+                } else {
+                    result.add(states.get(0));
                 }
-                result.add(states.get(0));
             }
             return result;
         }).subscribeOn(Schedulers.io());

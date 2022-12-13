@@ -3,8 +3,9 @@ package org.schabi.newpipelegacy;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
+
+import org.schabi.newpipelegacy.util.NavigationHelper;
 
 /*
  * Copyright (C) Hans-Christoph Steiner 2016 <hans@eds.org>
@@ -42,12 +43,8 @@ public class ExitActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            finishAndRemoveTask();
-        } else {
-            finish();
-        }
+        finishAndRemoveTask();
 
-        System.exit(0);
+        NavigationHelper.restartApp(this);
     }
 }

@@ -1,18 +1,5 @@
 package org.schabi.newpipelegacy.database.playlist.dao;
 
-import androidx.room.Dao;
-import androidx.room.Query;
-import androidx.room.Transaction;
-
-import org.schabi.newpipelegacy.database.BasicDAO;
-import org.schabi.newpipelegacy.database.playlist.PlaylistMetadataEntry;
-import org.schabi.newpipelegacy.database.playlist.PlaylistStreamEntry;
-import org.schabi.newpipelegacy.database.playlist.model.PlaylistStreamEntity;
-
-import java.util.List;
-
-import io.reactivex.rxjava3.core.Flowable;
-
 import static org.schabi.newpipelegacy.database.playlist.PlaylistMetadataEntry.PLAYLIST_STREAM_COUNT;
 import static org.schabi.newpipelegacy.database.playlist.model.PlaylistEntity.PLAYLIST_ID;
 import static org.schabi.newpipelegacy.database.playlist.model.PlaylistEntity.PLAYLIST_NAME;
@@ -25,33 +12,48 @@ import static org.schabi.newpipelegacy.database.playlist.model.PlaylistStreamEnt
 import static org.schabi.newpipelegacy.database.stream.model.StreamEntity.STREAM_ID;
 import static org.schabi.newpipelegacy.database.stream.model.StreamEntity.STREAM_TABLE;
 import static org.schabi.newpipelegacy.database.stream.model.StreamStateEntity.JOIN_STREAM_ID_ALIAS;
-import static org.schabi.newpipelegacy.database.stream.model.StreamStateEntity.STREAM_PROGRESS_TIME;
+import static org.schabi.newpipelegacy.database.stream.model.StreamStateEntity.STREAM_PROGRESS_MILLIS;
 import static org.schabi.newpipelegacy.database.stream.model.StreamStateEntity.STREAM_STATE_TABLE;
 
+import androidx.room.Dao;
+import androidx.room.Query;
+import androidx.room.RewriteQueriesToDropUnusedColumns;
+import androidx.room.Transaction;
+
+import org.schabi.newpipelegacy.database.BasicDAO;
+import org.schabi.newpipelegacy.database.playlist.PlaylistMetadataEntry;
+import org.schabi.newpipelegacy.database.playlist.PlaylistStreamEntry;
+import org.schabi.newpipelegacy.database.playlist.model.PlaylistStreamEntity;
+
+import java.util.List;
+
+import io.reactivex.rxjava3.core.Flowable;
+
 @Dao
-public abstract class PlaylistStreamDAO implements BasicDAO<PlaylistStreamEntity> {
+public interface PlaylistStreamDAO extends BasicDAO<PlaylistStreamEntity> {
     @Override
     @Query("SELECT * FROM " + PLAYLIST_STREAM_JOIN_TABLE)
-    public abstract Flowable<List<PlaylistStreamEntity>> getAll();
+    Flowable<List<PlaylistStreamEntity>> getAll();
 
     @Override
     @Query("DELETE FROM " + PLAYLIST_STREAM_JOIN_TABLE)
-    public abstract int deleteAll();
+    int deleteAll();
 
     @Override
-    public Flowable<List<PlaylistStreamEntity>> listByService(final int serviceId) {
+    default Flowable<List<PlaylistStreamEntity>> listByService(final int serviceId) {
         throw new UnsupportedOperationException();
     }
 
     @Query("DELETE FROM " + PLAYLIST_STREAM_JOIN_TABLE
             + " WHERE " + JOIN_PLAYLIST_ID + " = :playlistId")
-    public abstract void deleteBatch(long playlistId);
+    void deleteBatch(long playlistId);
 
     @Query("SELECT COALESCE(MAX(" + JOIN_INDEX + "), -1)"
             + " FROM " + PLAYLIST_STREAM_JOIN_TABLE
             + " WHERE " + JOIN_PLAYLIST_ID + " = :playlistId")
-    public abstract Flowable<Integer> getMaximumIndexOf(long playlistId);
+    Flowable<Integer> getMaximumIndexOf(long playlistId);
 
+    @RewriteQueriesToDropUnusedColumns
     @Transaction
     @Query("SELECT * FROM " + STREAM_TABLE + " INNER JOIN "
             // get ids of streams of the given playlist
@@ -64,12 +66,12 @@ public abstract class PlaylistStreamDAO implements BasicDAO<PlaylistStreamEntity
 
             + " LEFT JOIN "
             + "(SELECT " + JOIN_STREAM_ID + " AS " + JOIN_STREAM_ID_ALIAS + ", "
-            +  STREAM_PROGRESS_TIME
+            + STREAM_PROGRESS_MILLIS
             + " FROM " + STREAM_STATE_TABLE + " )"
             + " ON " + STREAM_ID + " = " + JOIN_STREAM_ID_ALIAS
 
             + " ORDER BY " + JOIN_INDEX + " ASC")
-    public abstract Flowable<List<PlaylistStreamEntry>> getOrderedStreamsOf(long playlistId);
+    Flowable<List<PlaylistStreamEntry>> getOrderedStreamsOf(long playlistId);
 
     @Transaction
     @Query("SELECT " + PLAYLIST_ID + ", " + PLAYLIST_NAME + ", " + PLAYLIST_THUMBNAIL_URL + ", "
@@ -80,5 +82,5 @@ public abstract class PlaylistStreamDAO implements BasicDAO<PlaylistStreamEntity
             + " ON " + PLAYLIST_ID + " = " + JOIN_PLAYLIST_ID
             + " GROUP BY " + JOIN_PLAYLIST_ID
             + " ORDER BY " + PLAYLIST_NAME + " COLLATE NOCASE ASC")
-    public abstract Flowable<List<PlaylistMetadataEntry>> getPlaylistMetadata();
+    Flowable<List<PlaylistMetadataEntry>> getPlaylistMetadata();
 }

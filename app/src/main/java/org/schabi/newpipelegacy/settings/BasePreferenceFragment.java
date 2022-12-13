@@ -2,19 +2,23 @@ package org.schabi.newpipelegacy.settings;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import androidx.preference.PreferenceManager;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipelegacy.MainActivity;
 import org.schabi.newpipelegacy.util.ThemeHelper;
 
+import java.util.Objects;
+
 public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
     protected final String TAG = getClass().getSimpleName() + "@" + Integer.toHexString(hashCode());
-    protected final boolean DEBUG = MainActivity.DEBUG;
+    protected static final boolean DEBUG = MainActivity.DEBUG;
 
     SharedPreferences defaultPreferences;
 
@@ -22,6 +26,11 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         defaultPreferences = PreferenceManager.getDefaultSharedPreferences(requireActivity());
         super.onCreate(savedInstanceState);
+    }
+
+    protected void addPreferencesFromResourceRegistry() {
+        addPreferencesFromResource(
+                SettingsResourceRegistry.getInstance().getPreferencesResId(this.getClass()));
     }
 
     @Override
@@ -36,5 +45,12 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
     public void onResume() {
         super.onResume();
         ThemeHelper.setTitleToAppCompatActivity(getActivity(), getPreferenceScreen().getTitle());
+    }
+
+    @NonNull
+    public final Preference requirePreference(@StringRes final int resId) {
+        final Preference preference = findPreference(getString(resId));
+        Objects.requireNonNull(preference);
+        return preference;
     }
 }

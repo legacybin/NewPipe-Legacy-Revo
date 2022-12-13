@@ -1,5 +1,8 @@
 package org.schabi.newpipelegacy;
 
+import static org.schabi.newpipe.extractor.StreamingService.ServiceInfo.MediaCapability.AUDIO;
+import static org.schabi.newpipe.extractor.StreamingService.ServiceInfo.MediaCapability.VIDEO;
+
 import android.annotation.SuppressLint;
 import android.app.IntentService;
 import android.content.Context;
@@ -21,43 +24,59 @@ import android.widget.Toast;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.ServiceCompat;
+import androidx.core.math.MathUtils;
 import androidx.core.widget.TextViewCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 
-import org.schabi.newpipelegacy.databinding.ListRadioIconItemBinding;
-import org.schabi.newpipelegacy.databinding.SingleChoiceDialogViewBinding;
-import org.schabi.newpipelegacy.download.DownloadDialog;
 import org.schabi.newpipe.extractor.Info;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.StreamingService.LinkType;
 import org.schabi.newpipe.extractor.channel.ChannelInfo;
+import org.schabi.newpipe.extractor.exceptions.AgeRestrictedContentException;
+import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException;
+import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
+import org.schabi.newpipe.extractor.exceptions.GeographicRestrictionException;
+import org.schabi.newpipe.extractor.exceptions.PaidContentException;
+import org.schabi.newpipe.extractor.exceptions.PrivateContentException;
+import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
+import org.schabi.newpipe.extractor.exceptions.SoundCloudGoPlusContentException;
+import org.schabi.newpipe.extractor.exceptions.YoutubeMusicPremiumContentException;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfo;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
-import org.schabi.newpipe.extractor.stream.VideoStream;
-import org.schabi.newpipelegacy.player.MainPlayer;
+import org.schabi.newpipelegacy.database.stream.model.StreamEntity;
+import org.schabi.newpipelegacy.databinding.ListRadioIconItemBinding;
+import org.schabi.newpipelegacy.databinding.SingleChoiceDialogViewBinding;
+import org.schabi.newpipelegacy.download.DownloadDialog;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.ErrorUtil;
+import org.schabi.newpipelegacy.error.ReCaptchaActivity;
+import org.schabi.newpipelegacy.error.UserAction;
+import org.schabi.newpipelegacy.ktx.ExceptionUtils;
+import org.schabi.newpipelegacy.local.dialog.PlaylistDialog;
+import org.schabi.newpipelegacy.player.PlayerType;
 import org.schabi.newpipelegacy.player.helper.PlayerHelper;
 import org.schabi.newpipelegacy.player.helper.PlayerHolder;
 import org.schabi.newpipelegacy.player.playqueue.ChannelPlayQueue;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueue;
 import org.schabi.newpipelegacy.player.playqueue.PlaylistPlayQueue;
 import org.schabi.newpipelegacy.player.playqueue.SinglePlayQueue;
-import org.schabi.newpipelegacy.report.UserAction;
 import org.schabi.newpipelegacy.util.Constants;
 import org.schabi.newpipelegacy.util.DeviceUtils;
 import org.schabi.newpipelegacy.util.ExtractorHelper;
-import org.schabi.newpipelegacy.util.ListHelper;
+import org.schabi.newpipelegacy.util.Localization;
 import org.schabi.newpipelegacy.util.NavigationHelper;
 import org.schabi.newpipelegacy.util.PermissionHelper;
-import org.schabi.newpipelegacy.util.ShareUtils;
 import org.schabi.newpipelegacy.util.ThemeHelper;
+import org.schabi.newpipelegacy.util.external_communication.ShareUtils;
 import org.schabi.newpipelegacy.util.urlfinder.UrlFinder;
 import org.schabi.newpipelegacy.views.FocusOverlayView;
 
@@ -76,21 +95,10 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-import static org.schabi.newpipe.extractor.StreamingService.ServiceInfo.MediaCapability.AUDIO;
-import static org.schabi.newpipe.extractor.StreamingService.ServiceInfo.MediaCapability.VIDEO;
-import static org.schabi.newpipelegacy.util.ThemeHelper.resolveResourceIdFromAttr;
-
 /**
  * Get the url from the intent and open it in the chosen preferred player.
  */
 public class RouterActivity extends AppCompatActivity {
-    public static final String INTERNAL_ROUTE_KEY = "internalRoute";
-    /**
-     * Removes invisible separators (\p{Z}) and punctuation characters including
-     * brackets (\p{P}). See http://www.regular-expressions.info/unicode.html for
-     * more details.
-     */
-    private static final String REGEX_REMOVE_FROM_URL = "[\\p{Z}\\p{P}]";
     protected final CompositeDisposable disposables = new CompositeDisposable();
     @State
     protected int currentServiceId = -1;
@@ -100,9 +108,10 @@ public class RouterActivity extends AppCompatActivity {
     protected int selectedRadioPosition = -1;
     protected int selectedPreviously = -1;
     protected String currentUrl;
-    protected boolean internalRoute = false;
     private StreamingService currentService;
     private boolean selectionIsDownload = false;
+    private boolean selectionIsAddToPlaylist = false;
+    private AlertDialog alertDialogChoice = null;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -118,12 +127,23 @@ public class RouterActivity extends AppCompatActivity {
             }
         }
 
+        ThemeHelper.setDayNightMode(this);
         setTheme(ThemeHelper.isLightThemeSelected(this)
                 ? R.style.RouterActivityThemeLight : R.style.RouterActivityThemeDark);
+        Localization.assureCorrectAppLanguage(this);
     }
 
     @Override
-    protected void onSaveInstanceState(final Bundle outState) {
+    protected void onStop() {
+        super.onStop();
+        // we need to dismiss the dialog before leaving the activity or we get leaks
+        if (alertDialogChoice != null) {
+            alertDialogChoice.dismiss();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
         Icepick.saveInstanceState(this, outState);
     }
@@ -145,37 +165,79 @@ public class RouterActivity extends AppCompatActivity {
     private void handleUrl(final String url) {
         disposables.add(Observable
                 .fromCallable(() -> {
-                    if (currentServiceId == -1) {
-                        currentService = NewPipe.getServiceByUrl(url);
-                        currentServiceId = currentService.getServiceId();
-                        currentLinkType = currentService.getLinkTypeByUrl(url);
-                        currentUrl = url;
-                    } else {
-                        currentService = NewPipe.getService(currentServiceId);
-                    }
+                    try {
+                        if (currentServiceId == -1) {
+                            currentService = NewPipe.getServiceByUrl(url);
+                            currentServiceId = currentService.getServiceId();
+                            currentLinkType = currentService.getLinkTypeByUrl(url);
+                            currentUrl = url;
+                        } else {
+                            currentService = NewPipe.getService(currentServiceId);
+                        }
 
-                    return currentLinkType != LinkType.NONE;
+                        // return whether the url was found to be supported or not
+                        return currentLinkType != LinkType.NONE;
+                    } catch (final ExtractionException e) {
+                        // this can be reached only when the url is completely unsupported
+                        return false;
+                    }
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(result -> {
-                    if (result) {
+                .subscribe(isUrlSupported -> {
+                    if (isUrlSupported) {
                         onSuccess();
                     } else {
                         showUnsupportedUrlDialog(url);
                     }
-                }, throwable -> handleError(throwable, url)));
+                }, throwable -> handleError(this, new ErrorInfo(throwable,
+                        UserAction.SHARE_TO_NEWPIPE, "Getting service from url: " + url))));
     }
 
-    private void handleError(final Throwable throwable, final String url) {
-        throwable.printStackTrace();
+    /**
+     * @param context the context. It will be {@code finish()}ed at the end of the handling if it is
+     *                an instance of {@link RouterActivity}.
+     * @param errorInfo the error information
+     */
+    private static void handleError(final Context context, final ErrorInfo errorInfo) {
+        if (errorInfo.getThrowable() != null) {
+            errorInfo.getThrowable().printStackTrace();
+        }
 
-        if (throwable instanceof ExtractionException) {
-            showUnsupportedUrlDialog(url);
+        if (errorInfo.getThrowable() instanceof ReCaptchaException) {
+            Toast.makeText(context, R.string.recaptcha_request_toast, Toast.LENGTH_LONG).show();
+            // Starting ReCaptcha Challenge Activity
+            final Intent intent = new Intent(context, ReCaptchaActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        } else if (errorInfo.getThrowable() != null
+                && ExceptionUtils.isNetworkRelated(errorInfo.getThrowable())) {
+            Toast.makeText(context, R.string.network_error, Toast.LENGTH_LONG).show();
+        } else if (errorInfo.getThrowable() instanceof AgeRestrictedContentException) {
+            Toast.makeText(context, R.string.restricted_video_no_stream,
+                    Toast.LENGTH_LONG).show();
+        } else if (errorInfo.getThrowable() instanceof GeographicRestrictionException) {
+            Toast.makeText(context, R.string.georestricted_content, Toast.LENGTH_LONG).show();
+        } else if (errorInfo.getThrowable() instanceof PaidContentException) {
+            Toast.makeText(context, R.string.paid_content, Toast.LENGTH_LONG).show();
+        } else if (errorInfo.getThrowable() instanceof PrivateContentException) {
+            Toast.makeText(context, R.string.private_content, Toast.LENGTH_LONG).show();
+        } else if (errorInfo.getThrowable() instanceof SoundCloudGoPlusContentException) {
+            Toast.makeText(context, R.string.soundcloud_go_plus_content,
+                    Toast.LENGTH_LONG).show();
+        } else if (errorInfo.getThrowable() instanceof YoutubeMusicPremiumContentException) {
+            Toast.makeText(context, R.string.youtube_music_premium_content,
+                    Toast.LENGTH_LONG).show();
+        } else if (errorInfo.getThrowable() instanceof ContentNotAvailableException) {
+            Toast.makeText(context, R.string.content_not_available, Toast.LENGTH_LONG).show();
+        } else if (errorInfo.getThrowable() instanceof ContentNotSupportedException) {
+            Toast.makeText(context, R.string.content_not_supported, Toast.LENGTH_LONG).show();
         } else {
-            ExtractorHelper.handleGeneralException(this, -1, url, throwable,
-                    UserAction.SOMETHING_ELSE, null);
-            finish();
+            ErrorUtil.createNotification(context, errorInfo);
+        }
+
+        if (context instanceof RouterActivity) {
+            ((RouterActivity) context).finish();
         }
     }
 
@@ -184,11 +246,11 @@ public class RouterActivity extends AppCompatActivity {
         new AlertDialog.Builder(context)
                 .setTitle(R.string.unsupported_url)
                 .setMessage(R.string.unsupported_url_dialog_message)
-                .setIcon(ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_share))
+                .setIcon(R.drawable.ic_share)
                 .setPositiveButton(R.string.open_in_browser,
                         (dialog, which) -> ShareUtils.openUrlInBrowser(this, url))
                 .setNegativeButton(R.string.share,
-                        (dialog, which) -> ShareUtils.shareUrl(this, "", url)) // no subject
+                        (dialog, which) -> ShareUtils.shareText(this, "", url)) // no subject
                 .setNeutralButton(R.string.cancel, null)
                 .setOnDismissListener(dialog -> finish())
                 .show();
@@ -197,80 +259,122 @@ public class RouterActivity extends AppCompatActivity {
     protected void onSuccess() {
         final SharedPreferences preferences = PreferenceManager
                 .getDefaultSharedPreferences(this);
-        final String selectedChoiceKey = preferences
-                .getString(getString(R.string.preferred_open_action_key),
-                        getString(R.string.preferred_open_action_default));
 
-        final String showInfoKey = getString(R.string.show_info_key);
-        final String videoPlayerKey = getString(R.string.video_player_key);
-        final String backgroundPlayerKey = getString(R.string.background_player_key);
-        final String popupPlayerKey = getString(R.string.popup_player_key);
-        final String downloadKey = getString(R.string.download_key);
-        final String alwaysAskKey = getString(R.string.always_ask_open_action_key);
+        final ChoiceAvailabilityChecker choiceChecker = new ChoiceAvailabilityChecker(
+                getChoicesForService(currentService, currentLinkType),
+                preferences.getString(getString(R.string.preferred_open_action_key),
+                        getString(R.string.preferred_open_action_default)));
 
-        if (selectedChoiceKey.equals(alwaysAskKey)) {
-            final List<AdapterChoiceItem> choices
-                    = getChoicesForService(currentService, currentLinkType);
+        // Check for non-player related choices
+        if (choiceChecker.isAvailableAndSelected(
+                R.string.show_info_key,
+                R.string.download_key,
+                R.string.add_to_playlist_key)) {
+            handleChoice(choiceChecker.getSelectedChoiceKey());
+            return;
+        }
+        // Check if the choice is player related
+        if (choiceChecker.isAvailableAndSelected(
+                R.string.video_player_key,
+                R.string.background_player_key,
+                R.string.popup_player_key)) {
 
-            switch (choices.size()) {
-                case 1:
-                    handleChoice(choices.get(0).key);
-                    break;
-                case 0:
-                    handleChoice(showInfoKey);
-                    break;
-                default:
-                    showDialog(choices);
-                    break;
-            }
-        } else if (selectedChoiceKey.equals(showInfoKey)) {
-            handleChoice(showInfoKey);
-        } else if (selectedChoiceKey.equals(downloadKey)) {
-            handleChoice(downloadKey);
-        } else {
+            final String selectedChoice = choiceChecker.getSelectedChoiceKey();
+
             final boolean isExtVideoEnabled = preferences.getBoolean(
                     getString(R.string.use_external_video_player_key), false);
             final boolean isExtAudioEnabled = preferences.getBoolean(
                     getString(R.string.use_external_audio_player_key), false);
-            final boolean isVideoPlayerSelected = selectedChoiceKey.equals(videoPlayerKey)
-                    || selectedChoiceKey.equals(popupPlayerKey);
-            final boolean isAudioPlayerSelected = selectedChoiceKey.equals(backgroundPlayerKey);
+            final boolean isVideoPlayerSelected =
+                    selectedChoice.equals(getString(R.string.video_player_key))
+                            || selectedChoice.equals(getString(R.string.popup_player_key));
+            final boolean isAudioPlayerSelected =
+                    selectedChoice.equals(getString(R.string.background_player_key));
 
-            if (currentLinkType != LinkType.STREAM) {
-                if (isExtAudioEnabled && isAudioPlayerSelected
-                        || isExtVideoEnabled && isVideoPlayerSelected) {
-                    Toast.makeText(this, R.string.external_player_unsupported_link_type,
-                            Toast.LENGTH_LONG).show();
-                    handleChoice(showInfoKey);
-                    return;
-                }
+            if (currentLinkType != LinkType.STREAM
+                    && ((isExtAudioEnabled && isAudioPlayerSelected)
+                    || (isExtVideoEnabled && isVideoPlayerSelected))
+            ) {
+                Toast.makeText(this, R.string.external_player_unsupported_link_type,
+                        Toast.LENGTH_LONG).show();
+                handleChoice(getString(R.string.show_info_key));
+                return;
             }
 
-            final List<StreamingService.ServiceInfo.MediaCapability> capabilities
-                    = currentService.getServiceInfo().getMediaCapabilities();
+            final List<StreamingService.ServiceInfo.MediaCapability> capabilities =
+                    currentService.getServiceInfo().getMediaCapabilities();
 
-            boolean serviceSupportsChoice = false;
-            if (isVideoPlayerSelected) {
-                serviceSupportsChoice = capabilities.contains(VIDEO);
-            } else if (selectedChoiceKey.equals(backgroundPlayerKey)) {
-                serviceSupportsChoice = capabilities.contains(AUDIO);
-            }
-
-            if (serviceSupportsChoice) {
-                handleChoice(selectedChoiceKey);
+            // Check if the service supports the choice
+            if ((isVideoPlayerSelected && capabilities.contains(VIDEO))
+                    || (isAudioPlayerSelected && capabilities.contains(AUDIO))) {
+                handleChoice(selectedChoice);
             } else {
-                handleChoice(showInfoKey);
+                handleChoice(getString(R.string.show_info_key));
             }
+            return;
+        }
+
+        // Default / Ask always
+        final List<AdapterChoiceItem> availableChoices = choiceChecker.getAvailableChoices();
+        switch (availableChoices.size()) {
+            case 1:
+                handleChoice(availableChoices.get(0).key);
+                break;
+            case 0:
+                handleChoice(getString(R.string.show_info_key));
+                break;
+            default:
+                showDialog(availableChoices);
+                break;
+        }
+    }
+
+    /**
+     * This is a helper class for checking if the choices are available and/or selected.
+     */
+    class ChoiceAvailabilityChecker {
+        private final List<AdapterChoiceItem> availableChoices;
+        private final String selectedChoiceKey;
+
+        ChoiceAvailabilityChecker(
+                @NonNull final List<AdapterChoiceItem> availableChoices,
+                @NonNull final String selectedChoiceKey) {
+            this.availableChoices = availableChoices;
+            this.selectedChoiceKey = selectedChoiceKey;
+        }
+
+        public List<AdapterChoiceItem> getAvailableChoices() {
+            return availableChoices;
+        }
+
+        public String getSelectedChoiceKey() {
+            return selectedChoiceKey;
+        }
+
+        public boolean isAvailableAndSelected(@StringRes final int... wantedKeys) {
+            return Arrays.stream(wantedKeys).anyMatch(this::isAvailableAndSelected);
+        }
+
+        public boolean isAvailableAndSelected(@StringRes final int wantedKey) {
+            final String wanted = getString(wantedKey);
+            // Check if the wanted option is selected
+            if (!selectedChoiceKey.equals(wanted)) {
+                return false;
+            }
+            // Check if it's available
+            return availableChoices.stream().anyMatch(item -> wanted.equals(item.key));
         }
     }
 
     private void showDialog(final List<AdapterChoiceItem> choices) {
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        final Context themeWrapperContext = getThemeWrapperContext();
 
-        final LayoutInflater inflater = LayoutInflater.from(themeWrapperContext);
-        final RadioGroup radioGroup = SingleChoiceDialogViewBinding.inflate(getLayoutInflater())
-                .list;
+        final Context themeWrapperContext = getThemeWrapperContext();
+        final LayoutInflater layoutInflater = LayoutInflater.from(themeWrapperContext);
+
+        final SingleChoiceDialogViewBinding binding =
+                SingleChoiceDialogViewBinding.inflate(layoutInflater);
+        final RadioGroup radioGroup = binding.list;
 
         final DialogInterface.OnClickListener dialogButtonsClickListener = (dialog, which) -> {
             final int indexOfChild = radioGroup.indexOfChild(
@@ -287,26 +391,24 @@ public class RouterActivity extends AppCompatActivity {
             }
         };
 
-        final AlertDialog alertDialog = new AlertDialog.Builder(themeWrapperContext)
+        alertDialogChoice = new AlertDialog.Builder(themeWrapperContext)
                 .setTitle(R.string.preferred_open_action_share_menu_title)
-                .setView(radioGroup)
+                .setView(binding.getRoot())
                 .setCancelable(true)
                 .setNegativeButton(R.string.just_once, dialogButtonsClickListener)
                 .setPositiveButton(R.string.always, dialogButtonsClickListener)
-                .setOnDismissListener((dialog) -> {
-                    if (!selectionIsDownload) {
+                .setOnDismissListener(dialog -> {
+                    if (!selectionIsDownload && !selectionIsAddToPlaylist) {
                         finish();
                     }
                 })
                 .create();
 
-        //noinspection CodeBlock2Expr
-        alertDialog.setOnShowListener(dialog -> {
-            setDialogButtonsState(alertDialog, radioGroup.getCheckedRadioButtonId() != -1);
-        });
+        alertDialogChoice.setOnShowListener(dialog -> setDialogButtonsState(
+                alertDialogChoice, radioGroup.getCheckedRadioButtonId() != -1));
 
         radioGroup.setOnCheckedChangeListener((group, checkedId) ->
-                setDialogButtonsState(alertDialog, true));
+                setDialogButtonsState(alertDialogChoice, true));
         final View.OnClickListener radioButtonsClickListener = v -> {
             final int indexOfChild = radioGroup.indexOfChild(v);
             if (indexOfChild == -1) {
@@ -323,10 +425,11 @@ public class RouterActivity extends AppCompatActivity {
 
         int id = 12345;
         for (final AdapterChoiceItem item : choices) {
-            final RadioButton radioButton = ListRadioIconItemBinding.inflate(inflater).getRoot();
+            final RadioButton radioButton = ListRadioIconItemBinding.inflate(layoutInflater)
+                    .getRoot();
             radioButton.setText(item.description);
             TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(radioButton,
-                    AppCompatResources.getDrawable(getApplicationContext(), item.icon),
+                    AppCompatResources.getDrawable(themeWrapperContext, item.icon),
                     null, null, null);
             radioButton.setChecked(false);
             radioButton.setId(id++);
@@ -350,93 +453,79 @@ public class RouterActivity extends AppCompatActivity {
             }
         }
 
-        selectedRadioPosition = Math.min(Math.max(-1, selectedRadioPosition), choices.size() - 1);
+        selectedRadioPosition = MathUtils.clamp(selectedRadioPosition, -1, choices.size() - 1);
         if (selectedRadioPosition != -1) {
             ((RadioButton) radioGroup.getChildAt(selectedRadioPosition)).setChecked(true);
         }
         selectedPreviously = selectedRadioPosition;
 
-        alertDialog.show();
+        alertDialogChoice.show();
 
         if (DeviceUtils.isTv(this)) {
-            FocusOverlayView.setupFocusObserver(alertDialog);
+            FocusOverlayView.setupFocusObserver(alertDialogChoice);
         }
     }
 
     private List<AdapterChoiceItem> getChoicesForService(final StreamingService service,
                                                          final LinkType linkType) {
-        final Context context = getThemeWrapperContext();
-
-        final List<AdapterChoiceItem> returnList = new ArrayList<>();
-        final List<StreamingService.ServiceInfo.MediaCapability> capabilities
-                = service.getServiceInfo().getMediaCapabilities();
-
-        final SharedPreferences preferences = PreferenceManager
-                .getDefaultSharedPreferences(this);
-        final boolean isExtVideoEnabled = preferences.getBoolean(
-                getString(R.string.use_external_video_player_key), false);
-        final boolean isExtAudioEnabled = preferences.getBoolean(
-                getString(R.string.use_external_audio_player_key), false);
-
-        final AdapterChoiceItem videoPlayer = new AdapterChoiceItem(
-                getString(R.string.video_player_key), getString(R.string.video_player),
-                resolveResourceIdFromAttr(context, R.attr.ic_play_arrow));
         final AdapterChoiceItem showInfo = new AdapterChoiceItem(
                 getString(R.string.show_info_key), getString(R.string.show_info),
-                resolveResourceIdFromAttr(context, R.attr.ic_info_outline));
-        final AdapterChoiceItem popupPlayer = new AdapterChoiceItem(
-                getString(R.string.popup_player_key), getString(R.string.popup_player),
-                resolveResourceIdFromAttr(context, R.attr.ic_popup));
+                R.drawable.ic_info_outline);
+        final AdapterChoiceItem videoPlayer = new AdapterChoiceItem(
+                getString(R.string.video_player_key), getString(R.string.video_player),
+                R.drawable.ic_play_arrow);
         final AdapterChoiceItem backgroundPlayer = new AdapterChoiceItem(
                 getString(R.string.background_player_key), getString(R.string.background_player),
-                resolveResourceIdFromAttr(context, R.attr.ic_headset));
+                R.drawable.ic_headset);
+        final AdapterChoiceItem popupPlayer = new AdapterChoiceItem(
+                getString(R.string.popup_player_key), getString(R.string.popup_player),
+                R.drawable.ic_picture_in_picture);
+
+        final List<AdapterChoiceItem> returnedItems = new ArrayList<>();
+        returnedItems.add(showInfo); // Always present
+
+        final List<StreamingService.ServiceInfo.MediaCapability> capabilities =
+                service.getServiceInfo().getMediaCapabilities();
 
         if (linkType == LinkType.STREAM) {
-            if (isExtVideoEnabled) {
-                // show both "show info" and "video player", they are two different activities
-                returnList.add(showInfo);
-                returnList.add(videoPlayer);
-            } else {
-                final MainPlayer.PlayerType playerType = PlayerHolder.getType();
-                if (capabilities.contains(VIDEO)
-                        && PlayerHelper.isAutoplayAllowedByUser(context)
-                        && playerType == null || playerType == MainPlayer.PlayerType.VIDEO) {
-                    // show only "video player" since the details activity will be opened and the
-                    // video will be auto played there. Since "show info" would do the exact same
-                    // thing, use that as a key to let VideoDetailFragment load the stream instead
-                    // of using FetcherService (see comment in handleChoice())
-                    returnList.add(new AdapterChoiceItem(
-                            showInfo.key, videoPlayer.description, videoPlayer.icon));
-                } else {
-                    // show only "show info" if video player is not applicable, auto play is
-                    // disabled or a video is playing in a player different than the main one
-                    returnList.add(showInfo);
-                }
-            }
-
             if (capabilities.contains(VIDEO)) {
-                returnList.add(popupPlayer);
+                returnedItems.add(videoPlayer);
+                returnedItems.add(popupPlayer);
             }
             if (capabilities.contains(AUDIO)) {
-                returnList.add(backgroundPlayer);
+                returnedItems.add(backgroundPlayer);
             }
+            // download is redundant for linkType CHANNEL AND PLAYLIST (till playlist downloading is
+            // not supported )
+            returnedItems.add(new AdapterChoiceItem(getString(R.string.download_key),
+                    getString(R.string.download),
+                    R.drawable.ic_file_download));
 
+            // Add to playlist is not necessary for CHANNEL and PLAYLIST linkType since those can
+            // not be added to a playlist
+            returnedItems.add(new AdapterChoiceItem(getString(R.string.add_to_playlist_key),
+                    getString(R.string.add_to_playlist),
+                    R.drawable.ic_add));
         } else {
-            returnList.add(showInfo);
+            // LinkType.NONE is never present because it's filtered out before
+            // channels and playlist can be played as they contain a list of videos
+            final SharedPreferences preferences = PreferenceManager
+                    .getDefaultSharedPreferences(this);
+            final boolean isExtVideoEnabled = preferences.getBoolean(
+                    getString(R.string.use_external_video_player_key), false);
+            final boolean isExtAudioEnabled = preferences.getBoolean(
+                    getString(R.string.use_external_audio_player_key), false);
+
             if (capabilities.contains(VIDEO) && !isExtVideoEnabled) {
-                returnList.add(videoPlayer);
-                returnList.add(popupPlayer);
+                returnedItems.add(videoPlayer);
+                returnedItems.add(popupPlayer);
             }
             if (capabilities.contains(AUDIO) && !isExtAudioEnabled) {
-                returnList.add(backgroundPlayer);
+                returnedItems.add(backgroundPlayer);
             }
         }
 
-        returnList.add(new AdapterChoiceItem(getString(R.string.download_key),
-                getString(R.string.download),
-                resolveResourceIdFromAttr(context, R.attr.ic_file_download)));
-
-        return returnList;
+        return returnedItems;
     }
 
     private Context getThemeWrapperContext() {
@@ -490,9 +579,16 @@ public class RouterActivity extends AppCompatActivity {
             return;
         }
 
+        if (selectedChoiceKey.equals(getString(R.string.add_to_playlist_key))) {
+            selectionIsAddToPlaylist = true;
+            openAddToPlaylistDialog();
+            return;
+        }
+
         // stop and bypass FetcherService if InfoScreen was selected since
         // StreamDetailFragment can fetch data itself
-        if (selectedChoiceKey.equals(getString(R.string.show_info_key))) {
+        if (selectedChoiceKey.equals(getString(R.string.show_info_key))
+                || canHandleChoiceLikeShowInfo(selectedChoiceKey)) {
             disposables.add(Observable
                     .fromCallable(() -> NavigationHelper.getIntentByLink(this, currentUrl))
                     .subscribeOn(Schedulers.io())
@@ -500,7 +596,8 @@ public class RouterActivity extends AppCompatActivity {
                     .subscribe(intent -> {
                         startActivity(intent);
                         finish();
-                    }, throwable -> handleError(throwable, currentUrl))
+                    }, throwable -> handleError(this, new ErrorInfo(throwable,
+                            UserAction.SHARE_TO_NEWPIPE, "Starting info activity: " + currentUrl)))
             );
             return;
         }
@@ -514,34 +611,85 @@ public class RouterActivity extends AppCompatActivity {
         finish();
     }
 
+    private boolean canHandleChoiceLikeShowInfo(final String selectedChoiceKey) {
+        if (!selectedChoiceKey.equals(getString(R.string.video_player_key))) {
+            return false;
+        }
+        // "video player" can be handled like "show info" (because VideoDetailFragment can load
+        // the stream instead of FetcherService) when...
+
+        // ...Autoplay is enabled
+        if (!PlayerHelper.isAutoplayAllowedByUser(getThemeWrapperContext())) {
+            return false;
+        }
+
+        final boolean isExtVideoEnabled = PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean(getString(R.string.use_external_video_player_key), false);
+        // ...it's not done via an external player
+        if (isExtVideoEnabled) {
+            return false;
+        }
+
+        // ...the player is not running or in normal Video-mode/type
+        final PlayerType playerType = PlayerHolder.getInstance().getType();
+        return playerType == null || playerType == PlayerType.MAIN;
+    }
+
+    private void openAddToPlaylistDialog() {
+        // Getting the stream info usually takes a moment
+        // Notifying the user here to ensure that no confusion arises
+        Toast.makeText(
+                getApplicationContext(),
+                getString(R.string.processing_may_take_a_moment),
+                Toast.LENGTH_SHORT)
+                .show();
+
+        disposables.add(ExtractorHelper.getStreamInfo(currentServiceId, currentUrl, false)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        info -> PlaylistDialog.createCorrespondingDialog(
+                                getThemeWrapperContext(),
+                                List.of(new StreamEntity(info)),
+                                playlistDialog -> {
+                                    playlistDialog.setOnDismissListener(dialog -> finish());
+
+                                    playlistDialog.show(
+                                            this.getSupportFragmentManager(),
+                                            "addToPlaylistDialog"
+                                    );
+                                }
+                        ),
+                        throwable -> handleError(this, new ErrorInfo(
+                                throwable,
+                                UserAction.REQUESTED_STREAM,
+                                "Tried to add " + currentUrl + " to a playlist",
+                                currentService.getServiceId())
+                        )
+                )
+        );
+    }
+
     @SuppressLint("CheckResult")
     private void openDownloadDialog() {
         disposables.add(ExtractorHelper.getStreamInfo(currentServiceId, currentUrl, true)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(result -> {
-                    final List<VideoStream> sortedVideoStreams = ListHelper
-                            .getSortedStreamVideosList(this, result.getVideoStreams(),
-                                    result.getVideoOnlyStreams(), false);
-                    final int selectedVideoStreamIndex = ListHelper
-                            .getDefaultResolutionIndex(this, sortedVideoStreams);
+                    final DownloadDialog downloadDialog = new DownloadDialog(this, result);
+                    downloadDialog.setOnDismissListener(dialog -> finish());
 
                     final FragmentManager fm = getSupportFragmentManager();
-                    final DownloadDialog downloadDialog = DownloadDialog.newInstance(result);
-                    downloadDialog.setVideoStreams(sortedVideoStreams);
-                    downloadDialog.setAudioStreams(result.getAudioStreams());
-                    downloadDialog.setSelectedVideoStream(selectedVideoStreamIndex);
                     downloadDialog.show(fm, "downloadDialog");
                     fm.executePendingTransactions();
-                    downloadDialog.requireDialog().setOnDismissListener(dialog -> finish());
-                }, throwable ->
-                        showUnsupportedUrlDialog(currentUrl)));
+                }, throwable -> showUnsupportedUrlDialog(currentUrl)));
     }
 
     @Override
     public void onRequestPermissionsResult(final int requestCode,
                                            @NonNull final String[] permissions,
                                            @NonNull final int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         for (final int i : grantResults) {
             if (i == PackageManager.PERMISSION_DENIED) {
                 finish();
@@ -560,8 +708,8 @@ public class RouterActivity extends AppCompatActivity {
         final int icon;
 
         AdapterChoiceItem(final String key, final String description, final int icon) {
-            this.description = description;
             this.key = key;
+            this.description = description;
             this.icon = icon;
         }
     }
@@ -580,6 +728,7 @@ public class RouterActivity extends AppCompatActivity {
             this.playerChoice = playerChoice;
         }
 
+        @NonNull
         @Override
         public String toString() {
             return serviceId + ":" + url + " > " + linkType + " ::: " + playerChoice;
@@ -646,9 +795,9 @@ public class RouterActivity extends AppCompatActivity {
                             if (fetcher != null) {
                                 fetcher.dispose();
                             }
-                        }, throwable -> ExtractorHelper.handleGeneralException(this,
-                                choice.serviceId, choice.url, throwable, finalUserAction,
-                                ", opened with " + choice.playerChoice));
+                        }, throwable -> handleError(this, new ErrorInfo(throwable, finalUserAction,
+                                choice.url + " opened with " + choice.playerChoice,
+                                choice.serviceId)));
             }
         }
 

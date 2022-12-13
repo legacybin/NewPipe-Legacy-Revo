@@ -1,1 +1,1 @@
-Jednoduchý a bezplatný YouTube frontend pre Android.
+Jednoduchý a bezplatný YouTube prehrávač pre Android.

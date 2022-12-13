@@ -18,6 +18,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import org.schabi.newpipelegacy.R;
+import org.schabi.newpipelegacy.settings.NewPipeSettings;
 
 public final class PermissionHelper {
     public static final int DOWNLOAD_DIALOG_REQUEST_CODE = 778;
@@ -26,13 +27,16 @@ public final class PermissionHelper {
     private PermissionHelper() { }
 
     public static boolean checkStoragePermissions(final Activity activity, final int requestCode) {
+        if (NewPipeSettings.useStorageAccessFramework(activity)) {
+            return true; // Storage permissions are not needed for SAF
+        }
+
         if (!checkReadStoragePermissions(activity, requestCode)) {
             return false;
         }
         return checkWriteStoragePermissions(activity, requestCode);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public static boolean checkReadStoragePermissions(final Activity activity,
                                                       final int requestCode) {
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -114,12 +118,12 @@ public final class PermissionHelper {
 
     public static boolean isPopupEnabled(final Context context) {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.M
-                || PermissionHelper.checkSystemAlertWindowPermission(context);
+                || checkSystemAlertWindowPermission(context);
     }
 
     public static void showPopupEnablementToast(final Context context) {
-        final Toast toast
-                = Toast.makeText(context, R.string.msg_popup_permission, Toast.LENGTH_LONG);
+        final Toast toast =
+                Toast.makeText(context, R.string.msg_popup_permission, Toast.LENGTH_LONG);
         final TextView messageView = toast.getView().findViewById(android.R.id.message);
         if (messageView != null) {
             messageView.setGravity(Gravity.CENTER);

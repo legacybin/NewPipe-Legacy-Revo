@@ -1,19 +1,20 @@
 package org.schabi.newpipelegacy.info_list.holder;
 
-import androidx.preference.PreferenceManager;
+import static org.schabi.newpipelegacy.MainActivity.DEBUG;
+
 import android.text.TextUtils;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.schabi.newpipelegacy.R;
+import androidx.preference.PreferenceManager;
+
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.stream.StreamType;
+import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.info_list.InfoItemBuilder;
 import org.schabi.newpipelegacy.local.history.HistoryRecordManager;
 import org.schabi.newpipelegacy.util.Localization;
-
-import static org.schabi.newpipelegacy.MainActivity.DEBUG;
 
 /*
  * Created by Christian Schabesberger on 01.08.16.

@@ -2,6 +2,7 @@ package org.schabi.newpipelegacy.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+
 import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipelegacy.R;

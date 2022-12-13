@@ -126,8 +126,19 @@ public class LocalItemListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     public void removeItem(final LocalItem data) {
         final int index = localItems.indexOf(data);
-        localItems.remove(index);
-        notifyItemRemoved(index + (header != null ? 1 : 0));
+        if (index != -1) {
+            localItems.remove(index);
+            notifyItemRemoved(index + (header != null ? 1 : 0));
+        } else {
+            // this happens when
+            // 1) removeItem is called on infoItemDuplicate as in showStreamItemDialog of
+            // LocalPlaylistFragment in this case need to implement delete object by it's duplicate
+
+            // OR
+
+            // 2)data not in itemList and UI is still not updated so notifyDataSetChanged()
+            notifyDataSetChanged();
+        }
     }
 
     public boolean swapItems(final int fromAdapterPosition, final int toAdapterPosition) {
@@ -217,6 +228,7 @@ public class LocalItemListAdapter extends RecyclerView.Adapter<RecyclerView.View
         return count;
     }
 
+    @SuppressWarnings("FinalParameters")
     @Override
     public int getItemViewType(int position) {
         if (DEBUG) {
@@ -289,6 +301,7 @@ public class LocalItemListAdapter extends RecyclerView.Adapter<RecyclerView.View
         }
     }
 
+    @SuppressWarnings("FinalParameters")
     @Override
     public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, int position) {
         if (DEBUG) {

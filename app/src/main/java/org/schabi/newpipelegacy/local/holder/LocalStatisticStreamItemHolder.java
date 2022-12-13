@@ -11,12 +11,12 @@ import androidx.core.content.ContextCompat;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.database.LocalItem;
 import org.schabi.newpipelegacy.database.stream.StreamStatisticsEntry;
-import org.schabi.newpipe.extractor.NewPipe;
+import org.schabi.newpipelegacy.ktx.ViewUtils;
 import org.schabi.newpipelegacy.local.LocalItemBuilder;
 import org.schabi.newpipelegacy.local.history.HistoryRecordManager;
-import org.schabi.newpipelegacy.util.AnimationUtils;
-import org.schabi.newpipelegacy.util.ImageDisplayConstants;
 import org.schabi.newpipelegacy.util.Localization;
+import org.schabi.newpipelegacy.util.PicassoHelper;
+import org.schabi.newpipelegacy.util.ServiceHelper;
 import org.schabi.newpipelegacy.views.AnimatedProgressBar;
 
 import java.time.format.DateTimeFormatter;
@@ -70,11 +70,12 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
 
     private String getStreamInfoDetailLine(final StreamStatisticsEntry entry,
                                            final DateTimeFormatter dateTimeFormatter) {
-        final String watchCount = Localization
-                .shortViewCount(itemBuilder.getContext(), entry.getWatchCount());
-        final String uploadDate = dateTimeFormatter.format(entry.getLatestAccessDate());
-        final String serviceName = NewPipe.getNameOfService(entry.getStreamEntity().getServiceId());
-        return Localization.concatenateStrings(watchCount, uploadDate, serviceName);
+        return Localization.concatenateStrings(
+                // watchCount
+                Localization.shortViewCount(itemBuilder.getContext(), entry.getWatchCount()),
+                dateTimeFormatter.format(entry.getLatestAccessDate()),
+                // serviceName
+                ServiceHelper.getNameOfServiceById(entry.getStreamEntity().getServiceId()));
     }
 
     @Override
@@ -96,11 +97,11 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
                     R.color.duration_background_color));
             itemDurationView.setVisibility(View.VISIBLE);
 
-            if (item.getProgressTime() > 0) {
+            if (item.getProgressMillis() > 0) {
                 itemProgressView.setVisibility(View.VISIBLE);
                 itemProgressView.setMax((int) item.getStreamEntity().getDuration());
                 itemProgressView.setProgress((int) TimeUnit.MILLISECONDS
-                        .toSeconds(item.getProgressTime()));
+                        .toSeconds(item.getProgressMillis()));
             } else {
                 itemProgressView.setVisibility(View.GONE);
             }
@@ -114,8 +115,8 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
         }
 
         // Default thumbnail is shown on error, while loading and if the url is empty
-        itemBuilder.displayImage(item.getStreamEntity().getThumbnailUrl(), itemThumbnailView,
-                ImageDisplayConstants.DISPLAY_THUMBNAIL_OPTIONS);
+        PicassoHelper.loadThumbnail(item.getStreamEntity().getThumbnailUrl())
+                .into(itemThumbnailView);
 
         itemView.setOnClickListener(view -> {
             if (itemBuilder.getOnItemSelectedListener() != null) {
@@ -140,18 +141,18 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
         }
         final StreamStatisticsEntry item = (StreamStatisticsEntry) localItem;
 
-        if (item.getProgressTime() > 0 && item.getStreamEntity().getDuration() > 0) {
+        if (item.getProgressMillis() > 0 && item.getStreamEntity().getDuration() > 0) {
             itemProgressView.setMax((int) item.getStreamEntity().getDuration());
             if (itemProgressView.getVisibility() == View.VISIBLE) {
                 itemProgressView.setProgressAnimated((int) TimeUnit.MILLISECONDS
-                        .toSeconds(item.getProgressTime()));
+                        .toSeconds(item.getProgressMillis()));
             } else {
                 itemProgressView.setProgress((int) TimeUnit.MILLISECONDS
-                        .toSeconds(item.getProgressTime()));
-                AnimationUtils.animateView(itemProgressView, true, 500);
+                        .toSeconds(item.getProgressMillis()));
+                ViewUtils.animate(itemProgressView, true, 500);
             }
         } else if (itemProgressView.getVisibility() == View.VISIBLE) {
-            AnimationUtils.animateView(itemProgressView, false, 500);
+            ViewUtils.animate(itemProgressView, false, 500);
         }
     }
 }

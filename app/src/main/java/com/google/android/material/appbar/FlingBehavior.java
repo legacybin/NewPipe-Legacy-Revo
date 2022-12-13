@@ -10,10 +10,10 @@ import android.widget.OverScroller;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
 import org.schabi.newpipelegacy.R;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.List;
 
 // See https://stackoverflow.com/questions/56849221#57997489
@@ -26,8 +26,8 @@ public final class FlingBehavior extends AppBarLayout.Behavior {
 
     private boolean allowScroll = true;
     private final Rect globalRect = new Rect();
-    private final List<Integer> skipInterceptionOfElements = Arrays.asList(
-            R.id.playQueuePanel, R.id.playbackSeekBar,
+    private final List<Integer> skipInterceptionOfElements = List.of(
+            R.id.itemsListPanel, R.id.playbackSeekBar,
             R.id.playPauseButton, R.id.playPreviousButton, R.id.playNextButton);
 
     @Override
@@ -62,9 +62,11 @@ public final class FlingBehavior extends AppBarLayout.Behavior {
         return consumed == dy;
     }
 
-    public boolean onInterceptTouchEvent(final CoordinatorLayout parent, final AppBarLayout child,
-                                         final MotionEvent ev) {
-        for (final Integer element : skipInterceptionOfElements) {
+    @Override
+    public boolean onInterceptTouchEvent(@NonNull final CoordinatorLayout parent,
+                                         @NonNull final AppBarLayout child,
+                                         @NonNull final MotionEvent ev) {
+        for (final int element : skipInterceptionOfElements) {
             final View view = child.findViewById(element);
             if (view != null) {
                 final boolean visible = view.getGlobalVisibleRect(globalRect);
@@ -118,9 +120,7 @@ public final class FlingBehavior extends AppBarLayout.Behavior {
                 field.setAccessible(true);
                 return ((OverScroller) field.get(this));
             }
-        } catch (final NoSuchFieldException e) {
-            // ?
-        } catch (final IllegalAccessException e) {
+        } catch (final NoSuchFieldException | IllegalAccessException e) {
             // ?
         }
         return null;
@@ -131,8 +131,8 @@ public final class FlingBehavior extends AppBarLayout.Behavior {
         try {
             final Class<?> headerBehaviorType = this.getClass().getSuperclass().getSuperclass();
             if (headerBehaviorType != null) {
-                final Field field
-                        = headerBehaviorType.getDeclaredField("lastNestedScrollingChildRef");
+                final Field field =
+                        headerBehaviorType.getDeclaredField("lastNestedScrollingChildRef");
                 field.setAccessible(true);
                 return field;
             }

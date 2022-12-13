@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.streams.io.SharpStream;
+import org.schabi.newpipelegacy.streams.io.StoredFileHelper;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -30,8 +31,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Locale;
-
-import us.shandian.giga.io.StoredFileHelper;
 
 public class Utility {
 
@@ -184,12 +183,12 @@ public class Utility {
     public static int getIconForFileType(FileType type) {
         switch (type) {
             case MUSIC:
-                return R.drawable.ic_headset_white_24dp;
+                return R.drawable.ic_headset;
             default:
             case VIDEO:
-                return R.drawable.ic_movie_white_24dp;
+                return R.drawable.ic_movie;
             case SUBTITLE:
-                return R.drawable.ic_subtitles_white_24dp;
+                return R.drawable.ic_subtitles;
         }
     }
 
