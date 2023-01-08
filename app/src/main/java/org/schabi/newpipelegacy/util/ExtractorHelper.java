@@ -25,7 +25,6 @@ import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
-import org.schabi.newpipe.extractor.Page;
 import org.schabi.newpipelegacy.MainActivity;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.ReCaptchaActivity;
@@ -34,6 +33,7 @@ import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.ListExtractor.InfoItemsPage;
 import org.schabi.newpipe.extractor.ListInfo;
 import org.schabi.newpipe.extractor.NewPipe;
+import org.schabi.newpipe.extractor.Page;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.channel.ChannelInfo;
 import org.schabi.newpipe.extractor.comments.CommentsInfo;
