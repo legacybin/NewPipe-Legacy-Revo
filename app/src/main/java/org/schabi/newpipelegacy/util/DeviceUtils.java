@@ -65,7 +65,7 @@ public final class DeviceUtils {
         boolean isTv = ContextCompat.getSystemService(context, UiModeManager.class)
                 .getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION
                 || isFireTv()
-                || pm.hasSystemFeature(PackageManager.FEATURE_LEANBACK);
+                || pm.hasSystemFeature(PackageManager.FEATURE_TELEVISION);
 
         // from https://stackoverflow.com/a/58932366
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -75,6 +75,10 @@ public final class DeviceUtils {
                     && !pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)
                     && pm.hasSystemFeature(PackageManager.FEATURE_USB_HOST)
                     && pm.hasSystemFeature(PackageManager.FEATURE_ETHERNET));
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            isTv = isTv || pm.hasSystemFeature(PackageManager.FEATURE_LEANBACK);
         }
 
         DeviceUtils.isTV = isTv;
@@ -127,10 +131,11 @@ public final class DeviceUtils {
     /**
      * Some devices have broken tunneled video playback but claim to support it.
      * See https://github.com/TeamNewPipe/NewPipe/issues/5911
-     * @return false if affected device
+     * @return false if Kitkat (does not support tunneling) or affected device
      */
     public static boolean shouldSupportMediaTunneling() {
-        return !HI3798MV200
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                && !HI3798MV200
                 && !CVT_MT5886_EU_1G
                 && !REALTEKATV
                 && !QM16XE_U;

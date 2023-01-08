@@ -246,6 +246,7 @@ public final class VideoDetailFragment
             autoPlayEnabled = true; // forcefully start playing
             openVideoPlayerAutoFullscreen();
         }
+        updateOverlayPlayQueueButtonVisibility();
     }
 
     @Override
@@ -334,6 +335,8 @@ public final class VideoDetailFragment
         }
 
         activity.sendBroadcast(new Intent(ACTION_VIDEO_FRAGMENT_RESUMED));
+
+        updateOverlayPlayQueueButtonVisibility();
 
         setupBrightness();
 
@@ -518,6 +521,9 @@ public final class VideoDetailFragment
             case R.id.overlay_buttons_layout:
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 break;
+            case R.id.overlay_play_queue_button:
+                NavigationHelper.openPlayQueue(getContext());
+                break;
             case R.id.overlay_play_pause_button:
                 if (playerIsNotStopped()) {
                     player.playPause();
@@ -552,6 +558,9 @@ public final class VideoDetailFragment
         }
 
         switch (v.getId()) {
+            case R.id.detail_controls_playlist_append:
+                NavigationHelper.openBookmarksFragment(getFM());
+                break;
             case R.id.detail_controls_background:
                 openBackgroundPlayer(true);
                 break;
@@ -658,6 +667,7 @@ public final class VideoDetailFragment
         binding.detailControlsPopup.setOnClickListener(this);
         binding.detailControlsPopup.setOnLongClickListener(this);
         binding.detailControlsPlaylistAppend.setOnClickListener(this);
+		binding.detailControlsPlaylistAppend.setOnLongClickListener(this);
         binding.detailControlsDownload.setOnClickListener(this);
         binding.detailControlsDownload.setOnLongClickListener(this);
         binding.detailControlsShare.setOnClickListener(this);
@@ -676,6 +686,7 @@ public final class VideoDetailFragment
         binding.overlayMetadataLayout.setOnClickListener(this);
         binding.overlayMetadataLayout.setOnLongClickListener(this);
         binding.overlayButtonsLayout.setOnClickListener(this);
+		binding.overlayPlayQueueButton.setOnClickListener(this);
         binding.overlayCloseButton.setOnClickListener(this);
         binding.overlayPlayPauseButton.setOnClickListener(this);
 
@@ -1796,6 +1807,14 @@ public final class VideoDetailFragment
                     + title + "], playQueue = [" + playQueue + "]");
         }
 
+        // Register broadcast receiver to listen to playQueue changes
+        // and hide the overlayPlayQueueButton when the playQueue is empty / destroyed.
+        if (playQueue != null && playQueue.getBroadcastReceiver() != null) {
+            playQueue.getBroadcastReceiver().subscribe(
+                    event -> updateOverlayPlayQueueButtonVisibility()
+            );
+        }
+
         // This should be the only place where we push data to stack.
         // It will allow to have live instance of PlayQueue with actual information about
         // deleted/added items inside Channel/Playlist queue and makes possible to have
@@ -1902,6 +1921,7 @@ public final class VideoDetailFragment
                     currentInfo.getUploaderName(),
                     currentInfo.getThumbnailUrl());
         }
+        updateOverlayPlayQueueButtonVisibility();
     }
 
     @Override
@@ -1926,7 +1946,13 @@ public final class VideoDetailFragment
         }
         scrollToTop();
 
-        addVideoPlayerView();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            addVideoPlayerView();
+        } else {
+            // KitKat needs a delay before addVideoPlayerView call or it reports wrong height in
+            // activity.getWindow().getDecorView().getHeight()
+            new Handler().post(this::addVideoPlayerView);
+        }
     }
 
     @Override
@@ -1989,8 +2015,10 @@ public final class VideoDetailFragment
         }
         activity.getWindow().getDecorView().setSystemUiVisibility(0);
         activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        activity.getWindow().setStatusBarColor(ThemeHelper.resolveColorFromAttr(
-                requireContext(), android.R.attr.colorPrimary));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            activity.getWindow().setStatusBarColor(ThemeHelper.resolveColorFromAttr(
+                    requireContext(), android.R.attr.colorPrimary));
+        }
     }
 
     private void hideSystemUi() {
@@ -2021,7 +2049,8 @@ public final class VideoDetailFragment
         }
         activity.getWindow().getDecorView().setSystemUiVisibility(visibility);
 
-        if (isInMultiWindow || isFullscreen()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                && (isInMultiWindow || (isPlayerAvailable()))) {
             activity.getWindow().setStatusBarColor(Color.TRANSPARENT);
             activity.getWindow().setNavigationBarColor(Color.TRANSPARENT);
         }
@@ -2366,6 +2395,18 @@ public final class VideoDetailFragment
         });
     }
 
+    private void updateOverlayPlayQueueButtonVisibility() {
+        final boolean isPlayQueueEmpty =
+                player == null // no player => no play queue :)
+                        || player.getPlayQueue() == null
+                        || player.getPlayQueue().isEmpty();
+        if (binding != null) {
+            // binding is null when rotating the device...
+            binding.overlayPlayQueueButton.setVisibility(
+                    isPlayQueueEmpty ? View.GONE : View.VISIBLE);
+        }
+    }
+
     private void updateOverlayData(@Nullable final String overlayTitle,
                                    @Nullable final String uploader,
                                    @Nullable final String thumbnailUrl) {
@@ -2404,6 +2445,7 @@ public final class VideoDetailFragment
         binding.overlayMetadataLayout.setClickable(enable);
         binding.overlayMetadataLayout.setLongClickable(enable);
         binding.overlayButtonsLayout.setClickable(enable);
+		binding.overlayPlayQueueButton.setClickable(enable);
         binding.overlayPlayPauseButton.setClickable(enable);
         binding.overlayCloseButton.setClickable(enable);
     }

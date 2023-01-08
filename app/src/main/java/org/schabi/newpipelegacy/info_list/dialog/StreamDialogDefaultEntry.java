@@ -1,7 +1,7 @@
 package org.schabi.newpipelegacy.info_list.dialog;
 
+import static org.schabi.newpipelegacy.info_list.dialog.StreamDialogEntry.fetchItemInfoIfSparse;
 import static org.schabi.newpipelegacy.util.NavigationHelper.openChannelFragment;
-import static org.schabi.newpipelegacy.util.SparseItemUtil.fetchItemInfoIfSparse;
 import static org.schabi.newpipelegacy.util.SparseItemUtil.fetchStreamInfoAndSaveToDatabase;
 import static org.schabi.newpipelegacy.util.SparseItemUtil.fetchUploaderUrlIfSparse;
 
@@ -20,7 +20,7 @@ import org.schabi.newpipelegacy.util.NavigationHelper;
 import org.schabi.newpipelegacy.util.external_communication.KoreUtils;
 import org.schabi.newpipelegacy.util.external_communication.ShareUtils;
 
-import java.util.List;
+import java.util.Collections;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 
@@ -89,7 +89,7 @@ public enum StreamDialogDefaultEntry {
     APPEND_PLAYLIST(R.string.add_to_playlist, (fragment, item) ->
         PlaylistDialog.createCorrespondingDialog(
                 fragment.getContext(),
-                List.of(new StreamEntity(item)),
+                Collections.singletonList(new StreamEntity(item)),
                 dialog -> dialog.show(
                         fragment.getParentFragmentManager(),
                         "StreamDialogEntry@"
@@ -112,14 +112,24 @@ public enum StreamDialogDefaultEntry {
             ShareUtils.shareText(fragment.requireContext(), item.getName(), item.getUrl(),
                     item.getThumbnailUrl())),
 
+    /**
+     * Opens a {@link DownloadDialog} after fetching some stream info.
+     * If the user quits the current fragment, it will not open a DownloadDialog.
+     */
+
     DOWNLOAD(R.string.download, (fragment, item) ->
             fetchStreamInfoAndSaveToDatabase(fragment.requireContext(), item.getServiceId(),
                     item.getUrl(), info -> {
-                        final DownloadDialog downloadDialog =
-                                new DownloadDialog(fragment.requireContext(), info);
-                        downloadDialog.show(fragment.getChildFragmentManager(), "downloadDialog");
+                        if (fragment.getContext() != null) {
+                            final DownloadDialog downloadDialog =
+                                    new DownloadDialog(fragment.requireContext(), info);
+                            downloadDialog.show(fragment.getChildFragmentManager(),
+                                    "downloadDialog");
+                        }
                     })
     ),
+
+
 
     OPEN_IN_BROWSER(R.string.open_in_browser, (fragment, item) ->
             ShareUtils.openUrlInBrowser(fragment.requireContext(), item.getUrl())),

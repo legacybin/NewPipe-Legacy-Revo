@@ -28,6 +28,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -85,6 +86,7 @@ import org.schabi.newpipelegacy.util.PermissionHelper;
 import org.schabi.newpipelegacy.util.SerializedCache;
 import org.schabi.newpipelegacy.util.ServiceHelper;
 import org.schabi.newpipelegacy.util.StateSaver;
+import org.schabi.newpipelegacy.util.TLSSocketFactoryCompat;
 import org.schabi.newpipelegacy.util.ThemeHelper;
 import org.schabi.newpipelegacy.views.FocusOverlayView;
 
@@ -127,6 +129,11 @@ public class MainActivity extends AppCompatActivity {
         if (DEBUG) {
             Log.d(TAG, "onCreate() called with: "
                     + "savedInstanceState = [" + savedInstanceState + "]");
+        }
+
+        // enable TLS1.1/1.2 for Jellybean devices, to fix download and play for media.ccc.de sources
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
+            TLSSocketFactoryCompat.setAsDefault();
         }
 
         ThemeHelper.setDayNightMode(this);

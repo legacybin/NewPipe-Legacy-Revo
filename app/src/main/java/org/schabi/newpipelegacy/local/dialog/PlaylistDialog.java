@@ -28,9 +28,12 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 
 public abstract class PlaylistDialog extends DialogFragment implements StateSaver.WriteRead {
+
     @Nullable
     private DialogInterface.OnDismissListener onDismissListener = null;
+
     private List<StreamEntity> streamEntities;
+
     private org.schabi.newpipelegacy.util.SavedState savedState;
 
     /*//////////////////////////////////////////////////////////////////////////

@@ -30,6 +30,8 @@ import androidx.annotation.Nullable;
 import androidx.core.text.HtmlCompat;
 import androidx.preference.PreferenceManager;
 
+import org.schabi.newpipelegacy.MainActivity;
+import org.schabi.newpipelegacy.R;
 import org.schabi.newpipe.extractor.Info;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.ListExtractor.InfoItemsPage;
@@ -50,8 +52,6 @@ import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.suggestion.SuggestionExtractor;
 import org.schabi.newpipelegacy.util.external_communication.TextLinkifier;
-import org.schabi.newpipelegacy.MainActivity;
-import org.schabi.newpipelegacy.R;
 
 import java.util.Collections;
 import java.util.List;

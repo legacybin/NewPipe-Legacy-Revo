@@ -1,6 +1,7 @@
 package org.schabi.newpipelegacy.local.subscription.dialog
 
 import android.app.Dialog
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
@@ -8,10 +9,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.core.os.bundleOf
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.core.widget.ImageViewCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
@@ -29,6 +32,10 @@ import org.schabi.newpipelegacy.databinding.DialogFeedGroupCreateBinding
 import org.schabi.newpipelegacy.databinding.ToolbarSearchLayoutBinding
 import org.schabi.newpipelegacy.fragments.BackPressable
 import org.schabi.newpipelegacy.local.subscription.FeedGroupIcon
+import org.schabi.newpipelegacy.local.subscription.dialog.FeedGroupDialog.ScreenState.DeleteScreen
+import org.schabi.newpipelegacy.local.subscription.dialog.FeedGroupDialog.ScreenState.IconPickerScreen
+import org.schabi.newpipelegacy.local.subscription.dialog.FeedGroupDialog.ScreenState.InitialScreen
+import org.schabi.newpipelegacy.local.subscription.dialog.FeedGroupDialog.ScreenState.SubscriptionsPickerScreen
 import org.schabi.newpipelegacy.local.subscription.dialog.FeedGroupDialogViewModel.DialogEvent.ProcessingEvent
 import org.schabi.newpipelegacy.local.subscription.dialog.FeedGroupDialogViewModel.DialogEvent.SuccessEvent
 import org.schabi.newpipelegacy.local.subscription.item.EmptyPlaceholderItem
@@ -60,7 +67,7 @@ class FeedGroupDialog : DialogFragment(), BackPressable {
     @State @JvmField var selectedIcon: FeedGroupIcon? = null
     @State @JvmField var selectedSubscriptions: HashSet<Long> = HashSet()
     @State @JvmField var wasSubscriptionSelectionChanged: Boolean = false
-    @State @JvmField var currentScreen: ScreenState = ScreenState.InitialScreen
+    @State @JvmField var currentScreen: ScreenState = InitialScreen
 
     @State @JvmField var subscriptionsListState: Parcelable? = null
     @State @JvmField var iconsListState: Parcelable? = null
@@ -118,6 +125,14 @@ class FeedGroupDialog : DialogFragment(), BackPressable {
         _feedGroupCreateBinding = DialogFeedGroupCreateBinding.bind(view)
         _searchLayoutBinding = feedGroupCreateBinding.subscriptionsHeaderSearchContainer
 
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
+            // KitKat doesn't apply container's theme to <include> content
+            val contrastColor = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.contrastColor))
+            searchLayoutBinding.toolbarSearchEditText.setTextColor(contrastColor)
+            searchLayoutBinding.toolbarSearchEditText.setHintTextColor(contrastColor.withAlpha(128))
+            ImageViewCompat.setImageTintList(searchLayoutBinding.toolbarSearchClearIcon, contrastColor)
+        }
+
         viewModel = ViewModelProvider(
             this,
             FeedGroupDialogViewModel.Factory(
@@ -159,9 +174,9 @@ class FeedGroupDialog : DialogFragment(), BackPressable {
 
         showScreen(currentScreen)
 
-        if (currentScreen == ScreenState.SubscriptionsPickerScreen && wasSearchSubscriptionsVisible) {
+        if (currentScreen == SubscriptionsPickerScreen && wasSearchSubscriptionsVisible) {
             showSearch()
-        } else if (currentScreen == ScreenState.InitialScreen && groupId == NO_GROUP_SELECTED) {
+        } else if (currentScreen == InitialScreen && groupId == NO_GROUP_SELECTED) {
             showKeyboard()
         }
     }
@@ -180,11 +195,11 @@ class FeedGroupDialog : DialogFragment(), BackPressable {
     //​//////////////////////////////////////////////////////////////////////// */
 
     override fun onBackPressed(): Boolean {
-        if (currentScreen is ScreenState.SubscriptionsPickerScreen && isSearchVisible()) {
+        if (currentScreen is SubscriptionsPickerScreen && isSearchVisible()) {
             hideSearch()
             return true
-        } else if (currentScreen !is ScreenState.InitialScreen) {
-            showScreen(ScreenState.InitialScreen)
+        } else if (currentScreen !is InitialScreen) {
+            showScreen(InitialScreen)
             return true
         }
 
@@ -192,12 +207,12 @@ class FeedGroupDialog : DialogFragment(), BackPressable {
     }
 
     private fun setupListeners() {
-        feedGroupCreateBinding.deleteButton.setOnClickListener { showScreen(ScreenState.DeleteScreen) }
+        feedGroupCreateBinding.deleteButton.setOnClickListener { showScreen(DeleteScreen) }
 
         feedGroupCreateBinding.cancelButton.setOnClickListener {
             when (currentScreen) {
-                ScreenState.InitialScreen -> dismiss()
-                else -> showScreen(ScreenState.InitialScreen)
+                InitialScreen -> dismiss()
+                else -> showScreen(InitialScreen)
             }
         }
 
@@ -212,7 +227,7 @@ class FeedGroupDialog : DialogFragment(), BackPressable {
 
         feedGroupCreateBinding.selectChannelButton.setOnClickListener {
             feedGroupCreateBinding.subscriptionsSelectorList.scrollToPosition(0)
-            showScreen(ScreenState.SubscriptionsPickerScreen)
+            showScreen(SubscriptionsPickerScreen)
         }
 
         val headerMenu = feedGroupCreateBinding.subscriptionsHeaderToolbar.menu
@@ -258,10 +273,10 @@ class FeedGroupDialog : DialogFragment(), BackPressable {
     }
 
     private fun handlePositiveButton() = when {
-        currentScreen is ScreenState.InitialScreen -> handlePositiveButtonInitialScreen()
-        currentScreen is ScreenState.DeleteScreen -> viewModel.deleteGroup()
-        currentScreen is ScreenState.SubscriptionsPickerScreen && isSearchVisible() -> hideSearch()
-        else -> showScreen(ScreenState.InitialScreen)
+        currentScreen is InitialScreen -> handlePositiveButtonInitialScreen()
+        currentScreen is DeleteScreen -> viewModel.deleteGroup()
+        currentScreen is SubscriptionsPickerScreen && isSearchVisible() -> hideSearch()
+        else -> showScreen(InitialScreen)
     }
 
     private fun handlePositiveButtonInitialScreen() {
@@ -382,13 +397,13 @@ class FeedGroupDialog : DialogFragment(), BackPressable {
                     selectedIcon = item.icon
                     feedGroupCreateBinding.iconPreview.setImageResource(item.iconRes)
 
-                    showScreen(ScreenState.InitialScreen)
+                    showScreen(InitialScreen)
                 }
             }
         }
         feedGroupCreateBinding.iconPreview.setOnClickListener {
             feedGroupCreateBinding.iconSelector.scrollToPosition(0)
-            showScreen(ScreenState.IconPickerScreen)
+            showScreen(IconPickerScreen)
         }
 
         if (groupId == NO_GROUP_SELECTED) {
@@ -404,22 +419,22 @@ class FeedGroupDialog : DialogFragment(), BackPressable {
     private fun showScreen(screen: ScreenState) {
         currentScreen = screen
 
-        feedGroupCreateBinding.optionsRoot.onlyVisibleIn(ScreenState.InitialScreen)
-        feedGroupCreateBinding.iconSelector.onlyVisibleIn(ScreenState.IconPickerScreen)
-        feedGroupCreateBinding.subscriptionsSelector.onlyVisibleIn(ScreenState.SubscriptionsPickerScreen)
-        feedGroupCreateBinding.deleteScreenMessage.onlyVisibleIn(ScreenState.DeleteScreen)
+        feedGroupCreateBinding.optionsRoot.onlyVisibleIn(InitialScreen)
+        feedGroupCreateBinding.iconSelector.onlyVisibleIn(IconPickerScreen)
+        feedGroupCreateBinding.subscriptionsSelector.onlyVisibleIn(SubscriptionsPickerScreen)
+        feedGroupCreateBinding.deleteScreenMessage.onlyVisibleIn(DeleteScreen)
 
-        feedGroupCreateBinding.separator.onlyVisibleIn(ScreenState.SubscriptionsPickerScreen, ScreenState.IconPickerScreen)
-        feedGroupCreateBinding.cancelButton.onlyVisibleIn(ScreenState.InitialScreen, ScreenState.DeleteScreen)
+        feedGroupCreateBinding.separator.onlyVisibleIn(SubscriptionsPickerScreen, IconPickerScreen)
+        feedGroupCreateBinding.cancelButton.onlyVisibleIn(InitialScreen, DeleteScreen)
 
         feedGroupCreateBinding.confirmButton.setText(
             when {
-                currentScreen == ScreenState.InitialScreen && groupId == NO_GROUP_SELECTED -> R.string.create
+                currentScreen == InitialScreen && groupId == NO_GROUP_SELECTED -> R.string.create
                 else -> R.string.ok
             }
         )
 
-        feedGroupCreateBinding.deleteButton.isGone = currentScreen != ScreenState.InitialScreen || groupId == NO_GROUP_SELECTED
+        feedGroupCreateBinding.deleteButton.isGone = currentScreen != InitialScreen || groupId == NO_GROUP_SELECTED
 
         hideKeyboard()
         hideSearch()

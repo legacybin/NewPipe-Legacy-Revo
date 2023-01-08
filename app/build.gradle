@@ -18,6 +18,7 @@ android {
         targetSdk 29
         versionCode 987
         versionName "0.23.1"
+
         multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -61,6 +62,8 @@ android {
             shrinkResources false // disabled to fix F-Droid's reproducible build
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             archivesBaseName = 'app'
+            applicationIdSuffix ".Flora"
+            resValue "string", "app_name", "NewPipe " + "Flora"
         }
     }
 
@@ -181,7 +184,7 @@ sonarqube {
 
 dependencies {
 /** Desugaring **/
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.6'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 
 /** NewPipe libraries **/
     // You can use a local version by uncommenting a few lines in settings.gradle
@@ -189,8 +192,9 @@ dependencies {
     // name and the commit hash with the commit hash of the (pushed) commit you want to test
     // This works thanks to JitPack: https://jitpack.io/
     implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
-    //implementation 'com.github.TeamNewPipe:NewPipeExtractor:9ffdd0948b2ecd82655f5ff2a3e127b2b7695d5b'
-    implementation 'com.github.ShareASmile:NewPipeExtractor:65f3b3bf544d8a99443e274ab3011d685347caa9'
+	implementation 'com.github.TeamNewPipe:NewPipeExtractor:eb07d70a2ce03bee3cc74fc33b2e4173e1c21436'
+	//implementation 'com.github.TeamNewPipe:NewPipeExtractor:c9635218e2f96198737b63874014e3e5e2e363a0'
+
 
 /** Checkstyle **/
     checkstyle "com.puppycrawl.tools:checkstyle:${checkstyleVersion}"
