@@ -982,7 +982,7 @@ public class VideoDetailFragment
     }
 
     private void prepareDescription(Description description) {
-        if (TextUtils.isEmpty(description.getContent()) || description == Description.emptyDescription) {
+        if (TextUtils.isEmpty(description.getContent()) || description == Description.EMPTY_DESCRIPTION) {
             return;
         }
 

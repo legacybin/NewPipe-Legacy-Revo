@@ -6,7 +6,7 @@ apply plugin: 'checkstyle'
 
 android {
     compileSdkVersion 29
-    buildToolsVersion '28.0.3'
+    buildToolsVersion '29.0.3'
 
     dataBinding {
         enabled = true
@@ -19,9 +19,10 @@ android {
         applicationId 'org.schabi.newpipelegacy'
         resValue "string", "app_name", "NewPipe ForLegacy"
         minSdkVersion 14
+		//noinspection ExpiredTargetSdkVersion
         targetSdkVersion 29
-        versionCode 950
-        versionName "0.19.5"
+        versionCode 951
+        versionName "0.19.5.1"
 
         multiDexEnabled true
 
@@ -51,7 +52,7 @@ android {
             reset()
 
             // Specifies a list of ABIs that Gradle should create APKs for.
-            include "armeabi-v7a"
+            include "x86", "armeabi-v7a"
 
             // Specifies that we do not want to also generate a universal APK that includes all ABIs.
             universalApk false
@@ -81,7 +82,7 @@ android {
         // TODO: update Gradle version
         release {
             minifyEnabled true
-            shrinkResources true
+            shrinkResources true // could be disabled to fix F-Droid's reproducible build
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             archivesBaseName = 'app'
         }
@@ -97,6 +98,7 @@ android {
     compileOptions {
         // Flag to enable support for the new language APIs
         coreLibraryDesugaringEnabled true
+
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
         encoding 'utf-8'
@@ -188,22 +190,17 @@ dependencies {
 
     debugImplementation "androidx.multidex:multidex:2.0.1"
 
-    testImplementation 'junit:junit:4.13'
-    testImplementation 'org.mockito:mockito-core:3.3.3'
-
-    androidTestImplementation "androidx.test.ext:junit:1.1.1"
-    androidTestImplementation "androidx.room:room-testing:${androidxRoomVersion}"
-    androidTestImplementation "androidx.test.espresso:espresso-core:3.2.0", {
-        exclude module: 'support-annotations'
-    }
-
+/** NewPipe libraries **/
+    // You can use a local version by uncommenting a few lines in settings.gradle
+    // Or you can use a commit you pushed to GitHub by just replacing TeamNewPipe with your GitHub
+    // name and the commit hash with the commit hash of the (pushed) commit you want to test
+    // This works thanks to JitPack: https://jitpack.io/
     implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
-    implementation "com.github.ShareASmile:NewPipeExtractor:28e7e0a70700b7cd0e251df151e309d4b4d486c1"
-
-    testImplementation 'junit:junit:4.13'
+    implementation 'com.github.ShareASmile:NewPipeExtractor:v0.22.5.1'
 
     implementation "org.jsoup:jsoup:1.13.1"
 
+    //noinspection GradleDependency --> do not update okhttp beyond 3.12.x to keep supporting Android 4.4 & Lower users
     implementation "com.squareup.okhttp3:okhttp:3.12.13"
 
     implementation "com.google.android.exoplayer:exoplayer:${exoPlayerVersion}"
@@ -245,8 +242,14 @@ dependencies {
 
     implementation 'com.github.spotbugs:spotbugs-annotations:4.0.2'
 
-    implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
+    testImplementation 'junit:junit:4.13'
+    testImplementation 'org.mockito:mockito-core:3.3.3'
 
+    androidTestImplementation "androidx.test.ext:junit:1.1.1"
+    androidTestImplementation "androidx.room:room-testing:${androidxRoomVersion}"
+    androidTestImplementation "androidx.test.espresso:espresso-core:3.2.0", {
+        exclude module: 'support-annotations'
+    }
 }
 
 static String getGitWorkingBranch() {
