@@ -242,8 +242,8 @@ public final class VideoDetailFragment
             autoPlayEnabled = true; // forcefully start playing
             openVideoPlayer();
         }
+        updateOverlayPlayQueueButtonVisibility();
     }
-
     @Override
     public void onServiceDisconnected() {
         playerService = null;
@@ -326,6 +326,8 @@ public final class VideoDetailFragment
         super.onResume();
 
         activity.sendBroadcast(new Intent(ACTION_VIDEO_FRAGMENT_RESUMED));
+
+        updateOverlayPlayQueueButtonVisibility();
 
         setupBrightness();
 
@@ -449,7 +451,7 @@ public final class VideoDetailFragment
             case R.id.detail_controls_download:
                 if (PermissionHelper.checkStoragePermissions(activity,
                         PermissionHelper.DOWNLOAD_DIALOG_REQUEST_CODE)) {
-                    this.openDownloadDialog();
+                    NavigationHelper.openDownloadDialog(activity, currentInfo);
                 }
                 break;
             case R.id.detail_controls_share:
@@ -502,6 +504,12 @@ public final class VideoDetailFragment
             case R.id.overlay_buttons_layout:
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 break;
+            case R.id.overlay_play_queue_button:
+                final Intent intent = NavigationHelper.getPlayQueueActivityIntent(
+                        player.getContext()
+                );
+                startActivity(intent);
+                break;
             case R.id.overlay_play_pause_button:
                 if (playerIsNotStopped()) {
                     player.playPause();
@@ -536,6 +544,9 @@ public final class VideoDetailFragment
         }
 
         switch (v.getId()) {
+            case R.id.detail_controls_playlist_append:
+                NavigationHelper.openBookmarksFragment(getFM());
+                break;
             case R.id.detail_controls_background:
                 openBackgroundPlayer(true);
                 break;
@@ -626,6 +637,7 @@ public final class VideoDetailFragment
         binding.detailControlsPopup.setOnClickListener(this);
         binding.detailControlsPopup.setOnLongClickListener(this);
         binding.detailControlsPlaylistAppend.setOnClickListener(this);
+        binding.detailControlsPlaylistAppend.setOnLongClickListener(this);
         binding.detailControlsDownload.setOnClickListener(this);
         binding.detailControlsDownload.setOnLongClickListener(this);
         binding.detailControlsShare.setOnClickListener(this);
@@ -639,6 +651,7 @@ public final class VideoDetailFragment
         binding.overlayMetadataLayout.setOnClickListener(this);
         binding.overlayMetadataLayout.setOnLongClickListener(this);
         binding.overlayButtonsLayout.setOnClickListener(this);
+        binding.overlayPlayQueueButton.setOnClickListener(this);
         binding.overlayCloseButton.setOnClickListener(this);
         binding.overlayPlayPauseButton.setOnClickListener(this);
 
@@ -807,7 +820,7 @@ public final class VideoDetailFragment
                                    @NonNull final String newTitle,
                                    @Nullable final PlayQueue newQueue) {
         if (player != null && newQueue != null && playQueue != null
-                && !Objects.equals(newQueue.getItem(), playQueue.getItem())) {
+                && playQueue.getItem() != null && !playQueue.getItem().getUrl().equals(newUrl)) {
             // Preloading can be disabled since playback is surely being replaced.
             player.disablePreloadingOfCurrentTrack();
         }
@@ -929,20 +942,20 @@ public final class VideoDetailFragment
 
         if (showRelatedItems && binding.relatedItemsLayout == null) {
             // temp empty fragment. will be updated in handleResult
-            pageAdapter.addFragment(new EmptyFragment(false), RELATED_TAB_TAG);
+            pageAdapter.addFragment(EmptyFragment.newInstance(false), RELATED_TAB_TAG);
             tabIcons.add(R.drawable.ic_art_track);
             tabContentDescriptions.add(R.string.related_items_tab_description);
         }
 
         if (showDescription) {
             // temp empty fragment. will be updated in handleResult
-            pageAdapter.addFragment(new EmptyFragment(false), DESCRIPTION_TAB_TAG);
+            pageAdapter.addFragment(EmptyFragment.newInstance(false), DESCRIPTION_TAB_TAG);
             tabIcons.add(R.drawable.ic_description);
             tabContentDescriptions.add(R.string.description_tab_description);
         }
 
         if (pageAdapter.getCount() == 0) {
-            pageAdapter.addFragment(new EmptyFragment(true), EMPTY_TAB_TAG);
+            pageAdapter.addFragment(EmptyFragment.newInstance(true), EMPTY_TAB_TAG);
         }
         pageAdapter.notifyDataSetUpdate();
 
@@ -1009,6 +1022,12 @@ public final class VideoDetailFragment
     }
 
     public void updateTabLayoutVisibility() {
+
+        if (binding == null) {
+            //If binding is null we do not need to and should not do anything with its object(s)
+            return;
+        }
+
         if (pageAdapter.getCount() < 2 || binding.viewPager.getVisibility() != View.VISIBLE) {
             // hide tab layout if there is only one tab or if the view pager is also hidden
             binding.tabLayout.setVisibility(View.GONE);
@@ -1565,8 +1584,9 @@ public final class VideoDetailFragment
 
         binding.detailControlsDownload.setVisibility(info.getStreamType() == StreamType.LIVE_STREAM
                 || info.getStreamType() == StreamType.AUDIO_LIVE_STREAM ? View.GONE : View.VISIBLE);
-        binding.detailControlsBackground.setVisibility(info.getAudioStreams().isEmpty()
-                ? View.GONE : View.VISIBLE);
+        binding.detailControlsBackground.setVisibility(
+                info.getAudioStreams().isEmpty() && info.getVideoStreams().isEmpty()
+                        ? View.GONE : View.VISIBLE);
 
         final boolean noVideoStreams =
                 info.getVideoStreams().isEmpty() && info.getVideoOnlyStreams().isEmpty();
@@ -1597,6 +1617,10 @@ public final class VideoDetailFragment
         } else {
             binding.detailUploaderTextView.setVisibility(View.GONE);
         }
+    }
+
+    public StreamInfo getCurrentStreamInfo() {
+        return currentInfo;
     }
 
     public void openDownloadDialog() {
@@ -1710,6 +1734,14 @@ public final class VideoDetailFragment
             Log.d(TAG, "onQueueUpdate() called with: serviceId = ["
                     + serviceId + "], videoUrl = [" + url + "], name = ["
                     + title + "], playQueue = [" + playQueue + "]");
+        }
+
+        // Register broadcast receiver to listen to playQueue changes
+        // and hide the overlayPlayQueueButton when the playQueue is empty / destroyed.
+        if (playQueue != null && playQueue.getBroadcastReceiver() != null) {
+            playQueue.getBroadcastReceiver().subscribe(
+                    event -> updateOverlayPlayQueueButtonVisibility()
+            );
         }
 
         // This should be the only place where we push data to stack.
@@ -2072,7 +2104,7 @@ public final class VideoDetailFragment
     private void showClearingQueueConfirmation(final Runnable onAllow) {
         new AlertDialog.Builder(activity)
                 .setTitle(R.string.clear_queue_confirmation_description)
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .setPositiveButton(android.R.string.yes, (dialog, which) -> {
                     onAllow.run();
                     dialog.dismiss();
@@ -2088,7 +2120,7 @@ public final class VideoDetailFragment
             resolutions[i] = sortedVideoStreams.get(i).getResolution();
         }
         final AlertDialog.Builder builder = new AlertDialog.Builder(activity)
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.cancel, null)
                 .setNeutralButton(R.string.open_in_browser, (dialog, i) ->
                         ShareUtils.openUrlInBrowser(requireActivity(), url)
                 );
@@ -2264,6 +2296,18 @@ public final class VideoDetailFragment
         });
     }
 
+    private void updateOverlayPlayQueueButtonVisibility() {
+        final boolean isPlayQueueEmpty =
+                player == null // no player => no play queue :)
+                        || player.getPlayQueue() == null
+                        || player.getPlayQueue().isEmpty();
+        if (binding != null) {
+            // binding is null when rotating the device...
+            binding.overlayPlayQueueButton.setVisibility(
+                    isPlayQueueEmpty ? View.GONE : View.VISIBLE);
+        }
+    }
+
     private void updateOverlayData(@Nullable final String overlayTitle,
                                    @Nullable final String uploader,
                                    @Nullable final String thumbnailUrl) {
@@ -2304,6 +2348,7 @@ public final class VideoDetailFragment
         binding.overlayMetadataLayout.setClickable(enable);
         binding.overlayMetadataLayout.setLongClickable(enable);
         binding.overlayButtonsLayout.setClickable(enable);
+        binding.overlayPlayQueueButton.setClickable(enable);
         binding.overlayPlayPauseButton.setClickable(enable);
         binding.overlayCloseButton.setClickable(enable);
     }

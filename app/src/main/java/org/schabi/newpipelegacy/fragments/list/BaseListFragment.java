@@ -370,6 +370,7 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
                     StreamDialogEntry.share
             ));
         }
+        entries.add(StreamDialogEntry.download);
         if (KoreUtil.shouldShowPlayWithKodi(context, item.getServiceId())) {
             entries.add(StreamDialogEntry.play_with_kodi);
         }

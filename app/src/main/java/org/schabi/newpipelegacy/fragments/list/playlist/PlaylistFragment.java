@@ -22,6 +22,7 @@ import org.reactivestreams.Subscription;
 import org.schabi.newpipelegacy.NewPipeDatabase;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.database.playlist.model.PlaylistRemoteEntity;
+import org.schabi.newpipelegacy.database.stream.model.StreamEntity;
 import org.schabi.newpipelegacy.databinding.PlaylistControlBinding;
 import org.schabi.newpipelegacy.databinding.PlaylistHeaderBinding;
 import org.schabi.newpipelegacy.error.ErrorActivity;

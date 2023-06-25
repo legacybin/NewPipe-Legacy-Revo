@@ -43,6 +43,7 @@ import org.schabi.newpipelegacy.local.BaseLocalListFragment;
 import org.schabi.newpipelegacy.local.history.HistoryRecordManager;
 import org.schabi.newpipelegacy.player.helper.PlayerHolder;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueue;
+import org.schabi.newpipelegacy.player.playqueue.PlayQueueItem;
 import org.schabi.newpipelegacy.player.playqueue.SinglePlayQueue;
 import org.schabi.newpipelegacy.util.KoreUtil;
 import org.schabi.newpipelegacy.util.Localization;
@@ -174,6 +175,16 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
                             ((PlaylistStreamEntry) selectedItem).getStreamEntity();
                     NavigationHelper.openVideoDetailFragment(requireContext(), getFM(),
                             item.getServiceId(), item.getUrl(), item.getTitle(), null, false);
+                    final List<PlayQueueItem> streams = getPlayQueue().getStreams();
+                    int targetIndex = 0;
+                    for (int i = 0; i < streams.size(); i++) {
+                        if (streams.get(i).getUrl().equals(item.getUrl())) {
+                            targetIndex = i;
+                        }
+                    }
+                    final PlayQueue temp = getPlayQueue();
+                    temp.setIndex(targetIndex);
+                    NavigationHelper.playOnBackgroundPlayer(activity, temp, false);
                 }
             }
 
@@ -340,7 +351,8 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
             }
 
             @Override
-            public void onComplete() { }
+            public void onComplete() { 
+			}
         };
     }
 
@@ -361,6 +373,8 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
                         .create()
                         .show();
             }
+        } else if (item.getItemId() == R.id.menu_item_rename_playlist) {
+            createRenameDialog();
         } else {
             return super.onOptionsItemSelected(item);
         }
@@ -420,7 +434,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
                                     playlistItem.getStreamId());
 
                             final boolean hasState = streamStatesIter.next() != null;
-                            if (indexInHistory < 0 ||  hasState) {
+                            if (indexInHistory < 0 || hasState) {
                                 notWatchedItems.add(playlistItem);
                             } else if (!thumbnailVideoRemoved
                                     && playlistManager.getPlaylistThumbnail(playlistId)
@@ -722,7 +736,8 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
 
             @Override
             public void onSwiped(@NonNull final RecyclerView.ViewHolder viewHolder,
-                                 final int swipeDir) { }
+                                 final int swipeDir) { 
+			}
         };
     }
 
@@ -755,7 +770,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
                     StreamDialogEntry.append_playlist,
                     StreamDialogEntry.share
             ));
-        } else  {
+        } else {
             entries.addAll(Arrays.asList(
                     StreamDialogEntry.start_here_on_background,
                     StreamDialogEntry.start_here_on_popup,

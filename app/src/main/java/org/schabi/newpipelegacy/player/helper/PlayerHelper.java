@@ -23,7 +23,7 @@ import com.google.android.exoplayer2.Player.RepeatMode;
 import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.text.CaptionStyleCompat;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
-import com.google.android.exoplayer2.trackselection.ExoTrackSelection;
+import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout.ResizeMode;
 import com.google.android.exoplayer2.util.MimeTypes;
@@ -76,6 +76,8 @@ public final class PlayerHelper {
             = new Formatter(STRING_BUILDER, Locale.getDefault());
     private static final NumberFormat SPEED_FORMATTER = new DecimalFormat("0.##x");
     private static final NumberFormat PITCH_FORMATTER = new DecimalFormat("##%");
+
+    private static final float MAXIMUM_OPACITY_ALLOWED_FOR_R_AND_HIGHER = 0.8f;
 
     @Retention(SOURCE)
     @IntDef({AUTOPLAY_TYPE_ALWAYS, AUTOPLAY_TYPE_WIFI,
@@ -297,7 +299,7 @@ public final class PlayerHelper {
     }
 
     public static long getPreferredFileSize() {
-        return 512 * 1024L;
+        return 2 * 1024 * 1024L; // ExoPlayer CacheDataSink.MIN_RECOMMENDED_FRAGMENT_SIZE
     }
 
     /**
@@ -323,7 +325,7 @@ public final class PlayerHelper {
         return 60000;
     }
 
-    public static ExoTrackSelection.Factory getQualitySelector() {
+    public static TrackSelection.Factory getQualitySelector() {
         return new AdaptiveTrackSelection.Factory(
                 1000,
                 AdaptiveTrackSelection.DEFAULT_MAX_DURATION_FOR_QUALITY_DECREASE_MS,
@@ -415,6 +417,13 @@ public final class PlayerHelper {
         // 0: Screen orientation is locked
         return android.provider.Settings.System.getInt(
                 context.getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0) == 0;
+    }
+
+    @NonNull
+    public static Integer getProgressiveLoadIntervalBytes(@NonNull final Context context) {
+        return Integer.parseInt(Objects.requireNonNull(getPreferences(context).getString(
+                context.getString(R.string.progressive_load_interval_key),
+                context.getString(R.string.progressive_load_interval_bytes_default_value))));
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -583,6 +592,12 @@ public final class PlayerHelper {
                 popupLayoutParamType(),
                 flags,
                 PixelFormat.TRANSLUCENT);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Setting maximum opacity allowed for touch events to other apps for Android 12 and
+            // higher to prevent non interaction when using other apps with the popup player
+            closeOverlayLayoutParams.alpha = MAXIMUM_OPACITY_ALLOWED_FOR_R_AND_HIGHER;
+        }
 
         closeOverlayLayoutParams.gravity = Gravity.LEFT | Gravity.TOP;
         closeOverlayLayoutParams.softInputMode =

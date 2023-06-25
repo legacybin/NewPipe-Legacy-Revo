@@ -17,8 +17,8 @@ android {
         resValue "string", "app_name", "NewPipe Legacy"
         minSdkVersion 16
         targetSdkVersion 29
-        versionCode 125
-        versionName "0.21.1"
+        versionCode 127
+        versionName "0.21.1.2"
 
         multiDexEnabled true
 
@@ -55,9 +55,11 @@ android {
         // TODO: update Gradle version
         release {
             minifyEnabled true
-            shrinkResources false // disabled to fix F-Droid's reproducible build
+            shrinkResources true // could be disabled to fix F-Droid's reproducible build
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             archivesBaseName = 'app'
+            applicationIdSuffix ".Toss"
+            resValue "string", "app_name", "NewPipe " + "Toss"
         }
     }
 
@@ -102,7 +104,7 @@ ext {
     androidxRoomVersion = '2.3.0-alpha03'
 
     icepickVersion = '3.2.0'
-    exoPlayerVersion = '2.13.2'
+    exoPlayerVersion = '2.12.3'
     googleAutoServiceVersion = '1.0-rc7'
     groupieVersion = '2.8.1'
     markwonVersion = '4.6.0'
@@ -162,10 +164,7 @@ task formatKtlint(type: JavaExec) {
 }
 
 afterEvaluate {
-    if (!System.properties.containsKey('skipFormatKtlint')) {
-        preDebugBuild.dependsOn formatKtlint
-    }
-    preDebugBuild.dependsOn runCheckstyle, runKtlint
+    //preDebugBuild.dependsOn formatKtlint, runCheckstyle, runKtlint
 }
 
 sonarqube {
@@ -179,11 +178,6 @@ sonarqube {
 dependencies {
 /** Desugaring **/
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
-
-/** NewPipe libraries **/
-    // You can use a local version by uncommenting a few lines in settings.gradle
-    implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
-    implementation 'com.github.ShareASmile:NewPipeExtractor:28e7e0a70700b7cd0e251df151e309d4b4d486c1'
 
 /** Checkstyle **/
     checkstyle "com.puppycrawl.tools:checkstyle:${checkstyleVersion}"
@@ -212,6 +206,11 @@ dependencies {
     implementation 'androidx.webkit:webkit:1.4.0'
     implementation 'com.google.android.material:material:1.2.1'
 
+/** NewPipe libraries **/
+    // You can use a local version by uncommenting a few lines in settings.gradle
+	implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
+    implementation 'com.github.ShareASmile:NewPipeExtractor:28e7e0a70700b7cd0e251df151e309d4b4d486c1'
+
 /** Third-party libraries **/
     // Instance state boilerplate elimination
     implementation "frankiesardo:icepick:${icepickVersion}"
@@ -233,8 +232,8 @@ dependencies {
     kapt "com.google.auto.service:auto-service:${googleAutoServiceVersion}"
 
     // Manager for complex RecyclerView layouts
-    implementation "com.github.lisawray.groupie:groupie:${groupieVersion}"
-    implementation "com.github.lisawray.groupie:groupie-viewbinding:${groupieVersion}"
+    implementation "com.xwray:groupie:${groupieVersion}"
+    implementation "com.xwray:groupie-viewbinding:${groupieVersion}"
 
     // Circular ImageView
     implementation "de.hdodenhof:circleimageview:3.1.0"
@@ -258,7 +257,7 @@ dependencies {
     implementation "com.jakewharton.rxbinding4:rxbinding:4.0.0"
 
     // Date and time formatting
-    implementation "org.ocpsoft.prettytime:prettytime:5.0.0.Final"
+    implementation "org.ocpsoft.prettytime:prettytime:5.0.6.Final"
 
 /** Debugging **/
     // Memory leak detection

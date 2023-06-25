@@ -733,7 +733,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
                 .filter(ss -> isSuggestionsEnabled)
                 .switchMap(query -> {
                     final Flowable<List<SearchHistoryEntry>> flowable = historyRecordManager
-                            .getRelatedSearches(query, 3, 25);
+                            .getRelatedSearches(query, 60, 60);
                     final Observable<List<SuggestionItem>> local = flowable.toObservable()
                             .map(searchHistoryEntries -> {
                                 final List<SuggestionItem> result = new ArrayList<>();

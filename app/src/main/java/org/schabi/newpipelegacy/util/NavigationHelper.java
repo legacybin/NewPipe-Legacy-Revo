@@ -26,6 +26,10 @@ import org.schabi.newpipelegacy.RouterActivity;
 import org.schabi.newpipelegacy.about.AboutActivity;
 import org.schabi.newpipelegacy.database.feed.model.FeedGroupEntity;
 import org.schabi.newpipelegacy.download.DownloadActivity;
+import org.schabi.newpipelegacy.download.DownloadDialog;
+import org.schabi.newpipelegacy.error.ErrorActivity;
+import org.schabi.newpipelegacy.error.ErrorInfo;
+import org.schabi.newpipelegacy.error.UserAction;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
@@ -533,12 +537,51 @@ public final class NavigationHelper {
         }
     }
 
+    public static void openPlayQueue(final Context context) {
+        final Intent intent = new Intent(context, PlayQueueActivity.class);
+        context.startActivity(intent);
+    }
+
     public static Intent getPlayQueueActivityIntent(final Context context) {
         final Intent intent = new Intent(context, PlayQueueActivity.class);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
         return intent;
+    }
+
+    public static void openDownloadDialog(
+            final AppCompatActivity activity, final StreamInfo currentInfo) {
+        if (currentInfo == null) {
+            return;
+        }
+
+        try {
+            // Get the sortedVideoStreams and selectedVideoStreamIndex using ListHelper
+            final ArrayList<VideoStream> sortedVideoStreams = new ArrayList<>(
+                    ListHelper.getSortedStreamVideosList(
+                            activity.getApplicationContext(),
+                            currentInfo.getVideoStreams(),
+                            currentInfo.getVideoOnlyStreams(),
+                            false
+                    )
+            );
+            final int selectedVideoStreamIndex = ListHelper.getDefaultResolutionIndex(
+                    activity.getApplicationContext(), sortedVideoStreams);
+
+            final DownloadDialog downloadDialog = DownloadDialog.newInstance(currentInfo);
+            downloadDialog.setVideoStreams(sortedVideoStreams);
+            downloadDialog.setAudioStreams(currentInfo.getAudioStreams());
+            downloadDialog.setSelectedVideoStream(selectedVideoStreamIndex);
+            downloadDialog.setSubtitleStreams(currentInfo.getSubtitles());
+
+            downloadDialog.show(activity.getSupportFragmentManager(), "downloadDialog");
+        } catch (final Exception e) {
+            ErrorActivity.reportErrorInSnackbar(activity,
+                    new ErrorInfo(e, UserAction.DOWNLOAD_OPEN_DIALOG, "Showing download dialog",
+                            currentInfo));
+        }
+
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -596,6 +639,7 @@ public final class NavigationHelper {
         final Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setPackage(context.getString(R.string.kore_package));
         intent.setData(videoURL);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 }

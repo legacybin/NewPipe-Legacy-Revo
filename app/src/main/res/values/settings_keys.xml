@@ -57,6 +57,25 @@
         <item>30000</item>
     </string-array>
 
+    <string name="progressive_load_interval_key">progressive_load_interval</string>
+    <string name="progressive_load_interval_bytes_default_value">16384</string>
+    <string-array name="progressive_load_interval_descriptions">
+        <item>1 KiB</item>
+        <item>4 KiB</item>
+        <item>16 KiB</item>
+        <item>64 KiB</item>
+        <item>256 KiB</item>
+        <item>1 MiB - ExoPlayer Default</item>
+    </string-array>
+    <string-array name="progressive_load_interval_bytes_values">
+        <item>1024</item>
+        <item>4096</item>
+        <item>16384</item>
+        <item>65536</item>
+        <item>262144</item>
+        <item>1048576</item>
+    </string-array>
+
     <string name="minimize_on_exit_key" translatable="false">minimize_on_exit_key</string>
     <string name="minimize_on_exit_value" translatable="false">@string/minimize_on_exit_background_key</string>
     <string name="minimize_on_exit_none_key" translatable="false">minimize_on_exit_none_key</string>
@@ -90,10 +109,10 @@
     </string-array>
 
     <string name="default_resolution_key" translatable="false">default_resolution</string>
-    <string name="default_resolution_value" translatable="false">720p60</string>
+    <string name="default_resolution_value" translatable="false">360p</string>
     <string name="show_higher_resolutions_key" translatable="false">show_higher_resolutions</string>
     <string name="default_popup_resolution_key" translatable="false">default_popup_resolution</string>
-    <string name="default_popup_resolution_value" translatable="false">480p</string>
+    <string name="default_popup_resolution_value" translatable="false">360p</string>
     <string name="best_resolution_key" translatable="false">best_resolution</string>
 
     <string-array name="resolution_list_values" translatable="false">
@@ -172,6 +191,7 @@
     <string name="show_memory_leaks_key" translatable="false">show_memory_leaks_key</string>
     <string name="allow_disposed_exceptions_key" translatable="false">allow_disposed_exceptions_key</string>
     <string name="show_original_time_ago_key" translatable="false">show_original_time_ago_text_key</string>
+    <string name="disable_media_tunneling_key" translatable="false">disable_media_tunneling_text_key</string>
     <string name="crash_the_app_key" translatable="false">crash_the_app_key</string>
 
     <!-- THEMES -->

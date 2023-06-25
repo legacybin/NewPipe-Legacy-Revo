@@ -33,6 +33,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -91,6 +92,7 @@ import org.schabi.newpipelegacy.databinding.PlayerPopupCloseOverlayBinding;
 import org.schabi.newpipe.extractor.MediaFormat;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamSegment;
+import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipelegacy.fragments.OnScrollBelowItemsListener;
 import org.schabi.newpipelegacy.fragments.detail.VideoDetailFragment;
@@ -111,6 +113,7 @@ import org.schabi.newpipelegacy.player.playback.CustomTrackSelector;
 import org.schabi.newpipelegacy.player.playback.MediaSourceManager;
 import org.schabi.newpipelegacy.player.playback.PlaybackListener;
 import org.schabi.newpipelegacy.player.playback.PlayerMediaSession;
+import org.schabi.newpipelegacy.player.playback.SurfaceHolderCallback;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueue;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueueAdapter;
 import org.schabi.newpipelegacy.player.playqueue.PlayQueueItem;
@@ -186,6 +189,7 @@ import static org.schabi.newpipelegacy.util.ListHelper.getResolutionIndex;
 import static org.schabi.newpipelegacy.util.Localization.assureCorrectAppLanguage;
 import static org.schabi.newpipelegacy.util.Localization.containsCaseInsensitive;
 
+@SuppressWarnings("ALL")
 public final class Player implements
         EventListener,
         PlaybackListener,
@@ -230,7 +234,7 @@ public final class Player implements
     //////////////////////////////////////////////////////////////////////////*/
 
     public static final int PLAY_PREV_ACTIVATION_LIMIT_MILLIS = 5000; // 5 seconds
-    public static final int PROGRESS_LOOP_INTERVAL_MILLIS = 500; // 500 millis
+    public static final int PROGRESS_LOOP_INTERVAL_MILLIS = 2000; // 2 Seconds
     public static final int DEFAULT_CONTROLS_DURATION = 300; // 300 millis
     public static final int DEFAULT_CONTROLS_HIDE_TIME = 2000;  // 2 Seconds
     public static final int DPAD_CONTROLS_HIDE_TIME = 7000;  // 7 Seconds
@@ -266,6 +270,7 @@ public final class Player implements
     private SimpleExoPlayer simpleExoPlayer;
     private AudioReactor audioReactor;
     private MediaSessionManager mediaSessionManager;
+    @Nullable private SurfaceHolderCallback surfaceHolderCallback;
 
     @NonNull private final CustomTrackSelector trackSelector;
     @NonNull private final LoadController loadController;
@@ -380,7 +385,7 @@ public final class Player implements
     /*//////////////////////////////////////////////////////////////////////////
     // Constructor
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Constructor
 
     public Player(@NonNull final MainPlayer service) {
         this.service = service;
@@ -420,14 +425,14 @@ public final class Player implements
             }
         };
     }
-    //endregion
+    //endregion Constructor
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Setup and initialization
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Setup and initialization
 
     public void setupFromView(@NonNull final PlayerBinding playerBinding) {
         initViews(playerBinding);
@@ -488,16 +493,20 @@ public final class Player implements
         registerBroadcastReceiver();
 
         // Setup video view
-        simpleExoPlayer.setVideoSurfaceView(binding.surfaceView);
+        setupVideoSurface();
         simpleExoPlayer.addVideoListener(this);
 
         // Setup subtitle view
         simpleExoPlayer.addTextOutput(binding.subtitleView);
 
         // enable media tunneling
-        if (DeviceUtils.shouldSupportMediaTunneling()) {
-            trackSelector.setParameters(
-                    trackSelector.buildUponParameters().setTunnelingEnabled(true));
+        if (DEBUG && PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(context.getString(R.string.disable_media_tunneling_key), false)) {
+            Log.d(TAG, "[" + Util.DEVICE_DEBUG_INFO + "] "
+                    + "media tunneling disabled in debug preferences");
+        } else if (DeviceUtils.shouldSupportMediaTunneling()) {
+            trackSelector.setParameters(trackSelector.buildUponParameters()
+                    .setTunnelingAudioSessionId(C.generateAudioSessionIdV21(context)));
         } else if (DEBUG) {
             Log.d(TAG, "[" + Util.DEVICE_DEBUG_INFO + "] does not support media tunneling");
         }
@@ -527,6 +536,7 @@ public final class Player implements
         binding.moreOptionsButton.setOnClickListener(this);
         binding.moreOptionsButton.setOnLongClickListener(this);
         binding.share.setOnClickListener(this);
+		binding.share.setOnLongClickListener(this);
         binding.fullScreenButton.setOnClickListener(this);
         binding.screenRotationButton.setOnClickListener(this);
         binding.playWithKodi.setOnClickListener(this);
@@ -564,14 +574,14 @@ public final class Player implements
                                 v.getPaddingRight(),
                                 v.getPaddingBottom()));
     }
-    //endregion
+    //endregion Setup and initialization
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Playback initialization via intent
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Playback initialization via intent
 
     public void handleIntent(@NonNull final Intent intent) {
         // fail fast if no play queue was provided
@@ -744,21 +754,25 @@ public final class Player implements
         simpleExoPlayer.setVolume(isMuted ? 0 : 1);
         notifyQueueUpdateToListeners();
     }
-    //endregion
+    //endregion Playback initialization via intent
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Destroy and recovery
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Destroy and recovery
 
     private void destroyPlayer() {
         if (DEBUG) {
             Log.d(TAG, "destroyPlayer() called");
         }
+
+        cleanupVideoSurface();
+
         if (!exoPlayerIsNull()) {
             simpleExoPlayer.removeListener(this);
+			simpleExoPlayer.removeVideoListener(this);
             simpleExoPlayer.stop();
             simpleExoPlayer.release();
         }
@@ -849,14 +863,14 @@ public final class Player implements
         // Pausing would make transition from one stream to a new stream not smooth, so only stop
         simpleExoPlayer.stop(false);
     }
-    //endregion
+    //endregion Playback initialization via intent
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Player type specific setup
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Player type specific setup
 
     private void initVideoPlayer() {
         // restore last resize mode
@@ -911,14 +925,14 @@ public final class Player implements
         Objects.requireNonNull(windowManager).addView(
                 closeOverlayBinding.getRoot(), closeOverlayLayoutParams);
     }
-    //endregion
+    //endregion Player type specific setup
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Elements visibility and size: popup and main players have different look
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Elements visibility and size: popup and main players have different look
 
     /**
      * This method ensures that popup and main players have different look.
@@ -1025,14 +1039,14 @@ public final class Player implements
                 && KoreUtil.shouldShowPlayWithKodi(context, playQueue.getItem().getServiceId())
                 ? View.VISIBLE : View.GONE);
     }
-    //endregion
+    //endregion Elements visibility and size: popup and main players have different look
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Broadcast receiver
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Broadcast receiver
 
     private void setupBroadcastReceiver() {
         if (DEBUG) {
@@ -1177,14 +1191,14 @@ public final class Player implements
                     + unregisteredException.getMessage());
         }
     }
-    //endregion
+    //endregion Broadcast receiver
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Thumbnail loading
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Thumbnail loading
 
     private void initThumbnail(final String url) {
         if (DEBUG) {
@@ -1324,14 +1338,14 @@ public final class Player implements
         currentThumbnail = null;
         NotificationUtil.getInstance().createNotificationIfNeededAndUpdate(this, false);
     }
-    //endregion
+    //endregion Thumbnail loading
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Popup player utils
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Popup player utils
 
     /**
      * Check if {@link #popupLayoutParams}' position is within a arbitrary boundary
@@ -1499,14 +1513,14 @@ public final class Player implements
         return popupLayoutParams == null || windowManager == null
                 || getParentActivity() != null || binding.getRoot().getParent() == null;
     }
-    //endregion
+    //endregion Popup player utils
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Playback parameters
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Playback parameters
 
     public float getPlaybackSpeed() {
         return getPlaybackParameters().speed;
@@ -1552,14 +1566,14 @@ public final class Player implements
             simpleExoPlayer.getAudioComponent().setSkipSilenceEnabled(skipSilence);
         }
     }
-    //endregion
+    //endregion Playback parameters
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Progress loop and updates
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Progress loop and updates
 
     private void onUpdateProgress(final int currentProgress,
                                   final int duration,
@@ -1569,8 +1583,7 @@ public final class Player implements
         }
 
         if (duration != binding.playbackSeekBar.getMax()) {
-            binding.playbackEndTime.setText(getTimeString(duration));
-            binding.playbackSeekBar.setMax(duration);
+            setVideoDurationToControls(duration);
         }
         if (currentState != STATE_PAUSED) {
             if (currentState != STATE_PAUSED_SEEK) {
@@ -1603,8 +1616,12 @@ public final class Player implements
         final boolean showThumbnail = prefs.getBoolean(
                 context.getString(R.string.show_thumbnail_key), true);
         // setMetadata only updates the metadata when any of the metadata keys are null
-        mediaSessionManager.setMetadata(getVideoTitle(), getUploaderName(),
-                showThumbnail ? getThumbnail() : null, duration);
+        if (showThumbnail) {
+            mediaSessionManager.setMetadata(getVideoTitle(), getUploaderName(), getThumbnail(),
+                    duration);
+        } else {
+            mediaSessionManager.setMetadata(getVideoTitle(), getUploaderName(), duration);
+        }
     }
 
     private void startProgressLoop() {
@@ -1623,9 +1640,22 @@ public final class Player implements
         if (exoPlayerIsNull()) {
             return;
         }
+        // Use duration of currentItem for non-live streams,
+        // because HLS streams are fragmented
+        // and thus the whole duration is not available to the player
+        // TODO: revert #6307 when introducing proper HLS support
+        final int duration;
+        if (currentItem != null
+                && currentItem.getStreamType() != StreamType.AUDIO_LIVE_STREAM
+                && currentItem.getStreamType() != StreamType.LIVE_STREAM) {
+            // convert seconds to milliseconds
+            duration = (int) (currentItem.getDuration() * 1000);
+        } else {
+            duration = (int) simpleExoPlayer.getDuration();
+        }
         onUpdateProgress(
                 Math.max((int) simpleExoPlayer.getCurrentPosition(), 0),
-                (int) simpleExoPlayer.getDuration(),
+                duration,
                 simpleExoPlayer.getBufferedPercentage()
         );
     }
@@ -1697,14 +1727,14 @@ public final class Player implements
     public void saveWasPlaying() {
         this.wasPlaying = getPlayWhenReady();
     }
-    //endregion
+    //endregion Progress loop and updates
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Controls showing / hiding
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Controls showing / hiding
 
     public boolean isControlsVisible() {
         return binding != null && binding.playbackControlRoot.getVisibility() == View.VISIBLE;
@@ -1867,14 +1897,14 @@ public final class Player implements
             fragmentListener.hideSystemUiIfNeeded();
         }
     }
-    //endregion
+    //endregion Controls showing / hiding
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Playback states
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Playback states
 
     @Override // exoplayer listener
     public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
@@ -2001,8 +2031,8 @@ public final class Player implements
             Log.d(TAG, "onPrepared() called with: playWhenReady = [" + playWhenReady + "]");
         }
 
-        binding.playbackSeekBar.setMax((int) simpleExoPlayer.getDuration());
-        binding.playbackEndTime.setText(getTimeString((int) simpleExoPlayer.getDuration()));
+        setVideoDurationToControls((int) simpleExoPlayer.getDuration());
+
         binding.playbackSpeed.setText(formatSpeed(getPlaybackSpeed()));
 
         if (playWhenReady) {
@@ -2133,7 +2163,10 @@ public final class Player implements
 
     private void onCompleted() {
         if (DEBUG) {
-            Log.d(TAG, "onCompleted() called");
+            Log.d(TAG, "onCompleted() called" + (playQueue == null ? ". playQueue is null" : ""));
+        }
+        if (playQueue == null) {
+            return;
         }
 
         animate(binding.playPauseButton, false, 0, AnimationType.SCALE_AND_ALPHA, 0,
@@ -2186,14 +2219,14 @@ public final class Player implements
                     AnimationType.SCALE_AND_ALPHA);
         }
     }
-    //endregion
+    //endregion Playback states
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Repeat and shuffle
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Repeat and shuffle
 
     public void onRepeatClicked() {
         if (DEBUG) {
@@ -2275,14 +2308,14 @@ public final class Player implements
     private void setShuffleButton(final ImageButton button, final boolean shuffled) {
         button.setImageAlpha(shuffled ? 255 : 77);
     }
-    //endregion
+    //endregion Repeat and shuffle
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Mute / Unmute
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Mute / Unmute
 
     public void onMuteUnmuteButtonClicked() {
         if (DEBUG) {
@@ -2301,14 +2334,14 @@ public final class Player implements
         button.setImageDrawable(AppCompatResources.getDrawable(context, isMuted
                 ? R.drawable.ic_volume_off : R.drawable.ic_volume_up));
     }
-    //endregion
+    //endregion Mute / Unmute
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // ExoPlayer listeners (that didn't fit in other categories)
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region ExoPlayer listeners (that didn't fit in other categories)
 
     @Override
     public void onTimelineChanged(@NonNull final Timeline timeline, final int reason) {
@@ -2389,14 +2422,14 @@ public final class Player implements
         //TODO check if this causes black screen when switching to fullscreen
         animate(binding.surfaceForeground, false, DEFAULT_CONTROLS_DURATION);
     }
-    //endregion
+    //endregion ExoPlayer listeners (that didn't fit in other categories)
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Errors
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Errors
     /**
      * Process exceptions produced by {@link com.google.android.exoplayer2.ExoPlayer ExoPlayer}.
      * <p>There are multiple types of errors:</p>
@@ -2490,14 +2523,14 @@ public final class Player implements
                 .makeText(context, R.string.player_unrecoverable_failure, Toast.LENGTH_SHORT);
         errorToast.show();
     }
-    //endregion
+    //endregion Errors
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Playback position and seek
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Playback position and seek
 
     @Override // own playback listener (this is a getter)
     public boolean isApproachingPlaybackEdge(final long timeToEndMillis) {
@@ -2640,14 +2673,29 @@ public final class Player implements
             simpleExoPlayer.seekToDefaultPosition();
         }
     }
-    //endregion
+
+
+    /**
+     * Sets the video duration time into all control components (e.g. seekbar).
+     * @param duration
+     */
+    private void setVideoDurationToControls(final int duration) {
+        binding.playbackEndTime.setText(getTimeString(duration));
+
+        binding.playbackSeekBar.setMax(duration);
+        // This is important for Android TVs otherwise it would apply the default from
+        // setMax/Min methods which is (max - min) / 20
+        binding.playbackSeekBar.setKeyProgressIncrement(
+                PlayerHelper.retrieveSeekDurationFromPreferences(this));
+    }
+    //endregion Playback position and seek
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Player actions (play, pause, previous, fast-forward, ...)
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Player actions (play, pause, previous, fast-forward, ...)
 
     public void play() {
         if (DEBUG) {
@@ -2689,7 +2737,9 @@ public final class Player implements
             Log.d(TAG, "onPlayPause() called");
         }
 
-        if (getPlayWhenReady()) {
+        if (getPlayWhenReady()
+                // When state is completed (replay button is shown) then (re)play and do not pause
+                && currentState != STATE_COMPLETED) {
             pause();
         } else {
             play();
@@ -2748,14 +2798,14 @@ public final class Player implements
         triggerProgressUpdate();
         showAndAnimateControl(R.drawable.ic_fast_rewind, true);
     }
-    //endregion
+    //endregion Player actions (play, pause, previous, fast-forward, ...)
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // StreamInfo history: views and progress
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region StreamInfo history: views and progress
 
     private void registerStreamViewed() {
         if (currentMetadata != null) {
@@ -2820,14 +2870,14 @@ public final class Player implements
         }
         saveStreamProgressState(currentInfo, simpleExoPlayer.getCurrentPosition());
     }
-    //endregion
+    //endregion StreamInfo history: views and progress
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Metadata
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Metadata
 
     private void onMetadataChanged(@NonNull final MediaSourceTag tag) {
         final StreamInfo info = tag.getMetadata();
@@ -2909,18 +2959,20 @@ public final class Player implements
 
     @Nullable
     public Bitmap getThumbnail() {
-        return currentThumbnail == null
-                ? BitmapFactory.decodeResource(context.getResources(), R.drawable.dummy_thumbnail)
-                : currentThumbnail;
+        if (currentThumbnail == null) {
+            currentThumbnail = BitmapFactory.decodeResource(
+                    context.getResources(), R.drawable.dummy_thumbnail);
+        }
+        return currentThumbnail;
     }
-    //endregion
+    //endregion Metadata
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Play queue, segments and streams
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Play queue, segments and streams
 
     private void maybeAutoQueueNextStream(@NonNull final MediaSourceTag metadata) {
         if (playQueue == null || playQueue.getIndex() != playQueue.size() - 1
@@ -3228,14 +3280,14 @@ public final class Player implements
                         getTimeString(before + after)
                 ));
     }
-    //endregion
+    //endregion Play queue, segments and streams
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Popup menus ("popup" means that they pop up, not that they belong to the popup player)
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Popup menus ("popup" means that they pop up, not that they belong to the popup player)
 
     private void buildQualityMenu() {
         if (qualityPopupMenu == null) {
@@ -3431,14 +3483,14 @@ public final class Player implements
     private void setPlaybackQuality(final String quality) {
         videoResolver.setPlaybackQuality(quality);
     }
-    //endregion
+    //endregion Popup menus ("popup" means that they pop up, not that they belong to the popup player)
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Captions (text tracks)
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Captions (text tracks)
 
     private void setupSubtitleView() {
         final float captionScale = PlayerHelper.getCaptionScale(context);
@@ -3510,14 +3562,14 @@ public final class Player implements
 
         return RENDERER_UNAVAILABLE;
     }
-    //endregion
+    //endregion Captions (text tracks)
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Click listeners
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Click listeners
 
     @Override
     public void onClick(final View v) {
@@ -3604,6 +3656,10 @@ public final class Player implements
             fragmentListener.onMoreOptionsLongClicked();
             hideControls(0, 0);
             hideSystemUIIfNeeded();
+        } else if (v.getId() == binding.share.getId()) {
+            if (currentMetadata != null) {
+                ShareUtils.copyToClipboard(context, currentMetadata.getMetadata().getOriginalUrl());
+            }
         }
         return true;
     }
@@ -3708,14 +3764,14 @@ public final class Player implements
                     currentMetadata.getMetadata().getOriginalUrl());
         }
     }
-    //endregion
+    //endregion Click listeners
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Video size, resize, orientation, fullscreen
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Video size, resize, orientation, fullscreen
 
     private void setupScreenRotationButton() {
         binding.screenRotationButton.setVisibility(videoPlayerSelected()
@@ -3815,14 +3871,14 @@ public final class Player implements
             toggleFullscreen();
         }
     }
-    //endregion
+    //endregion Video size, resize, orientation, fullscreen
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Gestures
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Gestures
 
     @SuppressWarnings("checkstyle:ParameterNumber")
     private void onLayoutChange(final View view, final int l, final int t, final int r, final int b,
@@ -3879,14 +3935,14 @@ public final class Player implements
     public boolean isInsideClosingRadius(final MotionEvent popupMotionEvent) {
         return distanceFromCloseButton(popupMotionEvent) <= getClosingRadius();
     }
-    //endregion
+    //endregion Gestures
 
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Activity / fragment binding
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Activity / fragment binding
 
     public void setFragmentListener(final PlayerServiceEventListener listener) {
         fragmentListener = listener;
@@ -4019,13 +4075,13 @@ public final class Player implements
         setRecovery();
         reloadPlayQueueManager();
     }
-    //endregion
+    //endregion Activity / fragment binding
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Getters
     //////////////////////////////////////////////////////////////////////////*/
-    //region
+    //region Getters
 
     public int getCurrentState() {
         return currentState;
@@ -4205,5 +4261,40 @@ public final class Player implements
         return playQueueAdapter;
     }
 
+    //endregion Getters
+
+
+    /*//////////////////////////////////////////////////////////////////////////
+    // SurfaceHolderCallback helpers
+    //////////////////////////////////////////////////////////////////////////*/
+    //region SurfaceHolderCallback helpers
+
+    private void setupVideoSurface() {
+        // make sure there is nothing left over from previous calls
+        cleanupVideoSurface();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // >=API23
+            surfaceHolderCallback = new SurfaceHolderCallback(context, simpleExoPlayer);
+            binding.surfaceView.getHolder().addCallback(surfaceHolderCallback);
+            final Surface surface = binding.surfaceView.getHolder().getSurface();
+            // initially set the surface manually otherwise
+            // onRenderedFirstFrame() will not be called
+            simpleExoPlayer.setVideoSurface(surface);
+        } else {
+            simpleExoPlayer.setVideoSurfaceView(binding.surfaceView);
+        }
+    }
+
+    private void cleanupVideoSurface() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // >=API23
+            if (surfaceHolderCallback != null) {
+                if (binding != null) {
+                    binding.surfaceView.getHolder().removeCallback(surfaceHolderCallback);
+                }
+                surfaceHolderCallback.release();
+                surfaceHolderCallback = null;
+            }
+        }
+    }
     //endregion
 }

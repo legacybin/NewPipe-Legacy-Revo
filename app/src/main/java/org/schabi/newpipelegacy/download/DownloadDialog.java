@@ -287,7 +287,7 @@ public class DownloadDialog extends DialogFragment
 
         prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
 
-        final int threads = prefs.getInt(getString(R.string.default_download_threads), 3);
+        final int threads = prefs.getInt(getString(R.string.default_download_threads), 5);
         dialogBinding.threadsCount.setText(String.valueOf(threads));
         dialogBinding.threads.setProgress(threads - 1);
         dialogBinding.threads.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -761,7 +761,7 @@ public class DownloadDialog extends DialogFragment
         final AlertDialog.Builder askDialog = new AlertDialog.Builder(context)
                 .setTitle(R.string.download_dialog_title)
                 .setMessage(msgBody)
-                .setNegativeButton(android.R.string.cancel, null);
+                .setNegativeButton(R.string.cancel, null);
         final StoredFileHelper finalStorage = storage;
 
 

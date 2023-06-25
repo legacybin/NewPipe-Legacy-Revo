@@ -65,6 +65,7 @@ import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.services.peertube.PeertubeInstance;
+import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipelegacy.fragments.BackPressable;
 import org.schabi.newpipelegacy.fragments.MainFragment;
 import org.schabi.newpipelegacy.fragments.detail.VideoDetailFragment;
@@ -113,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int ITEM_ID_BOOKMARKS = -3;
     private static final int ITEM_ID_DOWNLOADS = -4;
     private static final int ITEM_ID_HISTORY = -5;
+    private static final int ITEM_ID_PLAY_QUEUE = -6;
     private static final int ITEM_ID_SETTINGS = 0;
     private static final int ITEM_ID_ABOUT = 1;
 
@@ -130,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // enable TLS1.1/1.2 for jelly bean and kitkat devices, to fix download and play for
-        // mediaCCC sources
+        // media.ccc.de sources
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
             TLSSocketFactoryCompat.setAsDefault();
         }
@@ -196,6 +198,10 @@ public class MainActivity extends AppCompatActivity {
         drawerLayoutBinding.navigation.getMenu()
                 .add(R.id.menu_tabs_group, ITEM_ID_HISTORY, ORDER, R.string.action_history)
                 .setIcon(R.drawable.ic_history);
+        drawerLayoutBinding.navigation.getMenu()
+                .add(R.id.menu_tabs_group, ITEM_ID_PLAY_QUEUE, ORDER,
+                        R.string.title_activity_play_queue)
+                .setIcon(R.drawable.ic_play_queue);
 
         //Settings and About
         drawerLayoutBinding.navigation.getMenu()
@@ -281,6 +287,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case ITEM_ID_HISTORY:
                 NavigationHelper.openStatisticFragment(getSupportFragmentManager());
+                break;
+            case ITEM_ID_PLAY_QUEUE:
+                NavigationHelper.openPlayQueue(this);
                 break;
             default:
                 final int currentServiceId = ServiceHelper.getSelectedServiceId(this);
@@ -616,7 +625,11 @@ public class MainActivity extends AppCompatActivity {
                 final Fragment fragment = getSupportFragmentManager()
                         .findFragmentById(R.id.fragment_player_holder);
                 if (fragment instanceof VideoDetailFragment) {
-                    ((VideoDetailFragment) fragment).openDownloadDialog();
+                    final StreamInfo currentInfo =
+                            ((VideoDetailFragment) fragment).getCurrentStreamInfo();
+                    if (currentInfo != null) {
+                        NavigationHelper.openDownloadDialog(this, currentInfo);
+                    }
                 }
                 break;
         }

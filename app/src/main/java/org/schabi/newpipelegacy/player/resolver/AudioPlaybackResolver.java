@@ -9,7 +9,9 @@ import com.google.android.exoplayer2.source.MediaSource;
 
 import org.schabi.newpipe.extractor.MediaFormat;
 import org.schabi.newpipe.extractor.stream.AudioStream;
+import org.schabi.newpipe.extractor.stream.Stream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
+import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipelegacy.player.helper.PlayerDataSource;
 import org.schabi.newpipelegacy.player.helper.PlayerHelper;
 import org.schabi.newpipelegacy.util.ListHelper;

@@ -14,7 +14,6 @@ import com.google.android.exoplayer2.util.Util;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipelegacy.player.helper.PlayerDataSource;
-
 public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
 
     @Nullable

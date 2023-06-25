@@ -88,6 +88,8 @@
     <string name="use_inexact_seek_title">Use fast inexact seek</string>
     <string name="use_inexact_seek_summary">Inexact seek allows the player to seek to positions faster with reduced precision. Seeking for 5, 15 or 25 seconds doesn\'t work with this.</string>
     <string name="seek_duration_title">Fast-forward/-rewind seek duration</string>
+    <string name="progressive_load_interval_title">Playback load interval size</string>
+    <string name="progressive_load_interval_summary">Change the load interval size (currently at %s) on progressive/normal streams. A lower value may speed up initial video loading. Restart player to take effect.</string>
     <string name="clear_queue_confirmation_title">Ask for confirmation before clearing a queue</string>
     <string name="clear_queue_confirmation_summary">Switching from one player to another may replace your queue</string>
     <string name="clear_queue_confirmation_description">The active player queue will be replaced</string>
@@ -522,6 +524,8 @@
     <string name="enable_disposed_exceptions_summary">Force reporting of undeliverable Rx exceptions outside of fragment or activity lifecycle after disposal</string>
     <string name="show_original_time_ago_title">Show original time ago on items</string>
     <string name="show_original_time_ago_summary">Original texts from services will be visible in stream items</string>
+	<string name="disable_media_tunneling_title">Disable media tunneling</string>
+    <string name="disable_media_tunneling_summary">Disable media tunneling if you experience a black screen or stuttering on video playback</string>
     <string name="crash_the_app">Crash the app</string>
     <!-- Subscriptions import/export -->
     <string name="import_export_title">Import/export</string>
@@ -534,7 +538,7 @@
     <string name="previous_export">Previous export</string>
     <string name="subscriptions_import_unsuccessful">Could not import subscriptions</string>
     <string name="subscriptions_export_unsuccessful">Could not export subscriptions</string>
-    <string name="import_youtube_instructions">Import YouTube subscriptions from Google takeout:\n\n1. Go to this URL: %1$s\n2. Log in when asked\n3. Click on \"All data included\", then on \"Deselect all\", then select only \"subscriptions\" and click \"OK\"\n4. Click on \"Next step\" and then on \"Create export\"\n5. Click on the \"Download\" button after it appears and \n6. From the downloaded takeout zip extract the .json file (usually under \"YouTube and YouTube Music/subscriptions/subscriptions.json\") and import it here.</string>
+    <string name="import_youtube_instructions">Import YouTube subscriptions from Google takeout:\n\n1. Go to this URL: %1$s\n2. Log in when asked\n3. Click on \"All data included\", then on \"Deselect all\", then select only \"subscriptions\" and click \"OK\"\n4. Click on \"Next step\" and then on \"Create export\"\n5. Click on the \"Download\" button after it appears\n6. Click on IMPORT FILE below and select the downloaded zip file\n7. [If the zip import fails] Extract the .csv file (usually under \"YouTube and YouTube Music/subscriptions/subscriptions.csv\"), click on IMPORT FILE below and select the extracted csv file</string>
     <string name="import_soundcloud_instructions">Import a SoundCloud profile by typing either the URL or your ID:\n\n1. Enable \"desktop mode\" in a web-browser (the site is not available for mobile devices)\n2. Go to this URL: %1$s\n3. Log in when asked\n4. Copy the profile URL you were redirected to.</string>
     <string name="import_soundcloud_instructions_hint">yourID, soundcloud.com/yourid</string>
     <string name="import_network_expensive_warning">Keep in mind this operation can be network expensive.\n\nDo you want to continue?</string>
@@ -715,4 +719,20 @@
     <string name="night_theme_summary">Select your favorite night theme — %s</string>
     <string name="select_night_theme_toast">You can select your favorite night theme below</string>
     <string name="download_has_started">Download has started</string>
+    <string name="metadata_category">Category</string>
+    <string name="metadata_tags">Tags</string>
+    <string name="metadata_licence">Licence</string>
+    <string name="metadata_privacy">Privacy</string>
+    <string name="metadata_age_limit">Age limit</string>
+    <string name="metadata_language">Language</string>
+    <string name="metadata_support">Support</string>
+    <string name="metadata_host">Host</string>
+    <string name="metadata_thumbnail_url">Thumbnail URL</string>
+    <string name="metadata_privacy_public">Public</string>
+    <string name="metadata_privacy_unlisted">Unlisted</string>
+    <string name="metadata_privacy_private">Private</string>
+    <string name="metadata_privacy_internal">Internal</string>
+    <string name="description_select_note">You can now select text inside the description. Note that the page may flicker and links may not be clickable while in selection mode.</string>
+    <string name="description_select_enable">Enable selecting text in the description</string>
+    <string name="description_select_disable">Disable selecting text in the description</string>
 </resources>

@@ -15,6 +15,10 @@ import org.schabi.newpipelegacy.player.playqueue.SinglePlayQueue;
 
 import java.util.Collections;
 import java.util.List;
+import androidx.appcompat.app.AppCompatActivity;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import static org.schabi.newpipelegacy.player.MainPlayer.PlayerType.AUDIO;
 import static org.schabi.newpipelegacy.player.MainPlayer.PlayerType.POPUP;
@@ -30,6 +34,21 @@ public enum StreamDialogEntry {
                 item.getServiceId(), item.getUploaderUrl(), item.getUploaderName())
     ),
 
+    download(R.string.download, (fragment, item) -> {
+        final int serviceId = item.getServiceId();
+        final String url = item.getUrl();
+
+        ExtractorHelper.getStreamInfo(serviceId, url, true)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(result -> {
+                    if (PermissionHelper.checkStoragePermissions(fragment.getActivity(),
+                            PermissionHelper.DOWNLOAD_DIALOG_REQUEST_CODE)) {
+                        NavigationHelper.openDownloadDialog(
+                                (AppCompatActivity) fragment.getActivity(), result);
+                    }
+                });
+    }),
     /**
      * Enqueues the stream automatically to the current PlayerType.<br>
      * <br>
