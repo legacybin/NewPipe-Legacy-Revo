@@ -3,7 +3,7 @@
 <h4 align="center">NewPipeRevo preunified version with up-to-date NewPipeExtractor dependency.</h4>
 
 <p align="center">
-<a href="https://github.com/ShareASmile/NewPipe-Legacy-Revo" alt="GitHub release"><img src="https://img.shields.io/github/release/ShareASmile/NewPipe-Legacy-Revo.svg" ></a>
+<a href="https://github.com/ShareASmile/NewPipe-Legacy-Revo/releases" alt="GitHub release"><img src="https://img.shields.io/github/release/ShareASmile/NewPipe-Legacy-Revo.svg" ></a>
 <a href="https://www.gnu.org/licenses/gpl-3.0" alt="License: GPLv3"><img src="https://img.shields.io/badge/License-GPL%20v3-blue.svg"></a>
 <a href="https://github.com/ShareASmile/NewPipe-Legacy-Revo/actions" alt="Build Status"><img src="https://github.com/ShareASmile/NewPipe-Legacy-Revo/workflows/CI/badge.svg?branch=dev&event=push"></a>
 <a href="https://hosted.weblate.org/engage/newpipe/" alt="Translation Status"><img src="https://hosted.weblate.org/widgets/newpipe/-/svg-badge.svg"></a>
@@ -33,11 +33,10 @@
 [<img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/shot_12.png" width=405>](fastlane/metadata/android/en-US/images/tenInchScreenshots/shot_12.png)
 
 ## Description
- This repository contains old preunified v0.19.8 & unified v0.21.2 of [https://github.com/ShareASmile/NewPipe-Legacy-Revo/tree/legacy-revo) with up-to-date [NewPipeExtractor](https://github.com/ShareASmile/NewPipeExtractor/tree/new-legacy) dependency.
+ This repository contains old preunified v0.19.8 & unified v0.21.2 of [https://github.com/TeamNewPipe/NewPipe-legacy/releases/tag/v0.19.8) with up-to-date [NewPipeExtractor](https://github.com/ShareASmile/NewPipeExtractor/tree/new-legacy) dependency.
 
-The application itself heavily relies on the extractor component which is responsible for proper parsing of various video/audio streams, including Youtube site. The old NewPipe Legacy version 0.19.8 depends on old extractor version which is practically deprecated and can't handle current Youtube (and similar?) streams, thus rendering the application useless for daily use.
-, thus making it possible to use old NewPipe version 0.19.8 with the current extractor version
-NewPipe Legacy version 0.19.9+ in this repository uses the updated version of NewPipeExtractor for legacy devices and resolves the forementioned issue, thus making it possible to use old NewPipe Legacy version 0.19.8 with the current extractor version. You don't need a YouTube account to use NewPipe, it is copylefted libre software.
+The application itself heavily relies on the extractor component which is responsible for proper parsing of various video/audio streams, including Youtube site. The old NewPipe Legacy version 0.19.8 depends on old extractor version which is practically deprecated and can't handle current Youtube (and similar?) streams,thus rendering the application useless for daily use.
+NewPipe Legacy version 0.19.9+ in this repository uses the updated version of NewPipeExtractor for legacy devices and resolves the forementioned issue, thus making it possible to use old NewPipe Legacy version 0.19.8 with some bug fixes & features added along with updated extractor version. You don't need a YouTube account to use NewPipe, it is copylefted libre software.
 
 ## Motivation
 
