@@ -155,17 +155,17 @@ public class ListHelperTest {
     public void getHighestQualityAudioFormatTest() {
         AudioStream stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getHighestQualityAudioIndex(
                 MediaFormat.M4A, AUDIO_STREAMS_TEST_LIST));
-        assertEquals(320, stream.average_bitrate);
+        assertEquals(320, stream.getAverageBitrate());
         assertEquals(MediaFormat.M4A, stream.getFormat());
 
         stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getHighestQualityAudioIndex(
                 MediaFormat.WEBMA, AUDIO_STREAMS_TEST_LIST));
-        assertEquals(320, stream.average_bitrate);
+        assertEquals(320, stream.getAverageBitrate());
         assertEquals(MediaFormat.WEBMA, stream.getFormat());
 
         stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getHighestQualityAudioIndex(
                 MediaFormat.MP3, AUDIO_STREAMS_TEST_LIST));
-        assertEquals(192, stream.average_bitrate);
+        assertEquals(192, stream.getAverageBitrate());
         assertEquals(MediaFormat.MP3, stream.getFormat());
     }
 
@@ -183,7 +183,7 @@ public class ListHelperTest {
         // It should fallback to the highest bitrate audio no matter what format it is
         AudioStream stream = testList.get(ListHelper.getHighestQualityAudioIndex(
                 MediaFormat.MP3, testList));
-        assertEquals(192, stream.average_bitrate);
+        assertEquals(192, stream.getAverageBitrate());
         assertEquals(MediaFormat.WEBMA, stream.getFormat());
 
         ////////////////////////////////////////////////////////
@@ -201,14 +201,14 @@ public class ListHelperTest {
         // List doesn't contains this format, it should fallback to the highest bitrate audio and
         // the highest quality format.
         stream = testList.get(ListHelper.getHighestQualityAudioIndex(MediaFormat.MP3, testList));
-        assertEquals(192, stream.average_bitrate);
+        assertEquals(192, stream.getAverageBitrate());
         assertEquals(MediaFormat.M4A, stream.getFormat());
 
         // Adding a new format and bitrate. Adding another stream will have no impact since
         // it's not a preferred format.
         testList.add(new AudioStream("", MediaFormat.WEBMA, /**/ 192));
         stream = testList.get(ListHelper.getHighestQualityAudioIndex(MediaFormat.MP3, testList));
-        assertEquals(192, stream.average_bitrate);
+        assertEquals(192, stream.getAverageBitrate());
         assertEquals(MediaFormat.M4A, stream.getFormat());
     }
 
@@ -222,17 +222,17 @@ public class ListHelperTest {
     public void getLowestQualityAudioFormatTest() {
         AudioStream stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getMostCompactAudioIndex(
                 MediaFormat.M4A, AUDIO_STREAMS_TEST_LIST));
-        assertEquals(128, stream.average_bitrate);
+        assertEquals(128, stream.getAverageBitrate());
         assertEquals(MediaFormat.M4A, stream.getFormat());
 
         stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getMostCompactAudioIndex(
                 MediaFormat.WEBMA, AUDIO_STREAMS_TEST_LIST));
-        assertEquals(64, stream.average_bitrate);
+        assertEquals(64, stream.getAverageBitrate());
         assertEquals(MediaFormat.WEBMA, stream.getFormat());
 
         stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getMostCompactAudioIndex(
                 MediaFormat.MP3, AUDIO_STREAMS_TEST_LIST));
-        assertEquals(64, stream.average_bitrate);
+        assertEquals(64, stream.getAverageBitrate());
         assertEquals(MediaFormat.MP3, stream.getFormat());
     }
 
@@ -250,13 +250,13 @@ public class ListHelperTest {
         // It should fallback to the most compact audio no matter what format it is.
         AudioStream stream = testList.get(ListHelper.getMostCompactAudioIndex(
                 MediaFormat.MP3, testList));
-        assertEquals(128, stream.average_bitrate);
+        assertEquals(128, stream.getAverageBitrate());
         assertEquals(MediaFormat.M4A, stream.getFormat());
 
         // WEBMA is more compact than M4A
         testList.add(new AudioStream("", MediaFormat.WEBMA,   /**/ 128));
         stream = testList.get(ListHelper.getMostCompactAudioIndex(MediaFormat.MP3, testList));
-        assertEquals(128, stream.average_bitrate);
+        assertEquals(128, stream.getAverageBitrate());
         assertEquals(MediaFormat.WEBMA, stream.getFormat());
 
         ////////////////////////////////////////////////////////
@@ -273,12 +273,12 @@ public class ListHelperTest {
         // List doesn't contain this format
         // It should fallback to the most compact audio no matter what format it is.
         stream = testList.get(ListHelper.getMostCompactAudioIndex(MediaFormat.MP3, testList));
-        assertEquals(192, stream.average_bitrate);
+        assertEquals(192, stream.getAverageBitrate());
         assertEquals(MediaFormat.WEBMA, stream.getFormat());
 
         // Should be same as above
         stream = testList.get(ListHelper.getMostCompactAudioIndex(null, testList));
-        assertEquals(192, stream.average_bitrate);
+        assertEquals(192, stream.getAverageBitrate());
         assertEquals(MediaFormat.WEBMA, stream.getFormat());
     }
 
