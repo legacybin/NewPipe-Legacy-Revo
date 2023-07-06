@@ -5,6 +5,7 @@
 /build
 /captures
 /app/app.iml
+/app/release
 /.idea
 /*.iml
 *~
