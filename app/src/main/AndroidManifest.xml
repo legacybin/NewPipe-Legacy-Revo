@@ -231,11 +231,11 @@
                 <data android:scheme="https" />
                 <data android:host="invidious.snopyta.org" />
                 <data android:host="yewtu.be" />
-				<data android:host="invidious.kavin.rocks" />
-				<data android:host="invidious-us.kavin.rocks" />
-				<data android:host="piped.kavin.rocks" />
-      			<data android:host="invidious.namazso.eu" />
-				<data android:host="tubus.eduvid.org" />
+		<data android:host="invidious.kavin.rocks" />
+		<data android:host="invidious-us.kavin.rocks" />
+		<data android:host="piped.kavin.rocks" />
+      		<data android:host="invidious.namazso.eu" />
+		<data android:host="tubus.eduvid.org" />
                 <data android:pathPrefix="/" />
             </intent-filter>
 
@@ -308,14 +308,13 @@
 
                 <data android:scheme="http" />
                 <data android:scheme="https" />
-
-				<data android:host="eduvid.org" />
+		<data android:host="eduvid.org" />
                 <data android:host="framatube.org" />
                 <data android:host="media.assassinate-you.net" />
-				<data android:host="peertube.co.uk" />
+		<data android:host="peertube.co.uk" />
                 <data android:host="tilvids.com" />
-				<data android:host="tube.privacytools.io" />
-				<data android:host="media.fsfe.org" />
+		<data android:host="tube.privacytools.io" />
+		<data android:host="media.fsfe.org" />
 
                 <data android:pathPrefix="/videos/" /> <!-- it contains playlists -->
 				<data android:pathPrefix="/w/" /> <!-- short video URLs -->
