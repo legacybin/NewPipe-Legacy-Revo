@@ -35,6 +35,29 @@ public final class DeviceUtils {
     // Philips QM16XE
     private static final boolean QM16XE_U = Build.VERSION.SDK_INT == 23
             && Build.DEVICE.equals("QM16XE_U");
+    // Sony Bravia VH1 with Processor: MT5895
+    private static final boolean BRAVIA_VH1 = Build.VERSION.SDK_INT == 29
+            && Build.DEVICE.equals("BRAVIA_VH1");
+    // Sony Bravia VH2 this includes model A90J
+    private static final boolean BRAVIA_VH2 = Build.VERSION.SDK_INT == 29
+            && Build.DEVICE.equals("BRAVIA_VH2");
+    // Sony Bravia Android TV platform 2
+	// Uses a MediaTek MT5891 (MT5596) SoC
+    private static final boolean BRAVIA_ATV2 = Build.VERSION.SDK_INT == 29
+            && Build.DEVICE.equals("BRAVIA_ATV2");
+    // Sony Bravia Android TV platform 3 4K
+	// Uses ARM MT5891 and a BRAVIA_ATV2 motherboard
+    private static final boolean BRAVIA_ATV3_4K = Build.VERSION.SDK_INT == 29
+            && Build.DEVICE.equals("BRAVIA_ATV3_4K");
+    // Panasonic 4KTV-JUP
+    private static final boolean TX_50JXW834 = Build.VERSION.SDK_INT == 30
+            && Build.DEVICE.equals("TX_50JXW834");
+    // Bouygtel4K / Bouygues Telecom Bbox 4K
+    private static final boolean HMB9213NW = Build.VERSION.SDK_INT == 28
+            && Build.DEVICE.equals("HMB9213NW");
+    // Phillips 4K (O)LED TV
+    private static final boolean PH7M_EU_5596 = Build.VERSION.SDK_INT == 26
+            && Build.DEVICE.equals("PH7M_EU_5596");
 
     private DeviceUtils() {
     }
@@ -115,6 +138,13 @@ public final class DeviceUtils {
                 && !HI3798MV200
                 && !CVT_MT5886_EU_1G
                 && !REALTEKATV
-                && !QM16XE_U;
+                && !QM16XE_U
+				&& !BRAVIA_VH1
+				&& !BRAVIA_VH2
+				&& !BRAVIA_ATV2
+				&& !BRAVIA_ATV3_4K
+				&& !TX_50JXW834
+				&& !HMB9213NW
+				&& !PH7M_EU_5596;
     }
 }
