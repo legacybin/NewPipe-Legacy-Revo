@@ -158,7 +158,7 @@ dependencies {
     implementation "androidx.room:room-runtime:${androidxRoomVersion}"
     implementation "androidx.room:room-rxjava2:${androidxRoomVersion}"
     kapt "androidx.room:room-compiler:${androidxRoomVersion}"
-    implementation "com.google.android.material:material:1.2.1"
+    implementation "com.google.android.material:material:1.1.0"
 
 /** NewPipe libraries **/
     // You can use a local version by uncommenting a few lines in settings.gradle
@@ -166,7 +166,7 @@ dependencies {
     // name and the commit hash with the commit hash of the (pushed) commit you want to test
     // This works thanks to JitPack: https://jitpack.io/
 	implementation "com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751"
-	implementation 'com.github.ShareASmile:NewPipeExtractor:5f3f61701e'
+	implementation 'com.github.ShareASmile:NewPipeExtractor:9180d5100b'
 
 /** Third-party libraries **/
     // Instance state boilerplate elimination
