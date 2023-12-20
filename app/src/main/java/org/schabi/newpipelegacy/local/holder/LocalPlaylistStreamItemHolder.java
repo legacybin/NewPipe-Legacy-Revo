@@ -11,12 +11,12 @@ import androidx.core.content.ContextCompat;
 import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.database.LocalItem;
 import org.schabi.newpipelegacy.database.playlist.PlaylistStreamEntry;
-import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipelegacy.ktx.ViewUtils;
 import org.schabi.newpipelegacy.local.LocalItemBuilder;
 import org.schabi.newpipelegacy.local.history.HistoryRecordManager;
 import org.schabi.newpipelegacy.util.ImageDisplayConstants;
 import org.schabi.newpipelegacy.util.Localization;
+import org.schabi.newpipelegacy.util.ServiceHelper;
 import org.schabi.newpipelegacy.views.AnimatedProgressBar;
 
 import java.time.format.DateTimeFormatter;
@@ -59,7 +59,7 @@ public class LocalPlaylistStreamItemHolder extends LocalItemHolder {
         itemVideoTitleView.setText(item.getStreamEntity().getTitle());
         itemAdditionalDetailsView.setText(Localization
                 .concatenateStrings(item.getStreamEntity().getUploader(),
-                        NewPipe.getNameOfService(item.getStreamEntity().getServiceId())));
+                        ServiceHelper.getNameOfServiceById(item.getStreamEntity().getServiceId())));
 
         if (item.getStreamEntity().getDuration() > 0) {
             itemDurationView.setText(Localization
