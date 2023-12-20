@@ -4,13 +4,13 @@ import android.os.Parcelable
 import androidx.annotation.StringRes
 import kotlinx.android.parcel.Parcelize
 import org.schabi.newpipe.extractor.Info
-import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException
 import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException
 import org.schabi.newpipe.extractor.exceptions.ExtractionException
 import org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeStreamExtractor.DeobfuscateException
 import org.schabi.newpipelegacy.R
 import org.schabi.newpipelegacy.ktx.isNetworkRelated
+import org.schabi.newpipelegacy.util.ServiceHelper
 import java.io.PrintWriter
 import java.io.StringWriter
 
@@ -57,7 +57,7 @@ class ErrorInfo(
     constructor(throwable: Throwable, userAction: UserAction, request: String) :
         this(throwable, userAction, SERVICE_NONE, request)
     constructor(throwable: Throwable, userAction: UserAction, request: String, serviceId: Int) :
-        this(throwable, userAction, NewPipe.getNameOfService(serviceId), request)
+        this(throwable, userAction, ServiceHelper.getNameOfServiceById(serviceId), request)
     constructor(throwable: Throwable, userAction: UserAction, request: String, info: Info?) :
         this(throwable, userAction, getInfoServiceName(info), request)
 
@@ -65,7 +65,7 @@ class ErrorInfo(
     constructor(throwable: List<Throwable>, userAction: UserAction, request: String) :
         this(throwable, userAction, SERVICE_NONE, request)
     constructor(throwable: List<Throwable>, userAction: UserAction, request: String, serviceId: Int) :
-        this(throwable, userAction, NewPipe.getNameOfService(serviceId), request)
+        this(throwable, userAction, ServiceHelper.getNameOfServiceById(serviceId), request)
     constructor(throwable: List<Throwable>, userAction: UserAction, request: String, info: Info?) :
         this(throwable, userAction, getInfoServiceName(info), request)
 
@@ -87,7 +87,7 @@ class ErrorInfo(
             Array(throwable.size) { i -> getStackTrace(throwable[i]) }
 
         private fun getInfoServiceName(info: Info?) =
-            if (info == null) SERVICE_NONE else NewPipe.getNameOfService(info.serviceId)
+            if (info == null) SERVICE_NONE else ServiceHelper.getNameOfServiceById(info.serviceId)
 
         @StringRes
         private fun getMessageStringId(
