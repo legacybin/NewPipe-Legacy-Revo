@@ -202,7 +202,7 @@ public class SubscriptionsImportFragment extends BaseFragment {
     private void setupServiceVariables() {
         if (currentServiceId != Constants.NO_SERVICE_ID) {
             try {
-                final SubscriptionExtractor extractor = NewPipe.getService(currentServiceId)
+                final SubscriptionExtractor extractor = ServiceHelper.getNameOfServiceById(currentServiceId)
                         .getSubscriptionExtractor();
                 supportedSources = extractor.getSupportedSources();
                 relatedUrl = extractor.getRelatedUrl();
