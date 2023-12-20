@@ -31,6 +31,7 @@ import org.schabi.newpipelegacy.R;
 import org.schabi.newpipelegacy.error.ErrorActivity;
 import org.schabi.newpipelegacy.error.ErrorInfo;
 import org.schabi.newpipelegacy.error.UserAction;
+import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.subscription.SubscriptionExtractor;
 import org.schabi.newpipelegacy.local.subscription.services.SubscriptionsImportService;
@@ -202,7 +203,7 @@ public class SubscriptionsImportFragment extends BaseFragment {
     private void setupServiceVariables() {
         if (currentServiceId != Constants.NO_SERVICE_ID) {
             try {
-                final SubscriptionExtractor extractor = ServiceHelper.getNameOfServiceById(currentServiceId)
+                final SubscriptionExtractor extractor = NewPipe.getService(currentServiceId)
                         .getSubscriptionExtractor();
                 supportedSources = extractor.getSupportedSources();
                 relatedUrl = extractor.getRelatedUrl();
