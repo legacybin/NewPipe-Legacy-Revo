@@ -8,6 +8,7 @@ on:
       - develop
       - revo
       - toss
+      - tv
       - legacy-4.0
     paths-ignore:
       - 'README.md'
@@ -22,6 +23,7 @@ on:
       - develop
       - revo
       - toss
+      - tv
       - legacy-4.0
     paths-ignore:
       - 'README.md'
