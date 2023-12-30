@@ -99,6 +99,7 @@ public class CommentsMiniInfoItemHolder extends InfoItemHolder {
         itemContentView.setLines(COMMENT_DEFAULT_LINES);
         try {
             commentText = item.getCommentText().getContent().replace("&nbsp;", "")
+                    .replace("<a href=", "").replace("</a>", " ")
                     .replace("<br>", " ").replace("<b>", " ")
                     .replace("</br>", " ").replace("</b>", " ");
         } catch (Exception e) {
