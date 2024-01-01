@@ -32,6 +32,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.preference.PreferenceManager
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import icepick.State
 import kotlinx.android.synthetic.main.error_retry.error_button_retry
 import kotlinx.android.synthetic.main.error_retry.error_message_view
@@ -54,6 +55,7 @@ import java.util.Calendar
 
 class FeedFragment : BaseListFragment<FeedState, Unit>() {
     private lateinit var viewModel: FeedViewModel
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     @State
     @JvmField
     var listState: Parcelable? = null
@@ -81,7 +83,8 @@ class FeedFragment : BaseListFragment<FeedState, Unit>() {
 
     override fun onViewCreated(rootView: View, savedInstanceState: Bundle?) {
         super.onViewCreated(rootView, savedInstanceState)
-
+        swipeRefreshLayout = requireView().findViewById(R.id.swiperefresh)
+        swipeRefreshLayout.setOnRefreshListener { reloadContent() }
         viewModel = ViewModelProviders.of(this, FeedViewModel.Factory(requireContext(), groupId)).get(FeedViewModel::class.java)
         viewModel.stateLiveData.observe(viewLifecycleOwner, Observer { it?.let(::handleResult) })
     }
@@ -176,6 +179,7 @@ class FeedFragment : BaseListFragment<FeedState, Unit>() {
 
         empty_state_view?.let { animateView(it, false, 0) }
         animateView(error_panel, false, 0)
+        swipeRefreshLayout.isRefreshing = false
     }
 
     override fun hideLoading() {
