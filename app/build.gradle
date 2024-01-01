@@ -263,6 +263,9 @@ dependencies {
     // Date and time formatting
     implementation "org.ocpsoft.prettytime:prettytime:5.0.7.Final"
 
+    // conscrypt libraries
+    implementation "org.conscrypt:conscrypt-android:2.5.2"
+
 /** Debugging **/
     // Memory leak detection
     implementation "com.squareup.leakcanary:leakcanary-object-watcher-android:${leakCanaryVersion}"
