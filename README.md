@@ -1,6 +1,6 @@
 <p align="center"><a href="https://newpipe.net"><img src="assets/new_pipe_icon_5.png" width="150"></a></p> 
-<h2 align="center"><b>NewPipe_Revo</b></h2>
-<h4 align="center">NewPipeRevo preunified version with up-to-date NewPipeExtractor dependency.</h4>
+<h2 align="center"><b>NewPipe_Legacy_Revo</b></h2>
+<h3 align="center">NewPipeLegacy preunified & unified version with working NewPipeExtractor dependency.</h3>
 
 <p align="center">
 <a href="https://github.com/ShareASmile/NewPipe-Legacy-Revo/releases" alt="GitHub release"><img src="https://img.shields.io/github/release/ShareASmile/NewPipe-Legacy-Revo.svg" ></a>
@@ -33,10 +33,13 @@
 [<img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/shot_12.png" width=405>](fastlane/metadata/android/en-US/images/tenInchScreenshots/shot_12.png)
 
 ## Description
- This repository contains old preunified v0.19.8 & unified v0.21.2 of [NewPipeLegacy](https://github.com/TeamNewPipe/NewPipe-legacy/releases/tag/v0.19.8) with up-to-date [NewPipeExtractor](https://github.com/ShareASmile/NewPipeExtractor/tree/new-legacy) dependency.
+ This repository contains updated preunified [NewPipeLegacy-v0.19.8](https://github.com/TeamNewPipe/NewPipe-legacy/tag/v0.19.8) & revived unified v0.21.2 of [tossj fork of NewPipeLegacy](https://github.com/tossj/NewPipe-legacy/tree/update-newpipe-extractor-0.21.1)) with updated [NewPipeExtractor for Legacy Devices](https://github.com/ShareASmile/NewPipeExtractor) dependency.
 
-The application itself heavily relies on the extractor component which is responsible for proper parsing of various video/audio streams, including Youtube site. The old NewPipe Legacy version 0.19.8 depends on old extractor version which is practically deprecated and can't handle current Youtube (and similar?) streams,thus rendering the application useless for daily use.
-NewPipe Legacy version 0.19.9+ in this repository uses the updated version of NewPipeExtractor for legacy devices and resolves the forementioned issue, thus making it possible to use old NewPipe Legacy version 0.19.8 with some bug fixes & features added along with updated extractor version. You don't need a YouTube account to use NewPipe, it is a copylefted libre software.
+The application itself heavily relies on the extractor component which is responsible for proper parsing of various video/audio streams, including Youtube site. The old NewPipe Legacy version 0.19.8 depends on old extractor version which is practically deprecated and can't handle current Youtube (and similar?) streams, thus rendering the application useless for daily use.
+
+NewPipe Legacy version 0.19.8+ in this repository uses the updated version of NewPipeExtractor for legacy devices and resolves the forementioned issue, thus making it possible to use old NewPipe Legacy updated version 0.19.8 with bug fixes, features & support for SoundCloud, Bandcamp, media.ccc.de sites added for legacy devices along with updated extractor version. However v0.21.2+ is also available with Unified Player in toss branch. APK's for legacy devices on Ice Cream Sandwich (Android 4.0.1 – 4.0.4) has been available from Releases, but it has a very basic support, can be buggy.
+
+You don't need a YouTube account to use NewPipe, it is a copylefted libre software.
 
 ## Motivation
 
@@ -50,7 +53,7 @@ Not so long ago, NewPipe project implemented a new UI elements for video streams
 * Listen to YouTube videos
 * Popup mode (floating player)
 * Select streaming player to watch video with
-* Make Personalised Watch Later Playlists
+* Make Personalised Playlists Locally on device
 * Open a video in Kodi
 * Show next/related videos
 * Search YouTube in a specific language
