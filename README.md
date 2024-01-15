@@ -33,7 +33,7 @@
 [<img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/shot_12.png" width=405>](fastlane/metadata/android/en-US/images/tenInchScreenshots/shot_12.png)
 
 ## Description
- This repository contains updated preunified [NewPipeLegacy-v0.19.8](https://github.com/TeamNewPipe/NewPipe-legacy/tag/v0.19.8) & revived unified v0.21.2 of [tossj fork of NewPipeLegacy](https://github.com/tossj/NewPipe-legacy/tree/update-newpipe-extractor-0.21.1)) with updated [NewPipeExtractor for Legacy Devices](https://github.com/ShareASmile/NewPipeExtractor) dependency.
+ This repository contains updated preunified [NewPipeLegacy-v0.19.8](https://github.com/TeamNewPipe/NewPipe-legacy/releases/tag/v0.19.8) & revived unified v0.21.2 of [tossj fork of NewPipeLegacy](https://github.com/tossj/NewPipe-legacy/tree/update-newpipe-extractor-0.21.1) with updated [NewPipeExtractor for Legacy Devices](https://github.com/ShareASmile/NewPipeExtractor) dependency.
 
 The application itself heavily relies on the extractor component which is responsible for proper parsing of various video/audio streams, including Youtube site. The old NewPipe Legacy version 0.19.8 depends on old extractor version which is practically deprecated and can't handle current Youtube (and similar?) streams, thus rendering the application useless for daily use.
 
