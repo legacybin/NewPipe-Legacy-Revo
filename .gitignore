@@ -5,13 +5,13 @@
 /build
 /captures
 /app/app.iml
+/app/build
 /app/release
 /.idea
 /*.iml
 *~
 .weblate
 *.class
-/app/Release
 
 # vscode / eclipse files
 *.classpath
