@@ -31,13 +31,13 @@ public final class PermissionHelper {
             return true; // Storage permissions are not needed for SAF
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-        if (!checkReadStoragePermissions(activity, requestCode)) {
-            return false;
+            if (!checkReadStoragePermissions(activity, requestCode)) {
+                return false;
+            }
         }
         return checkWriteStoragePermissions(activity, requestCode);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public static boolean checkReadStoragePermissions(final Activity activity,
                                                       final int requestCode) {
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE)
