@@ -3,8 +3,6 @@ package org.schabi.newpipelegacy.ktx
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.schabi.newpipelegacy.ktx.hasAssignableCause
-import org.schabi.newpipelegacy.ktx.hasExactCause
 import java.io.IOException
 import java.io.InterruptedIOException
 import java.net.SocketException
