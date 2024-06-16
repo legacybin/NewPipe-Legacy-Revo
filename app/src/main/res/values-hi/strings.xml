@@ -394,7 +394,7 @@
     <string name="downloads_storage_ask_title">डोलोड कहाँ करने के लिए पूछे</string>
     <string name="downloads_storage_ask_summary">आपको हर डाउनलोड का स्थान पूछा जाएगा</string>
     <string name="downloads_storage_use_saf_title">SAF का उपयोग करें</string>
-    <string name="downloads_storage_use_saf_summary_api_19">'स्टोरेज एक्सेस फ्रेमवर्क' एंड्रॉइड किटकैट और उससे नीचे के संस्करण पर समर्थित नहीं है</string>
+    <string name="downloads_storage_use_saf_summary_api_19">\'स्टोरेज एक्सेस फ्रेमवर्क\' एंड्रॉइड किटकैट और उससे नीचे के संस्करण पर समर्थित नहीं है</string>
     <string name="downloads_storage_use_saf_summary_api_29">केवल Android 10 से शुरू होकर \'Storage Access Framework\' समर्थित है</string>
     <string name="clear_playback_states_title">प्लेबैक स्थानों को मिटाये</string>
     <string name="clear_playback_states_summary">सारे प्लेबैक स्थानों को मिटाये</string>
