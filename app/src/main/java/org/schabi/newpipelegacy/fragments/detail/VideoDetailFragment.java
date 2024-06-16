@@ -667,7 +667,7 @@ public final class VideoDetailFragment
         binding.detailControlsPopup.setOnClickListener(this);
         binding.detailControlsPopup.setOnLongClickListener(this);
         binding.detailControlsPlaylistAppend.setOnClickListener(this);
-		binding.detailControlsPlaylistAppend.setOnLongClickListener(this);
+        binding.detailControlsPlaylistAppend.setOnLongClickListener(this);
         binding.detailControlsDownload.setOnClickListener(this);
         binding.detailControlsDownload.setOnLongClickListener(this);
         binding.detailControlsShare.setOnClickListener(this);
@@ -686,7 +686,7 @@ public final class VideoDetailFragment
         binding.overlayMetadataLayout.setOnClickListener(this);
         binding.overlayMetadataLayout.setOnLongClickListener(this);
         binding.overlayButtonsLayout.setOnClickListener(this);
-		binding.overlayPlayQueueButton.setOnClickListener(this);
+        binding.overlayPlayQueueButton.setOnClickListener(this);
         binding.overlayCloseButton.setOnClickListener(this);
         binding.overlayPlayPauseButton.setOnClickListener(this);
 
@@ -1123,7 +1123,7 @@ public final class VideoDetailFragment
             player.setRecovery();
         }
 
-        if (!useExternalAudioPlayer) {
+        if (!useExternalAudioPlayer && android.os.Build.VERSION.SDK_INT >= 16) {
             openNormalBackgroundPlayer(append);
         } else {
             final List<AudioStream> audioStreams = getUrlAndNonTorrentStreams(
@@ -2445,7 +2445,7 @@ public final class VideoDetailFragment
         binding.overlayMetadataLayout.setClickable(enable);
         binding.overlayMetadataLayout.setLongClickable(enable);
         binding.overlayButtonsLayout.setClickable(enable);
-		binding.overlayPlayQueueButton.setClickable(enable);
+        binding.overlayPlayQueueButton.setClickable(enable);
         binding.overlayPlayPauseButton.setClickable(enable);
         binding.overlayCloseButton.setClickable(enable);
     }

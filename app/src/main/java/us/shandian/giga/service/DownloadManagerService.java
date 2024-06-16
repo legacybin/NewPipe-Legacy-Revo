@@ -100,7 +100,7 @@ public class DownloadManagerService extends Service {
     private final ArrayList<Callback> mEchoObservers = new ArrayList<>(1);
 
     private ConnectivityManager mConnectivityManager;
-	private BroadcastReceiver mNetworkStateListener = null;
+    private BroadcastReceiver mNetworkStateListener = null;
     private ConnectivityManager.NetworkCallback mNetworkStateListenerL = null;
 
     private SharedPreferences mPrefs = null;
