@@ -1,5 +1,6 @@
 package org.schabi.newpipelegacy.streams.io;
 
+import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -73,6 +74,7 @@ public class StoredFileHelper implements Serializable {
         this.tag = tag;
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     StoredFileHelper(@Nullable final Context context, final DocumentFile tree,
                      final String filename, final String mime, final boolean safe)
             throws IOException {
@@ -122,6 +124,7 @@ public class StoredFileHelper implements Serializable {
         this.srcType = mime;
     }
 
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     public StoredFileHelper(final Context context, @Nullable final Uri parent,
                             @NonNull final Uri path, final String tag) throws IOException {
         this.tag = tag;

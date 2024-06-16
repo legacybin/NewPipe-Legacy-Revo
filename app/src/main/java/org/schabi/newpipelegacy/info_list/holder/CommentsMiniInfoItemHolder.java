@@ -12,6 +12,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.text.util.LinkifyCompat;
 
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
@@ -27,6 +28,7 @@ import org.schabi.newpipelegacy.util.PicassoHelper;
 import org.schabi.newpipelegacy.util.external_communication.ShareUtils;
 import org.schabi.newpipelegacy.util.external_communication.TimestampExtractor;
 
+import java.io.IOException;
 import java.util.regex.Matcher;
 
 public class CommentsMiniInfoItemHolder extends InfoItemHolder {
@@ -114,7 +116,14 @@ public class CommentsMiniInfoItemHolder extends InfoItemHolder {
         streamUrl = item.getUrl();
 
         itemContentView.setLines(COMMENT_DEFAULT_LINES);
-        commentText = item.getCommentText();
+        try {
+            commentText = item.getCommentText().getContent().replace("&nbsp;", "")
+                    .replace("<a href=", "").replace("</a>", " ")
+                    .replace("<br>", " ").replace("<b>", " ")
+                    .replace("</br>", " ").replace("</b>", " ");
+        } catch (Exception e) {
+            commentText = " ";
+        }
         itemContentView.setText(commentText, TextView.BufferType.SPANNABLE);
         itemContentView.setOnTouchListener(CommentTextOnTouchListener.INSTANCE);
 
