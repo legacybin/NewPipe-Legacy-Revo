@@ -22,7 +22,6 @@ on:
       - dev
       - develop
       - flora
-      - add-icelandic-latvian-malayalam-to-language-selector
       - revo
       - toss
       - legacy-4.0
