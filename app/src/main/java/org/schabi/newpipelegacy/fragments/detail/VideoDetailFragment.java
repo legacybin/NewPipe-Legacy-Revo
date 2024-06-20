@@ -936,8 +936,7 @@ public final class VideoDetailFragment
                             if (playQueue == null) {
                                 playQueue = new SinglePlayQueue(result);
                             }
-                            if (stack.isEmpty() || !stack.peek().getPlayQueue()
-                                    .equalStreams(playQueue)) {
+                            if (stack.isEmpty() || !stack.peek().getPlayQueue().equals(playQueue)) {
                                 stack.push(new StackItem(serviceId, url, title, playQueue));
                             }
                         }
@@ -1821,7 +1820,7 @@ public final class VideoDetailFragment
         // deleted/added items inside Channel/Playlist queue and makes possible to have
         // a history of played items
         @Nullable final StackItem stackPeek = stack.peek();
-        if (stackPeek != null && !stackPeek.getPlayQueue().equalStreams(queue)) {
+        if (stackPeek != null && !stackPeek.getPlayQueue().equals(queue)) {
             @Nullable final PlayQueueItem playQueueItem = queue.getItem();
             if (playQueueItem != null) {
                 stack.push(new StackItem(playQueueItem.getServiceId(), playQueueItem.getUrl(),
@@ -1887,7 +1886,7 @@ public final class VideoDetailFragment
         // They are not equal when user watches something in popup while browsing in fragment and
         // then changes screen orientation. In that case the fragment will set itself as
         // a service listener and will receive initial call to onMetadataUpdate()
-        if (!queue.equalStreams(playQueue)) {
+        if (!queue.equals(playQueue)) {
             return;
         }
 
@@ -2139,7 +2138,7 @@ public final class VideoDetailFragment
         final Iterator<StackItem> iterator = stack.descendingIterator();
         while (iterator.hasNext()) {
             final StackItem next = iterator.next();
-            if (next.getPlayQueue().equalStreams(queue)) {
+            if (next.getPlayQueue().equals(queue)) {
                 item = next;
                 break;
             }
@@ -2154,7 +2153,7 @@ public final class VideoDetailFragment
         if (isClearingQueueConfirmationRequired(activity)
                 && playerIsNotStopped()
                 && activeQueue != null
-                && !activeQueue.equalStreams(playQueue)) {
+                && !activeQueue.equals(playQueue)) {
             showClearingQueueConfirmation(onAllow);
         } else {
             onAllow.run();
