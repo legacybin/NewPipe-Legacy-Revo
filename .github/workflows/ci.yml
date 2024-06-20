@@ -6,6 +6,7 @@ on:
     branches:
       - dev
       - develop
+      - flora
       - revo
       - toss
       - legacy-4.0
@@ -20,6 +21,7 @@ on:
     branches:
       - dev
       - develop
+      - flora
       - revo
       - toss
       - legacy-4.0
