@@ -442,6 +442,7 @@
         <item>nl</item>
         <item>no</item>
         <item>uz</item>
+        <item>or</item>
         <item>pl</item>
         <item>pt-PT</item>
         <item>pt</item>
@@ -521,6 +522,7 @@
         <item>Nederlands</item>
         <item>Norsk</item>
         <item>O‘zbek</item>
+        <item>ଓଡ଼ିଆ</item>
         <item>Polski</item>
         <item>Português</item>
         <item>Português (Brasil)</item>
@@ -1111,6 +1113,7 @@
         <item>hy</item>
         <item>ia</item>
         <item>in</item>
+        <item>is</item>
         <item>it</item>
         <item>ja</item>
         <item>jv</item>
@@ -1119,13 +1122,16 @@
         <item>ko</item>
         <item>ku</item>
         <item>lt</item>
+        <item>lv</item>
         <item>mk</item>
+        <item>ml</item>
         <item>ms</item>
         <item>nb-no</item>
         <item>ne</item>
         <item>nl</item>
         <item>nl-be</item>
         <item>oc</item>
+        <item>or</item>
         <item>pa</item>
         <item>pl</item>
         <item>pt</item>
@@ -1190,6 +1196,7 @@
         <item>Հայերեն</item>
         <item>Interlingua</item>
         <item>Bahasa Indonesia</item>
+        <item>Íslenska</item>
         <item>Italiano</item>
         <item>日本語</item>
         <item>ꦧꦱꦗꦮ</item>
@@ -1198,13 +1205,16 @@
         <item>한국어</item>
         <item>کوردی</item>
         <item>Lietuvių kalba</item>
+        <item>latviski</item>
         <item>македонски јазик</item>
+        <item>മലയാളം</item>
         <item>Bahasa Melayu</item>
         <item>Norsk bokmål</item>
         <item>Nनेपाली</item>
         <item>Nederlands (NL)</item>
         <item>Nederlands (BE)</item>
         <item>Occitan</item>
+        <item>ଓଡ଼ିଆ</item>
         <item>ਪੰਜਾਬੀ</item>
         <item>Polski</item>
         <item>Português</item>
