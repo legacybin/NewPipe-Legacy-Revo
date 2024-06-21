@@ -664,7 +664,7 @@
     <string name="comments_are_disabled">ਟਿੱਪਣੀਆਂ ਬੰਦ ਕੀਤੀਆਂ ਹੋਈਆਂ ਹਨ</string>
     <string name="leak_canary_not_available">ਲੀਕ-ਕੈਨਰੀ ਉਪਲੱਬਧ ਨਹੀਂ ਹੈ</string>
     <string name="show_error_snackbar">ਤਰੁੱਟੀ ਤੇ ਸਨੈਕਬਾਰ ਵਿਖਾਓ</string>
-    <string name="feed_use_dedicated_fetch_method_summary">ਕੁਝ ਸੇਵਾਵਾਂ ਵਿੱਚ ਹੀ ਉਪਲੱਬਧ ਇਹ ਤਰੀਕਾ ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਫੀਡ ਵਿੱਚ ਤੇਜ ਜਾਣਕਾਰੀ ਮੁਹੱਈਆ ਕਰਵਾਉਂਦਾ ਹੈ, ਪਰ ਕੁਝ ਗਿਣਤੀ ਦੀਆਂ ਹੀ ਆਈਟਮ ਪ੍ਰਦਾਨ ਕਰ ਸਕਦਾ ਹੈ ਉਹ ਵੀ ਅਕਸਰ ਬਿਨਾਂ ਪੂਰੀ ਜਾਣਕਾਰੀ( ਜਿਵੇਂ ਅਵਧੀ, ਸਟਰੀਮ ਦੀ ਕਿਸਮ, ਕੋਈ ਸਟਰੀਮ ਲਾਈਵ ਹੈ, ਨਹੀਂ ਦੱਸਦਾ)</string>
+    <string name="feed_use_dedicated_fetch_method_summary">ਕੁਝ ਸੇਵਾਵਾਂ ਵਿੱਚ ਹੀ ਉਪਲੱਬਧ ਇਹ ਤਰੀਕਾ ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਫੀਡ ਵਿੱਚ ਤੇਜ ਜਾਣਕਾਰੀ ਮੁਹੱਈਆ ਕਰਵਾਉਂਦਾ ਹੈ, ਪਰ ਕੁਝ ਗਿਣਤੀ ਦੀਆਂ ਹੀ ਆਈਟਮ ਪ੍ਰਦਾਨ ਕਰ ਸਕਦਾ ਹੈ ਉਹ ਵੀ ਅਕਸਰ ਬਿਨਾਂ ਪੂਰੀ ਜਾਣਕਾਰੀ( ਜਿਵੇਂ ਅਵਧੀ, ਸਟ੍ਰੀਮ  ਦੀ ਕਿਸਮ, ਕੋਈ ਸਟ੍ਰੀਮ  ਲਾਈਵ ਹੈ, ਨਹੀਂ ਦੱਸਦਾ)</string>
     <string name="soundcloud_go_plus_content">ਇਹ ਸਾਊਂਡਕਲਾਊਡ ਗੋ-ਪਲੱਸ ਟਰੈਕ ਹੈ, ਤੁਹਾਡੇ ਦੇਸ਼ ਵਿੱਚ ਇਹ ਸਟ੍ਰੀਮ ਜਾਂ ਡਾਊਨਲੋਡ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ।</string>
     <string name="unknown_format">ਅਗਿਆਤ ਫਾਰਮੈਟ</string>
     <string name="unknown_quality">ਅਗਿਆਤ ਕੁਆਲਿਟੀ</string>
@@ -697,7 +697,6 @@
     <string name="selected_stream_external_player_not_supported">ਚੁਣੀ ਗਈ ਸਟ੍ਰੀਮ ਬਾਹਰੀ ਪਲੇਅਰਾਂ ਲਈ ਸਹਿਯੋਗੀ ਨਹੀਂ ਹੈ</string>
     <string name="streams_not_yet_supported_removed">ਜਿਹੜੀਆਂ ਸਟ੍ਰੀਮਾਂ ਦਾ ਹਾਲੇ ਐਪ ਡਾਊਨਲੋਡ ਸਮਰਥਨ ਨਹੀਂ ਕਰਦੀ ਉਹ ਛੁਪਾ ਦਿੱਤੀਆਂ ਗਈਆਂ ਹਨ</string>
     <string name="no_audio_streams_available_for_external_players">ਕੋਈ ਆਡੀਓ ਸਟ੍ਰੀਮ ਬਾਹਰੀ ਪਲੇਅਰਾਂ ਲਈ ਉਪਲੱਬਧ ਨਹੀਂ ਹੈ</string>
-    <string name="detail_sub_channel_thumbnail_view_description">ਚੈਨਲ ਦਾ ਅਵਤਾਰ ਥੰਮਨੇਲ</string>
     <string name="no_appropriate_file_manager_message_android_10">ਇਸ ਕਾਰਜ ਲਈ ਕੋਈ ਢੁਕਵਾਂ ਫਾਈਲ ਮੈਨੇਜਰ ਨਹੀਂ ਮਿਲਿਆ।
 \nਕ੍ਰਿਪਾ ਕਰਕੇ ਸਟੋਰੇਜ ਐਕਸਿਸ ਫਰੇਮਵਰਕ SAF ਅਨੁਕੂਲ ਫਾਈਲ ਮੈਨੇਜਰ ਇੰਨਸਟਾਲ ਕਰੋ</string>
     <string name="tablet_mode_title">ਟੈਬਲੇਟ ਮੋਡ</string>
