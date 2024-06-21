@@ -616,4 +616,105 @@
     <string name="notification_action_2_title">ਤੀਜਾ ਕਾਰਵਾਈ ਬਟਨ</string>
     <string name="notification_action_1_title">ਦੂਜਾ ਕਾਰਵਾਈ ਬਟਨ</string>
     <string name="notification_action_0_title">ਪਹਿਲਾ ਕਾਰਵਾਈ ਬਟਨ</string>
+    <string name="dont_show">ਨਾਂ ਵਿਖਾਓ</string>
+    <string name="on">ਚਾਲੂ ਕਰੋ</string>
+    <string name="enumeration_comma">,</string>
+    <plurals name="download_finished_notification">
+        <item quantity="one">ਡਾਉਨਲੋਡ ਕੀਤਾ</item>
+        <item quantity="other">%s ਡਾਉਨਲੋਡ ਕੀਤੇ</item>
+    </plurals>
+    <string name="off">ਬੰਦ ਕਰੋ</string>
+    <string name="enqueue_next_stream">ਕਤਾਰ ਵਿੱਚ ਅੱਗੇ ਸ਼ਾਮਿਲ ਕਰੋ</string>
+    <string name="settings_category_player_notification_title">ਪਲੇਅਰ ਨੋਟੀਫਿਕੇਸ਼ਨ</string>
+    <string name="settings_category_player_notification_summary">ਮੋਜੂਦਾ ਚੱਲ ਰਹੀ ਸਟ੍ਰੀਮ ਦੀ ਨੋਟੀਫਿਕੇਸ਼ਨ ਸੰਰਚਨਾ ਕਰੋ</string>
+    <string name="notifications">ਨੋਟੀਫਿਕੇਸ਼ਨ</string>
+    <string name="streams_notification_channel_name">ਨਵੀਂਆਂ ਸਟ੍ਰੀਮਾਂ</string>
+    <string name="streams_notification_channel_description">ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਦੁਆਰਾ ਨਵੀਂ ਸਟ੍ਰੀਮ ਦੇ ਨੋਟੀਫਿਕੇਸ਼ਨ</string>
+    <string name="error_report_notification_title">ਨਿਊਪਾਈਪ ਖਾਮੀ ਤੋਂ ਪ੍ਰਭਾਵਤ ਹੋਈ ਹੈ, ਇੱਥੇ ਨੱਪ ਕੇ ਰਿਪੋਰਟ ਕਰੋ</string>
+    <string name="error_report_notification_toast">ਇੱਕ ਖਾਮੀ ਪ੍ਰਭਾਵੀ ਹੋਈ ਹੈ, ਨੋਟੀਫੀਕੇਸ਼ਨ ਵੇਖੋ</string>
+    <string name="main_page_content_swipe_remove">ਆਈਟਮਾਂ ਨੂੰ ਇੱਕ ਪਾਸੇ ਖਿੱਚ ਕੇ ਹਟਾਓ</string>
+    <string name="show_image_indicators_title">ਦ੍ਰਿਸ਼ ਸੂਚਕ ਵਿਖਾਓ</string>
+    <string name="show_image_indicators_summary">ਵਿਖਾਊ ਪਿਕਾਸੋ ਦੇ ਰੰਗਦਾਰ ਰੀਬਨ ਦ੍ਰਿਸ਼ਾਂ ਦੇ ਉੱਪਰ ਉਹਨਾਂ ਦੀ ਸਰੋਤ-ਪਛਾਣ ਅਨੁਸਾਰ: ਨੈੱਟਵਰਕ ਲਈ ਲਾਲ, ਡਿਸਕ ਲਈ ਨੀਲਾ ਤੇ ਮੈਮਰੀ ਲਈ ਹਰਾ</string>
+    <string name="enable_streams_notifications_title">ਨਵੀਂ ਸਟ੍ਰੀਮ ਦੇ ਨੋਟੀਫਿਕੇਸ਼ਨ</string>
+    <string name="detail_pinned_comment_view_description">ਪਿੰਨ ਕੀਤੀ ਟਿੱਪਣੀ</string>
+    <string name="checking_updates_toast">ਅੱਪਡੇਟ ਦੀ ਉਪਲੱਬਧਤਾ ਪਰਖੀ ਜਾ ਰਹੀ…</string>
+    <string name="mark_as_watched">ਵੇਖਿਆ ਜਾ ਚੁੱਕਿਆ ਚਿੰਨਤ ਕਰੋ</string>
+    <string name="seekbar_preview_thumbnail_title">ਸੀਕਬਾਰ ਥੰਮਨੇਲ ਦੀ ਝਲਕ</string>
+    <string name="feed_update_threshold_summary">ਸਮਾਂ-ਅਵਧੀ ਜਦ ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਫੀਡ ਦੁਬਾਰਾ ਅੱਪਡੇਟ ਕੀਤੀ ਜਾ ਸਕੇ — %s</string>
+    <string name="detail_heart_img_view_description">ਰਚਨਾਕਾਰ ਨੇ ਦਿਲੋਂ ਪਸੰਦ ਕੀਤਾ</string>
+    <string name="progressive_load_interval_summary">ਪ੍ਰਗਤੀਸ਼ੀਲ ਸਮੱਗਰੀ ਉੱਤੇ ਲੋਡ ਅੰਤਰਾਲ ਆਕਾਰ ਬਦਲੋ (ਮੌਜੂਦਾ %s ਤੇ)। ਛੋਟੀ ਸੰਖਿਆ ਉਸਨੂੰ ਜਲਦੀ ਸ਼ੁਰੂ ਕਰਨ ਵਿੱਚ ਮੱਦਦ ਦੇ ਸਕਦੀ ਹੈ</string>
+    <string name="local_search_suggestions">ਖੋਜ ਦੇ ਸਥਾਨਕ ਸੁਝਾਅ</string>
+    <string name="remote_search_suggestions">ਖੋਜ ਦੇ ਰਿਮੋਟ ਸੁਝਾਅ</string>
+    <string name="start_main_player_fullscreen_title">ਮੁੱਖ ਪਲੇਅਰ ਪੂਰੀ ਸਕਰੀਨ ਵਿੱਚ ਸ਼ੁਰੂ ਕਰੋ</string>
+    <string name="progressive_load_interval_title">ਪਲੇਅਬੈਕ ਲੋਡ ਦਾ ਅੰਤਰਾਲ ਆਕਾਰ</string>
+    <plurals name="new_streams">
+        <item quantity="one">%s ਨਵੀਂ ਸਟ੍ਰੀਮ</item>
+        <item quantity="other">%s ਨਵੀਆਂ ਸਟ੍ਰੀਮਾਂ</item>
+    </plurals>
+    <string name="feed_new_items">ਨਵੀਂਆ ਫੀਡ ਇਕਾਈਆਂ</string>
+    <string name="get_notified">ਸੂਚਨਾ ਪ੍ਰਾਪਤ ਕਰੋ</string>
+    <string name="select_quality_external_players">ਬਾਹਰੀ ਪਲੇਅਰਾਂ ਲਈ ਕੁਆਲਿਟੀ ਚੁਣੋ</string>
+    <string name="error_report_channel_name">ਤਰੁੱਟੀ ਰਿਪੋਰਟ ਨੋਟੀਫਿਕੇਸ਼ਨ</string>
+    <string name="error_report_channel_description">ਖ਼ਾਮੀਆਂ ਰਿਪੋਰਟ ਕਰਨ ਲਈ ਨੋਟੀਫਿਕੇਸ਼ਨ</string>
+    <string name="comments_are_disabled">ਟਿੱਪਣੀਆਂ ਬੰਦ ਕੀਤੀਆਂ ਹੋਈਆਂ ਹਨ</string>
+    <string name="leak_canary_not_available">ਲੀਕ-ਕੈਨਰੀ ਉਪਲੱਬਧ ਨਹੀਂ ਹੈ</string>
+    <string name="show_error_snackbar">ਤਰੁੱਟੀ ਤੇ ਸਨੈਕਬਾਰ ਵਿਖਾਓ</string>
+    <string name="feed_use_dedicated_fetch_method_summary">ਕੁਝ ਸੇਵਾਵਾਂ ਵਿੱਚ ਹੀ ਉਪਲੱਬਧ ਇਹ ਤਰੀਕਾ ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਫੀਡ ਵਿੱਚ ਤੇਜ ਜਾਣਕਾਰੀ ਮੁਹੱਈਆ ਕਰਵਾਉਂਦਾ ਹੈ, ਪਰ ਕੁਝ ਗਿਣਤੀ ਦੀਆਂ ਹੀ ਆਈਟਮ ਪ੍ਰਦਾਨ ਕਰ ਸਕਦਾ ਹੈ ਉਹ ਵੀ ਅਕਸਰ ਬਿਨਾਂ ਪੂਰੀ ਜਾਣਕਾਰੀ( ਜਿਵੇਂ ਅਵਧੀ, ਸਟ੍ਰੀਮ ਦੀ ਕਿਸਮ, ਕੋਈ ਸਟ੍ਰੀਮ ਲਾਈਵ ਹੈ, ਨਹੀਂ ਦੱਸਦਾ)</string>
+    <string name="soundcloud_go_plus_content">ਇਹ ਸਾਊਂਡਕਲਾਊਡ ਗੋ-ਪਲੱਸ ਟਰੈਕ ਹੈ, ਤੁਹਾਡੇ ਦੇਸ਼ ਵਿੱਚ ਇਹ ਸਟ੍ਰੀਮ ਜਾਂ ਡਾਊਨਲੋਡ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ।</string>
+    <string name="unknown_format">ਅਗਿਆਤ ਫਾਰਮੈਟ</string>
+    <string name="unknown_quality">ਅਗਿਆਤ ਕੁਆਲਿਟੀ</string>
+    <string name="faq_title">ਆਮ ਸਵਾਲ</string>
+    <string name="faq">ਵੈੱਬਸਾਈਟ \'ਤੇ ਵੇਖੋ</string>
+    <string name="loading_stream_details">ਸਟ੍ਰੀਮ ਲੋਡ ਹੋ ਰਹੀ ਹੈ…</string>
+    <string name="processing_may_take_a_moment">ਕਾਰਵਾਈ ਵਿੱਚ... ਕੁਝ ਸਮਾਂ ਲੱਗ ਰਿਹਾ ਹੈ</string>
+    <string name="show_crash_the_player_title">\"ਪਲੇਅਰ ਕਰੈਸ਼ ਕਰੋ\" ਵਿਖਾਉ</string>
+    <string name="show_crash_the_player_summary">ਵਰਤਦੇ ਸਮੇਂ ਪਲੇਅਰ ਕਰੈਸ਼ ਦਾ ਵਿਕਲਪ ਵਿਖਾਉਂਦਾ ਹੈ</string>
+    <string name="check_new_streams">ਨਵੀਆਂ ਸਟ੍ਰੀਮਾਂ ਦੀ ਜਾਂਚ ਚਲਾਓ</string>
+    <string name="create_error_notification">ਤਰੁੱਟੀ ਨੋਟੀਫਿਕੇਸ਼ਨ ਬਣਾਓ</string>
+    <string name="percent">ਪ੍ਰਤੀਸ਼ਤ</string>
+    <string name="semitone">ਸੈਮੀਟੋਨ</string>
+    <string name="enable_streams_notifications_summary">ਸਬਸਕ੍ਰਾਈਬ ਕੀਤੇ ਚੈਨਲ ਉੱਪਰ ਨਵੀਂ ਸਟ੍ਰੀਮ ਉੱਪਲਬਧ ਹੋਣ ਤੇ ਨੋਟੀਫਿਕੇਸ਼ਨ ਰਾਹੀਂ ਸੂਚਿਤ ਕਰੋ</string>
+    <string name="streams_notifications_interval_title">ਜਾਂਚ ਅਵਧੀ</string>
+    <string name="any_network">ਕੋਈ ਵੀ ਨੈੱਟਵਰਕ</string>
+    <string name="manual_update_title">ਅੱਪਡੇਟ ਲਈ ਜਾਂਚ ਕਰੋ</string>
+    <string name="low_quality_smaller">ਘੱਟ ਗੁਣਵੱਤਾ (ਛੋਟਾ ਆਕਾਰ)</string>
+    <string name="delete_downloaded_files_confirm">ਡਿਸਕ ਤੋਂ ਸਾਰੀਆਂ ਡਾਊਨਲੋਡ ਕੀਤੀਆਂ ਫਾਈਲਾਂ ਹਟਾਓ\?</string>
+    <plurals name="deleted_downloads_toast">
+        <item quantity="one">%1$s ਡਾਊਨਲੋਡ ਹਟਾਇਆ</item>
+        <item quantity="other">%1$s ਡਾਊਨਲੋਡ ਹਟਾਏ</item>
+    </plurals>
+    <string name="detail_sub_channel_thumbnail_view_description">ਚੈਨਲ ਦਾ ਅਵਤਾਰ ਥੰਮਨੇਲ</string>
+    <string name="no_appropriate_file_manager_message_android_10">ਇਸ ਕਾਰਜ ਲਈ ਕੋਈ ਢੁਕਵਾਂ ਫਾਈਲ ਮੈਨੇਜਰ ਨਹੀਂ ਮਿਲਿਆ।
+\nਕ੍ਰਿਪਾ ਕਰਕੇ ਸਟੋਰੇਜ ਐਕਸਿਸ ਫਰੇਮਵਰਕ SAF ਅਨੁਕੂਲ ਫਾਈਲ ਮੈਨੇਜਰ ਇੰਸਟਾਲ ਕਰੋ</string>
+    <string name="tablet_mode_title">ਟੈਬਲੇਟ ਮੋਡ</string>
+    <string name="notifications_disabled">ਨੋਟੀਫਿਕੇਸ਼ਨ ਬੰਦ ਕੀਤੇ ਹੋਏ ਹਨ</string>
+    <string name="toggle_all">ਸਭ ਨੂੰ ਟੌਗਲ ਕਰੋ</string>
+    <string name="selected_stream_external_player_not_supported">ਚੁਣੀ ਗਈ ਸਟ੍ਰੀਮ ਬਾਹਰੀ ਪਲੇਅਰਾਂ ਲਈ ਸਹਿਯੋਗੀ ਨਹੀਂ ਹੈ</string>
+    <string name="streams_not_yet_supported_removed">ਜਿਹੜੀਆਂ ਸਟ੍ਰੀਮਾਂ ਦਾ ਹਾਲੇ ਐਪ ਡਾਊਨਲੋਡ ਸਮਰਥਨ ਨਹੀਂ ਕਰਦੀ ਉਹ ਛੁਪਾ ਦਿੱਤੀਆਂ ਗਈਆਂ ਹਨ</string>
+    <string name="no_audio_streams_available_for_external_players">ਕੋਈ ਆਡੀਓ ਸਟ੍ਰੀਮ ਬਾਹਰੀ ਪਲੇਅਰਾਂ ਲਈ ਉਪਲੱਬਧ ਨਹੀਂ ਹੈ</string>
+    <string name="sort">ਲੜੀਬੱਧ ਕਰੋ</string>
+    <string name="crash_the_player">ਪਲੇਅਰ ਕਰੈਸ਼ ਕਰੋ</string>
+    <string name="start_main_player_fullscreen_summary">ਵੀਡੀਓ ਮਿੰਨੀ ਪਲੇਅਰ ਚਲਾਉਣ ਦੀ ਵਜਾਏ ਪੂਰੇ ਸਕਰੀਨ ਵਿੱਚ ਚਲਾਉਂਦਾ ਹੈ। ਜੇ ਆਟੋ-ਰੋਟੇਸ਼ਨ ਲਾਕ ਹੈ ਮੇਨ-ਪਲੇਅਰ ਤੋਂ ਬਾਹਰ ਆਕੇ ਤੇ ਮਿੰਨੀ-ਪਲੇਅਰ ਤੱਕ ਰਸਾਈ ਹਾਸਿਲ ਕੀਤੀ ਜਾ ਸਕਦੀ ਹੈ</string>
+    <string name="faq_description">ਅਗਰ ਤੁਸੀਂ ਐਪ ਦੀ ਵਰਤੋਂ ਸਬੰਧੀ ਮੁਸ਼ਕਿਲਾਂ ਦਾ ਸਾਹਮਣਾ ਕਰ ਰਹੇ ਹੋ, ਤਾਂ ਇਹਨਾਂ ਆਮ ਸਵਾਲਾਂ ਦੇ ਜਵਾਬ ਜਾਣਨਾ ਨਾ ਭੁੱਲੋ!</string>
+    <string name="enqueued_next">ਕਤਾਰ ਵਿੱਚ ਅੱਗੇ ਲਗਾਇਆ ਗਿਆ</string>
+    <string name="streams_notifications_network_title">ਨੈੱਟਵਰਕ ਦੀ ਕਿਸਮ</string>
+    <string name="manual_update_description">ਨਵੇਂ ਸੰਸਕਰਣਾਂ ਲਈ ਹੱਥੀਂ ਜਾਂਚ ਕਰੋ</string>
+    <string name="high_quality_larger">ਵਧੀਆ ਗੁਣਵੱਤਾ (ਵੱਡਾ ਆਕਾਰ)</string>
+    <string name="no_appropriate_file_manager_message">ਇਸ ਕਾਰਜ ਲਈ ਕੋਈ ਢੁਕਵਾਂ ਫਾਈਲ ਮੈਨੇਜਰ ਨਹੀਂ ਮਿਲਿਆ।
+\nਕ੍ਰਿਪਾ ਕਰਕੇ ਫਾਈਲ ਮੈਨੇਜਰ ਇੰਨਸਟਾਲ ਕਰੋ ਜਾਂ ਡਾਊਨਲੋਡ ਸੈਟਿੰਗ ਵਿੱਚ \'%s\' ਅਸਮਰੱਥ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ</string>
+    <string name="you_successfully_subscribed">ਤੁਸੀਂ ਇਸ ਚੈਨਲ ਨੂੰ ਸਬਸਕ੍ਰਾਈਬ ਕਰ ਲਿਆ ਹੈ</string>
+    <string name="no_video_streams_available_for_external_players">ਕੋਈ ਵੀਡੀਓ ਸਟ੍ਰੀਮ ਬਾਹਰੀ ਪਲੇਅਰਾਂ ਲਈ ਉਪਲੱਬਧ ਨਹੀਂ ਹੈ</string>
+    <string name="progressive_load_interval_exoplayer_default">ਐਕਸੋਪਲੇਅਰ ਡਿਫਾਲਟ</string>
+    <string name="feed_use_dedicated_fetch_method_help_text">ਕੀ ਤੁਹਾਨੂੰ ਲੱਗਦਾ ਹੈ ਫੀਡ ਹੌਲੀ ਲੋਡ ਹੋ ਰਹੀ ਹੈ\? ਅਜਿਹਾ ਹੈ ਤਾਂ ਤੇਜ਼ ਫੀਡ ਕ੍ਰਿਆਸ਼ੀਲ ਕਰਕੇ ਵੇਖੋ (ਤੁਸੀਂ ਇਸਨੂੰ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਜਾ ਕੇ ਜਾਂ ਹੇਠਲਾ ਬਟਨ ਦੱਬ ਕੇ ਕਰ ਸਕਦੇ ਹੋ ) 
+\n 
+\nਨਿਊਪਾਈਪ ਫੀਡ ਲੋਡ ਕਰਨ ਲਈ ਦੋ ਤਰਾਂ ਦੀਆਂ ਵਿਧੀਆਂ ਦੀ ਪੇਸ਼ਕਸ਼ ਕਰਦੀ ਹੈ: 
+\n• ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਚੈਨਲ ਤੋਂ ਪੂਰੀ ਜਾਣਕਾਰੀ ਲੈਂਦੀ ਹੈ ਜੋ ਹੌਲ੍ਹੀ ਮਿਲਦੀ ਹੈ। 
+\n• ਸਮਰਪਿਤ ਸੇਵਾ ਅੰਤਮ ਬਿੰਦੂ ਤੋਂ, ਜੋ ਕਿ ਤੇਜ਼ ਮਿਲਦੀ ਹੈ ਪਰ ਆਮਤੌਰ ਤੇ ਅਧੂਰੀ/ਅਣਸਟੀਕ ਹੁੰਦੀ ਹੈ। 
+\n 
+\nਇਨਾਂ ਦੋਹਾਂ ਵਿੱਚ ਫਰਕ ਇਹ ਹੁੰਦਾ ਹੈ ਕਿ ਤੇਜ਼ ਤਰੀਕਾ ਆਮ ਤੌਰ ਤੇ ਕੁਝ ਜਾਣਕਾਰੀ ਨਹੀਂ ਦੇ ਪਾਉਂਦਾ ਜਿਵੇਂ ਕਿ ਨਗਾਂ ਦੀ ਅਵਧੀ ਜਾਂ ਕਿਸਮ(ਕਿ ਵੀਡੀਓ ਲਾਈਵ ਹਨ ਜਾਂ ਆਮ) ਤੇ ਘੱਟ ਨਗ ਦਿਖ ਸਕਦੇ ਹਨ। 
+\n 
+\nਯੂਟਿਊਬ ਇੱਕ ਅਜਿਹੀ ਸੇਵਾ ਹੈ ਜਿਹੜੀ RSS ਫੀਡ ਜ਼ਰੀਏ ਇਹ ਤੇਜ਼ ਤਰੀਕਾ ਪ੍ਰਦਾਨ ਕਰਦੀ ਹੈ।
+\n 
+\nਤੁਹਾਡੀ ਚੋਣ ਇਸ ਗੱਲ ਤੇ ਮੁਨੱਸਰ ਕਰਦੀ ਹੈ ਕਿ ਤੁਸੀਂ ਗਤੀ ਤੇ ਸਟੀਕਤਾ ਵਿੱਚੋਂ ਕਿਸ ਨੂੰ ਪ੍ਰਾਥਮਿਕਤਾ ਦਿੰਦੇ ਹੋ।</string>
+    <string name="fast_mode">ਤੇਜ ਮੋਡ</string>
 </resources>
