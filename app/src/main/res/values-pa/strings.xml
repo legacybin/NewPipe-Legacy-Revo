@@ -697,14 +697,6 @@
     <string name="selected_stream_external_player_not_supported">ਚੁਣੀ ਗਈ ਸਟ੍ਰੀਮ ਬਾਹਰੀ ਪਲੇਅਰਾਂ ਲਈ ਸਹਿਯੋਗੀ ਨਹੀਂ ਹੈ</string>
     <string name="streams_not_yet_supported_removed">ਜਿਹੜੀਆਂ ਸਟ੍ਰੀਮਾਂ ਦਾ ਹਾਲੇ ਐਪ ਡਾਊਨਲੋਡ ਸਮਰਥਨ ਨਹੀਂ ਕਰਦੀ ਉਹ ਛੁਪਾ ਦਿੱਤੀਆਂ ਗਈਆਂ ਹਨ</string>
     <string name="no_audio_streams_available_for_external_players">ਕੋਈ ਆਡੀਓ ਸਟ੍ਰੀਮ ਬਾਹਰੀ ਪਲੇਅਰਾਂ ਲਈ ਉਪਲੱਬਧ ਨਹੀਂ ਹੈ</string>
-    <string name="no_appropriate_file_manager_message_android_10">ਇਸ ਕਾਰਜ ਲਈ ਕੋਈ ਢੁਕਵਾਂ ਫਾਈਲ ਮੈਨੇਜਰ ਨਹੀਂ ਮਿਲਿਆ।
-\nਕ੍ਰਿਪਾ ਕਰਕੇ ਸਟੋਰੇਜ ਐਕਸਿਸ ਫਰੇਮਵਰਕ SAF ਅਨੁਕੂਲ ਫਾਈਲ ਮੈਨੇਜਰ ਇੰਨਸਟਾਲ ਕਰੋ</string>
-    <string name="tablet_mode_title">ਟੈਬਲੇਟ ਮੋਡ</string>
-    <string name="notifications_disabled">ਨੋਟੀਫਿਕੇਸ਼ਨ ਬੰਦ ਕੀਤੇ ਹੋਏ ਹਨ</string>
-    <string name="toggle_all">ਸਭ ਨੂੰ ਟੌਗਲ ਕਰੋ</string>
-    <string name="selected_stream_external_player_not_supported">ਚੁਣੀ ਸਟਰੀਮ ਬਾਹਰੀ ਪਲੇਅਰਾਂ ਲਈ ਸਹਿਯੋਗੀ ਨਹੀਂ ਹੈ</string>
-    <string name="streams_not_yet_supported_removed">ਜਿਹੜੀਆਂ ਸਟਰੀਮਾਂ ਨੂੰ ਹਾਲੇ ਐਪ ਡਾਊਨਲੋਡ ਸਮਰਥਨ ਨਹੀਂ ਕਰਦੀ ਉਹ ਛੁਪਾ ਦਿੱਤੀਆਂ ਹਨ</string>
-    <string name="no_audio_streams_available_for_external_players">ਕੋਈ ਆਡੀਓ ਸਟਰੀਮ ਬਾਹਰੀ ਪਲੇਅਰਾਂ ਲਈ ਉਪਲੱਬਧ ਨਹੀਂ ਹੈ</string>
     <string name="sort">ਲੜੀਬੱਧ ਕਰੋ</string>
     <string name="crash_the_player">ਪਲੇਅਰ ਕਰੈਸ਼ ਕਰੋ</string>
     <string name="start_main_player_fullscreen_summary">ਵੀਡੀਓ ਮਿੰਨੀ ਪਲੇਅਰ ਚਲਾਉਣ ਦੀ ਵਜਾਏ ਪੂਰੇ ਸਕਰੀਨ ਵਿੱਚ ਚਲਾਉਂਦਾ ਹੈ। ਜੇ ਆਟੋ-ਰੋਟੇਸ਼ਨ ਲਾਕ ਹੈ ਮੇਨ-ਪਲੇਅਰ ਤੋਂ ਬਾਹਰ ਆਕੇ ਤੇ ਮਿੰਨੀ-ਪਲੇਅਰ ਤੱਕ ਰਸਾਈ ਹਾਸਿਲ ਕੀਤੀ ਜਾ ਸਕਦੀ ਹੈ</string>
