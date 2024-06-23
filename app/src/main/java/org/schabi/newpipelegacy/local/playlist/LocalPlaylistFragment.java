@@ -350,7 +350,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
         if (item.getItemId() == R.id.menu_item_share_playlist) {
-            sharePlaylist();
+            createShareConfirmationDialog();
         } else if (item.getItemId() == R.id.menu_item_rename_playlist) {
             createRenameDialog();
         } else if (item.getItemId() == R.id.menu_item_remove_watched) {
@@ -376,15 +376,33 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
 
     /**
      * Share the playlist as a newline-separated list of stream URLs.
+     * Shares the playlist as a list of stream URLs if {@code shouldSharePlaylistDetails} is
+     * set to {@code false}. Shares the playlist name along with a list of video titles and URLs
+     * if {@code shouldSharePlaylistDetails} is set to {@code true}.
+     *
+     * @param shouldSharePlaylistDetails Whether the playlist details should be included in the
+     *                                   shared content.
      */
-    public void sharePlaylist() {
+    private void sharePlaylist(final boolean shouldSharePlaylistDetails) {
+        final Context context = requireContext();
+
         disposables.add(playlistManager.getPlaylistStreams(playlistId)
                 .flatMapSingle(playlist -> Single.just(playlist.stream()
                         .map(PlaylistStreamEntry::getStreamEntity)
-                        .map(StreamEntity::getUrl)
+                        .map(streamEntity -> {
+                            if (shouldSharePlaylistDetails) {
+                                return context.getString(R.string.video_details_list_item,
+                                        streamEntity.getTitle(), streamEntity.getUrl());
+                            } else {
+                                return streamEntity.getUrl();
+                            }
+                        })
                         .collect(Collectors.joining("\n"))))
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(urlsText -> ShareUtils.shareText(requireContext(), name, urlsText),
+                .subscribe(urlsText -> ShareUtils.shareText(
+                                context, name, shouldSharePlaylistDetails
+                                        ? context.getString(R.string.share_playlist_content_details,
+                                        name, urlsText) : urlsText),
                         throwable -> showUiErrorSnackbar(this, "Sharing playlist", throwable)));
     }
 
@@ -824,6 +842,25 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
             }
         }
         return new SinglePlayQueue(streamInfoItems, index);
+    }
+
+    /**
+     * Creates a dialog to confirm whether the user wants to share the playlist
+     * with the playlist details or just the list of stream URLs.
+     * After the user has made a choice, the playlist is shared.
+     */
+    private void createShareConfirmationDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.share_playlist)
+                .setMessage(R.string.share_playlist_with_titles_message)
+                .setCancelable(true)
+                .setPositiveButton(R.string.share_playlist_with_titles, (dialog, which) ->
+                    sharePlaylist(/* shouldSharePlaylistDetails= */ true)
+                )
+                .setNegativeButton(R.string.share_playlist_with_list, (dialog, which) ->
+                    sharePlaylist(/* shouldSharePlaylistDetails= */ false)
+                )
+                .show();
     }
 }
 
