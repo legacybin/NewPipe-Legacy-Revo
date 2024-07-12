@@ -172,7 +172,7 @@
                         android:layout_marginEnd="30dp"
                         android:layout_marginRight="30dp"
                         android:ellipsize="end"
-                        android:maxLines="1"
+                        android:maxLines="2"
                         android:paddingTop="12dp"
                         android:paddingBottom="8dp"
                         android:textAppearance="?android:attr/textAppearanceLarge"
