@@ -9,10 +9,10 @@ plugins {
 
 android {
     compileSdk 31
-    buildToolsVersion '30.0.3'
+    namespace 'org.schabi.newpipelegacy'
 
     defaultConfig {
-        applicationId "org.schabi.newpipe"
+        applicationId "org.schabi.newpipelegacy"
         resValue "string", "app_name", "NewPipe"
         minSdk 16
         targetSdk 29
@@ -62,8 +62,8 @@ android {
             shrinkResources true // could be disabled to fix F-Droid's reproducible build
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             archivesBaseName = 'app'
-            applicationIdSuffix ".legacy"
-            resValue "string", "app_name", "NewPipe " + "Legacy"
+            applicationIdSuffix ".basic"
+            resValue "string", "app_name", "NewPipe " + "Basic"
         }
     }
 
@@ -103,7 +103,7 @@ ext {
     checkstyleVersion = '10.3.1'
 
     androidxLifecycleVersion = '2.3.1'
-    androidxRoomVersion = '2.4.2'
+    androidxRoomVersion = '2.4.3'
     androidxWorkVersion = '2.7.1'
 
     icepickVersion = '3.2.0'
@@ -184,7 +184,7 @@ sonarqube {
 
 dependencies {
 /** Desugaring **/
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.6'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.0.3'
 
 /** NewPipe libraries **/
     // You can use a local version by uncommenting a few lines in settings.gradle
@@ -283,6 +283,9 @@ dependencies {
 
     // Date and time formatting
     implementation "org.ocpsoft.prettytime:prettytime:5.0.8.Final"
+
+    // Conscrypt libraries
+    implementation "org.conscrypt:conscrypt-android:2.5.2"
 
 /** Debugging **/
     // Memory leak detection
