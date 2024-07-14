@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
     branches:
+      - basic
       - dev
       - develop
       - flora
@@ -19,6 +20,7 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
   push:
     branches:
+      - basic
       - dev
       - develop
       - flora
