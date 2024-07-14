@@ -62,8 +62,8 @@ android {
             shrinkResources true // could be disabled to fix F-Droid's reproducible build
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             archivesBaseName = 'app'
-            applicationIdSuffix ".flora"
-            resValue "string", "app_name", "NewPipe " + "Flora"
+            applicationIdSuffix ".legacy"
+            resValue "string", "app_name", "NewPipe " + "Legacy"
         }
     }
 
