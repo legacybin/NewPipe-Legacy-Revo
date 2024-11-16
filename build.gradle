@@ -3,9 +3,8 @@
 buildscript {
     ext.kotlin_version = '1.4.10'
     repositories {
-        google()
         mavenCentral()
-        jcenter()
+        google()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.2.2'
@@ -20,7 +19,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        jcenter()
         maven { url "https://jitpack.io" }
         maven { url "https://clojars.org/repo" }
     }
