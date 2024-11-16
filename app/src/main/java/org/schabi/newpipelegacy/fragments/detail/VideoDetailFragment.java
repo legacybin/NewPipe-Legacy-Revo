@@ -584,7 +584,7 @@ public final class VideoDetailFragment
                     Player.DEFAULT_CONTROLS_DURATION, 180);
             binding.detailSecondaryControlPanel.setVisibility(View.VISIBLE);
         } else {
-            binding.detailVideoTitleView.setMaxLines(1);
+            binding.detailVideoTitleView.setMaxLines(2);
             animateRotation(binding.detailToggleSecondaryControlsView,
                     Player.DEFAULT_CONTROLS_DURATION, 0);
             binding.detailSecondaryControlPanel.setVisibility(View.GONE);
@@ -1438,7 +1438,7 @@ public final class VideoDetailFragment
         animate(binding.positionView, false, 50);
 
         binding.detailVideoTitleView.setText(title);
-        binding.detailVideoTitleView.setMaxLines(1);
+        binding.detailVideoTitleView.setMaxLines(2);
         animate(binding.detailVideoTitleView, true, 0);
 
         binding.detailToggleSecondaryControlsView.setVisibility(View.GONE);
