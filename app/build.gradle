@@ -18,7 +18,7 @@ android {
         minSdkVersion 16
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 29
-        versionCode 130
+        versionCode 13
         versionName "0.21.3"
 
         multiDexEnabled true
@@ -268,7 +268,7 @@ dependencies {
     implementation "com.jakewharton.rxbinding4:rxbinding:4.0.0"
 
     // Date and time formatting
-    implementation "org.ocpsoft.prettytime:prettytime:5.0.7.Final"
+    implementation "org.ocpsoft.prettytime:prettytime:5.0.8.Final"
 
 /** Debugging **/
     // Memory leak detection
