@@ -18,7 +18,7 @@ android {
         minSdkVersion 16
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 29
-        versionCode 13
+        versionCode 130
         versionName "0.21.3"
 
         multiDexEnabled true
@@ -113,7 +113,7 @@ ext {
     icepickVersion = '3.2.0'
     exoPlayerVersion = 'r2.12.3'
     googleAutoServiceVersion = '1.0-rc7'
-    groupieVersion = '1.0.0'
+    groupieVersion = '2.8.1'
     markwonVersion = '4.6.0'
 
     leakCanaryVersion = '2.5'
@@ -243,8 +243,8 @@ dependencies {
     kapt "com.google.auto.service:auto-service:${googleAutoServiceVersion}"
 
     // Manager for complex RecyclerView layouts
-    implementation " com.github.knasirayaz.groupie:library:${groupieVersion}" 
-    implementation " com.github.knasirayaz.groupie:library-viewbinding:${groupieVersion}"
+    implementation "com.github.whistlingwoods.groupie:library:${groupieVersion}"
+    implementation "com.github.whistlingwoods.groupie:library-viewbinding:${groupieVersion}"
 
     // Circular ImageView
     implementation "de.hdodenhof:circleimageview:3.1.0"
