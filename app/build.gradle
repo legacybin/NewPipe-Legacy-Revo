@@ -13,8 +13,8 @@ android {
         minSdkVersion 16
 		//noinspection ExpiredTargetSdkVersion
         targetSdkVersion 29
-        versionCode 113
-        versionName "0.19.9.7"
+        versionCode 114
+        versionName "0.19.9.8"
 
         multiDexEnabled true
 
@@ -172,7 +172,6 @@ dependencies {
     // name and the commit hash with the commit hash of the (pushed) commit you want to test
     // This works thanks to JitPack: https://jitpack.io/
     implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
-    //implementation 'com.github.ShareASmile.NewPipeExtractor:NewPipeExtractor:v0.22.7.3'
     implementation 'com.github.ShareASmile:NewPipeExtractor:0b889c000c99e1f1ba302e9c4310ed0eea585fd0'
 
 /** Third-party libraries **/
