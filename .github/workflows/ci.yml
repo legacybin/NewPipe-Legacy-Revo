@@ -4,11 +4,14 @@ on:
   workflow_dispatch:
   pull_request:
     branches:
-      - conscript
       - dev
       - develop
+      - flora
+      - flora-conscrypt
       - revo
+      - revo-conscrypt
       - toss
+      - toss-conscrypt
       - legacy-4.0
     paths-ignore:
       - 'README.md'
@@ -19,11 +22,14 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
   push:
     branches:
-      - conscript
       - dev
       - develop
+      - flora
+      - flora-conscrypt
       - revo
+      - revo-conscrypt
       - toss
+      - toss-conscrypt
       - legacy-4.0
     paths-ignore:
       - 'README.md'
@@ -38,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: gradle/wrapper-validation-action@v1
 
       - name: create and checkout branch
@@ -47,7 +53,7 @@ jobs:
         run: git checkout -B ${{ github.head_ref }}
 
       - name: set up JDK 11
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 11
           distribution: "temurin"
@@ -57,7 +63,7 @@ jobs:
         run: ./gradlew assembleDebug lintDebug --stacktrace -DskipFormatKtlint
 
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app
           path: app/build/outputs/apk/debug/*.apk
@@ -71,10 +77,10 @@ jobs:
 #        # api-level 16 is min sdk, but throws errors related to desugaring
 #        api-level: [ 21, 29 ]
 #    steps:
-#      - uses: actions/checkout@v3
+#      - uses: actions/checkout@v4
 #
 #      - name: set up JDK 11
-#        uses: actions/setup-java@v3
+#        uses: actions/setup-java@v4
 #        with:
 #          java-version: 11
 #          distribution: "temurin"
@@ -91,25 +97,25 @@ jobs:
 #   sonar:
 #     runs-on: ubuntu-latest
 #     steps:
-#       - uses: actions/checkout@v3
+#       - uses: actions/checkout@v4
 #         with:
 #           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 # 
 #       - name: Set up JDK 11
-#         uses: actions/setup-java@v3
+#         uses: actions/setup-java@v4
 #         with:
 #           java-version: 11 # Sonar requires JDK 11
 #           distribution: "temurin"
 
 #       - name: Cache SonarCloud packages
-#         uses: actions/cache@v3
+#         uses: actions/cache@v4
 #         with:
 #           path: ~/.sonar/cache
 #           key: ${{ runner.os }}-sonar
 #           restore-keys: ${{ runner.os }}-sonar
 # 
 #       - name: Cache Gradle packages
-#         uses: actions/cache@v3
+#         uses: actions/cache@v4
 #         with:
 #           path: ~/.gradle/caches
 #           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
